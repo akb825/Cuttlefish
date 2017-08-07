@@ -491,7 +491,7 @@ Image Image::convert(PixelFormat format) const
 	switch (format)
 	{
 		case PixelFormat::Gray8:
-			image.m_impl = Impl::create(FreeImage_ConvertToGreyscale(m_impl->image));
+			image.m_impl = Impl::create(FreeImage_ConvertTo8Bits(m_impl->image));
 			break;
 		case PixelFormat::RGB5:
 			image.m_impl = Impl::create(FreeImage_ConvertTo16Bits555(m_impl->image));
