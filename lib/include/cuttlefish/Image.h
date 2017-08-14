@@ -29,7 +29,7 @@
 namespace cuttlefish
 {
 
-struct Color;
+struct ColorRGBAd;
 
 /**
  * @brief Class to store the data for and manipulate source images.
@@ -37,6 +37,8 @@ struct Color;
  * Loading an image is the first step for creating a texture. It is loaded from a source image file
  * (such as a PNG) then transformed as desired, such as resizing or flipping the image. Afterward,
  * one or more images will be added to a Texture.
+ *
+ * @remark The coordinate (0, 0) is the upper-left of the image.
  */
 class CUTTLEFISH_EXPORT Image
 {
@@ -70,7 +72,7 @@ public:
 	 */
 	enum class ResizeFilter
 	{
-		Nearest,   ///< Nearest-neighbor sampling.
+		Box,       ///< Averages all pixels in the box.
 		Linear,    ///< Linear sampling.
 		Cubic,     ///< Cubic curve sampling.
 		CatmullRom ///< Catmull-Rom curve fitting.
@@ -249,8 +251,28 @@ public:
 	const void* scanline(unsigned int y) const;
 
 	/**
+	 * @brief Gets a pixel as a floating point value.
+	 * @remark This will work with any image format.
+	 * @param[out] outColor The color of the pixel.
+	 * @param x The X coordinate of the image.
+	 * @param y The Y coordinate of the image.
+	 * @return False if the pixel is out of range.
+	 */
+	bool getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const;
+
+	/**
+	 * @brief Sets a pixel as a floating point value.
+	 * @remark This will work with any image format.
+	 * @remark Conversion to grayscale will be automatic for PixelFormat::Gray8.
+	 * @param x The X coordinate of the image.
+	 * @param y The Y coordinate of the image.
+	 * @param color The color of the pixel.
+	 * @return False if the pixel is out of range.
+	 */
+	bool setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color);
+
+	/**
 	 * @brief Converts the image to another pixel format.
-	 * @remark Floating point color images cannot be converted to integer color images.
 	 * @param format The new pixel format.
 	 * @return The converted image.
 	 */
@@ -259,6 +281,7 @@ public:
 	/**
 	 * @brief Resizes an image.
 	 * @remark In some situations the format may change.
+	 * @remark Int*, UInt32, Double, and Complex types may only use Nearest and Linear filters.
 	 * @param width The new width of the image.
 	 * @param height The new height of the image.
 	 * @param filter The filter to use for resizing.
@@ -285,6 +308,23 @@ public:
 	 * @return False if the image was invalid.
 	 */
 	bool flipVertical();
+
+	/**
+	 * @brief Pre-multiplies the alpha values with the color values in place.
+	 * @return False if the image was invalid.
+	 */
+	bool preMultiplyAlpha();
+
+	/**
+	 * @brief Converts from sRGB color space to linear color space.
+	 *
+	 * This will affect every channel except the alpha channel.
+	 *
+	 * @remark This will reduce the precision for percieved color values, so it's not recommended
+	 * for 8 bits per channel or less.
+	 * @return False if the image was invalid.
+	 */
+	bool linearize();
 
 private:
 	struct Impl;

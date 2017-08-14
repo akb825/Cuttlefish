@@ -76,6 +76,17 @@ struct ColorRGBAf
 };
 
 /**
+ * @brief Structure containing a 4 channel double-precision floating point color.
+ */
+struct ColorRGBAd
+{
+	double r; ///< @brief The red channel.
+	double g; ///< @brief The green channel.
+	double b; ///< @brief The blue channel.
+	double a; ///< @brief The alpha channel.
+};
+
+/**
  * @brief Structure containing a complex number.
  */
 struct Complex
@@ -83,5 +94,18 @@ struct Complex
 	double r; ///< @brief The real component.
 	double i; ///< @brief The imaginary component.
 };
+
+/**
+ * @brief Converts a color to grayscale.
+ * @param r The red channel.
+ * @param g The green channel.
+ * @param b The blue channel.
+ * @return The grayscale value.
+ */
+inline double toGrayscale(double r, double g, double b)
+{
+	// Rec. 709
+	return r*0.2126 + g*0.7152 + b*0.0722;
+}
 
 } // namespace cuttlefish
