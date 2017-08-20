@@ -85,6 +85,24 @@ set(SQUISH_SRCS
 	${SQUISH_DIR}/simd_sse.h
 	${SQUISH_DIR}/simd_ve.h)
 
+set(IMAGE_DIR ${NVTT_DIR}/src/nvimage)
+set(IMAGE_SRCS
+	${IMAGE_DIR}/BlockDXT.cpp
+	${IMAGE_DIR}/BlockDXT.h
+	${IMAGE_DIR}/ColorBlock.cpp
+	${IMAGE_DIR}/ColorBlock.h
+	${IMAGE_DIR}/Image.cpp
+	${IMAGE_DIR}/Image.h)
+
+set(COMPRESS_DIR ${NVTT_DIR}/src/nvtt)
+set(COMPRESS_SRCS
+	${COMPRESS_DIR}/OptimalCompressDXT.cpp
+	${COMPRESS_DIR}/OptimalCompressDXT.h
+	${COMPRESS_DIR}/QuickCompressDXT.cpp
+	${COMPRESS_DIR}/QuickCompressDXT.h
+	${COMPRESS_DIR}/SingleColorLookup.cpp
+	${COMPRESS_DIR}/SingleColorLookup.h)
+
 # configuration file
 INCLUDE(CheckIncludeFiles)
 
@@ -102,5 +120,7 @@ set(ALL_NVTT_SOURCES
 	${MATH_SRCS}
 	${BC6H_SRCS}
 	${BC7_SRCS}
-	${SQUISH_SRCS})
+	${SQUISH_SRCS}
+	${IMAGE_SRCS}
+	${COMPRESS_SRCS})
 set(NVTT_INCLUDE_DIRS ${NVTT_DIR}/src ${NVTT_DIR}/extern/poshlib)

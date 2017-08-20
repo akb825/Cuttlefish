@@ -18,10 +18,10 @@
 
 #include <cuttlefish/Config.h>
 
-#if CUTTLEFISH_HAS_ASTC
+#if CUTTLEFISH_HAS_S3TC
 
 namespace cuttlefish
 {
 } // namespace cuttlefish
 
-#endif // CUTTLEFISH_HAS_ASTC
+#endif // CUTTLEFISH_HAS_S3TC

@@ -15,6 +15,9 @@
  */
 
 #include "AstcCompress.h"
+
+#if CUTTLEFISH_HAS_ASTC
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -66,3 +69,5 @@ void astc_codec_internal_error(const char *filename, int linenum)
 namespace cuttlefish
 {
 } // namespace cuttlefish
+
+#endif // CUTTLEFISH_HAS_ASTC

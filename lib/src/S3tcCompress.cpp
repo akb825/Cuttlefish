@@ -14,14 +14,38 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "S3tcCompress.h"
 
-#include <cuttlefish/Config.h>
+#if CUTTLEFISH_HAS_S3TC
 
-#if CUTTLEFISH_HAS_ASTC
+#if CUTTLEFISH_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wexpansion-to-defined"
+#endif
+
+#include "nvimage/ImageIO.h"
+#include "nvtt/squish/colourset.h"
+#include "nvtt/squish/weightedclusterfit.h"
+#include "nvtt/OptimalCompressDXT.h"
+#include "nvtt/QuickCompressDXT.h"
+
+#if CUTTLEFISH_CLANG
+#pragma GCC diagnostic pop
+#endif
+
+// Stub out functions.
+namespace nv
+{
+
+Image* ImageIO::load(const char*)
+{
+	return nullptr;
+}
+
+} // namespace nv
 
 namespace cuttlefish
 {
 } // namespace cuttlefish
 
-#endif // CUTTLEFISH_HAS_ASTC
+#endif // CUTTLEFISH_HAS_S3TC
