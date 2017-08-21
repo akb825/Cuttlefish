@@ -23,14 +23,14 @@ namespace cuttlefish
 
 struct ImageTestInfo
 {
-	ImageTestInfo(Image::PixelFormat _format, double _epsilon, unsigned int _channels)
+	ImageTestInfo(Image::Format _format, double _epsilon, unsigned int _channels)
 		: format(_format)
 		, epsilon(_epsilon)
 		, channels(_channels)
 	{
 	}
 
-	Image::PixelFormat format;
+	Image::Format format;
 	double epsilon;
 	unsigned int channels;
 };
@@ -99,14 +99,14 @@ static bool colorsEqual(const ColorRGBAd& expected, const ColorRGBAd& color,
 	return true;
 }
 
-static bool shouldDivide(Image::PixelFormat format)
+static bool shouldDivide(Image::Format format)
 {
 	switch (format)
 	{
-		case Image::PixelFormat::Int16:
-		case Image::PixelFormat::UInt16:
-		case Image::PixelFormat::Int32:
-		case Image::PixelFormat::UInt32:
+		case Image::Format::Int16:
+		case Image::Format::UInt16:
+		case Image::Format::Int32:
+		case Image::Format::UInt32:
 			return false;
 		default:
 			return true;
@@ -120,7 +120,7 @@ TEST_P(ImageTest, Initialize)
 	EXPECT_FALSE(image);
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 	EXPECT_TRUE(image);
-	EXPECT_EQ(imageInfo.format, image.pixelFormat());
+	EXPECT_EQ(imageInfo.format, image.format());
 	EXPECT_EQ(10U, image.width());
 	EXPECT_EQ(15U, image.height());
 
@@ -163,9 +163,9 @@ TEST_P(ImageTest, GetSetPixel)
 TEST(ResizeFallbackTest, Box)
 {
 	Image floatImage;
-	EXPECT_TRUE(floatImage.initialize(Image::PixelFormat::Float, 12, 16));
+	EXPECT_TRUE(floatImage.initialize(Image::Format::Float, 12, 16));
 	Image doubleImage;
-	EXPECT_TRUE(doubleImage.initialize(Image::PixelFormat::Double, 12, 16));
+	EXPECT_TRUE(doubleImage.initialize(Image::Format::Double, 12, 16));
 
 	for (unsigned int y = 0; y < floatImage.height(); ++y)
 	{
@@ -220,9 +220,9 @@ TEST(ResizeFallbackTest, Box)
 TEST(ResizeFallbackTest, Linear)
 {
 	Image floatImage;
-	EXPECT_TRUE(floatImage.initialize(Image::PixelFormat::Float, 12, 16));
+	EXPECT_TRUE(floatImage.initialize(Image::Format::Float, 12, 16));
 	Image doubleImage;
-	EXPECT_TRUE(doubleImage.initialize(Image::PixelFormat::Double, 12, 16));
+	EXPECT_TRUE(doubleImage.initialize(Image::Format::Double, 12, 16));
 
 	for (unsigned int y = 0; y < floatImage.height(); ++y)
 	{
@@ -277,9 +277,9 @@ TEST(ResizeFallbackTest, Linear)
 TEST(RotateFallbackTest, Rotate90)
 {
 	Image floatImage;
-	EXPECT_TRUE(floatImage.initialize(Image::PixelFormat::Float, 12, 16));
+	EXPECT_TRUE(floatImage.initialize(Image::Format::Float, 12, 16));
 	Image doubleImage;
-	EXPECT_TRUE(doubleImage.initialize(Image::PixelFormat::Double, 12, 16));
+	EXPECT_TRUE(doubleImage.initialize(Image::Format::Double, 12, 16));
 
 	for (unsigned int y = 0; y < floatImage.height(); ++y)
 	{
@@ -415,21 +415,21 @@ TEST_P(ImageTest, FlipVertical)
 INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 	ImageTest,
 	testing::Values(
-		ImageTestInfo(Image::PixelFormat::Gray8, 1/255.0, 0),
-		ImageTestInfo(Image::PixelFormat::RGB5, 1/31.0, 3),
-		ImageTestInfo(Image::PixelFormat::RGB565, 1/31.0, 3),
-		ImageTestInfo(Image::PixelFormat::RGB8, 1/255.0, 3),
-		ImageTestInfo(Image::PixelFormat::RGB16, 1/65535.0, 3),
-		ImageTestInfo(Image::PixelFormat::RGBF, 1e-6, 3),
-		ImageTestInfo(Image::PixelFormat::RGBA8, 1/255.0, 4),
-		ImageTestInfo(Image::PixelFormat::RGBA16, 1/65535.0, 4),
-		ImageTestInfo(Image::PixelFormat::RGBAF, 1e-6, 4),
-		ImageTestInfo(Image::PixelFormat::Int16, 1, 1),
-		ImageTestInfo(Image::PixelFormat::UInt16, 1, 1),
-		ImageTestInfo(Image::PixelFormat::Int32, 1, 1),
-		ImageTestInfo(Image::PixelFormat::UInt32, 1, 1),
-		ImageTestInfo(Image::PixelFormat::Float, 1e-6, 1),
-		ImageTestInfo(Image::PixelFormat::Double, 1e-15, 1),
-		ImageTestInfo(Image::PixelFormat::Complex, 1e-15, 2)));
+		ImageTestInfo(Image::Format::Gray8, 1/255.0, 0),
+		ImageTestInfo(Image::Format::RGB5, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB565, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB8, 1/255.0, 3),
+		ImageTestInfo(Image::Format::RGB16, 1/65535.0, 3),
+		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
+		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
+		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
+		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4),
+		ImageTestInfo(Image::Format::Int16, 1, 1),
+		ImageTestInfo(Image::Format::UInt16, 1, 1),
+		ImageTestInfo(Image::Format::Int32, 1, 1),
+		ImageTestInfo(Image::Format::UInt32, 1, 1),
+		ImageTestInfo(Image::Format::Float, 1e-6, 1),
+		ImageTestInfo(Image::Format::Double, 1e-15, 1),
+		ImageTestInfo(Image::Format::Complex, 1e-15, 2)));
 
 } // cuttlefish

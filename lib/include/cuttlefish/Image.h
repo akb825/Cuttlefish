@@ -46,7 +46,7 @@ public:
 	/**
 	 * @brief Enum for the pixel format of the image.
 	 */
-	enum class PixelFormat
+	enum class Format
 	{
 		Invalid, ///< Invalid format, used for errors.
 		Gray8,   ///< 8-bit grayscale.
@@ -115,7 +115,7 @@ public:
 	 * @param height The height of the image.
 	 * @remark The image will be invalid if it failed to initialize.
 	 */
-	Image(PixelFormat format, unsigned int width, unsigned int height);
+	Image(Format format, unsigned int width, unsigned int height);
 
 	~Image();
 
@@ -133,10 +133,7 @@ public:
 	 */
 	bool isValid() const;
 
-	/**
-	 * @brief Returns whether or not an image is valid.
-	 * @return True if valid.
-	 */
+	/** @copydoc isValid() */
 	explicit operator bool() const;
 
 	/**
@@ -161,7 +158,7 @@ public:
 	 * @param height The height of the image.
 	 * @return False if the image couldn't be initialized.
 	 */
-	bool initialize(PixelFormat format, unsigned int width, unsigned int height);
+	bool initialize(Format format, unsigned int width, unsigned int height);
 
 	/**
 	 * @brief Resets the image to an unitialized state.
@@ -172,7 +169,7 @@ public:
 	 * @brief Gets the pixel format of the image.
 	 * @return The pixel format.
 	 */
-	PixelFormat pixelFormat() const;
+	Format format() const;
 
 	/**
 	 * @brief Gets the number of bits per pixel in the image.
@@ -263,7 +260,7 @@ public:
 	/**
 	 * @brief Sets a pixel as a floating point value.
 	 * @remark This will work with any image format.
-	 * @remark Conversion to grayscale will be automatic for PixelFormat::Gray8.
+	 * @remark Conversion to grayscale will be automatic for Format::Gray8.
 	 * @param x The X coordinate of the image.
 	 * @param y The Y coordinate of the image.
 	 * @param color The color of the pixel.
@@ -276,7 +273,7 @@ public:
 	 * @param format The new pixel format.
 	 * @return The converted image.
 	 */
-	Image convert(PixelFormat format) const;
+	Image convert(Format format) const;
 
 	/**
 	 * @brief Resizes an image.

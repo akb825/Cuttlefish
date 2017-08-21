@@ -39,7 +39,7 @@ static void shutdownLib()
 		FreeImage_DeInitialise();
 }
 
-static Image::PixelFormat getPixelFormat(FIBITMAP* image)
+static Image::Format getFormat(FIBITMAP* image)
 {
 	switch (FreeImage_GetImageType(image))
 	{
@@ -47,52 +47,52 @@ static Image::PixelFormat getPixelFormat(FIBITMAP* image)
 			switch (FreeImage_GetBPP(image))
 			{
 				case 8:
-					return Image::PixelFormat::Gray8;
+					return Image::Format::Gray8;
 				case 16:
 					switch (FreeImage_GetGreenMask(image))
 					{
 						case FI16_555_GREEN_MASK:
-							return Image::PixelFormat::RGB5;
+							return Image::Format::RGB5;
 						case FI16_565_GREEN_MASK:
-							return Image::PixelFormat::RGB565;
+							return Image::Format::RGB565;
 						default:
-							return Image::PixelFormat::Invalid;
+							return Image::Format::Invalid;
 					}
 				case 24:
-					return Image::PixelFormat::RGB8;
+					return Image::Format::RGB8;
 				case 32:
-					return Image::PixelFormat::RGBA8;
+					return Image::Format::RGBA8;
 				default:
-					return Image::PixelFormat::Invalid;
+					return Image::Format::Invalid;
 			}
 		case FIT_UINT16:
-			return Image::PixelFormat::UInt16;
+			return Image::Format::UInt16;
 		case FIT_INT16:
-			return Image::PixelFormat::Int16;
+			return Image::Format::Int16;
 		case FIT_UINT32:
-			return Image::PixelFormat::UInt32;
+			return Image::Format::UInt32;
 		case FIT_INT32:
-			return Image::PixelFormat::Int32;
+			return Image::Format::Int32;
 		case FIT_FLOAT:
-			return Image::PixelFormat::Float;
+			return Image::Format::Float;
 		case FIT_DOUBLE:
-			return Image::PixelFormat::Double;
+			return Image::Format::Double;
 		case FIT_COMPLEX:
-			return Image::PixelFormat::Complex;
+			return Image::Format::Complex;
 		case FIT_RGB16:
-			return Image::PixelFormat::RGB16;
+			return Image::Format::RGB16;
 		case FIT_RGBA16:
-			return Image::PixelFormat::RGBA16;;
+			return Image::Format::RGBA16;;
 		case FIT_RGBF:
-			return Image::PixelFormat::RGBF;
+			return Image::Format::RGBF;
 		case FIT_RGBAF:
-			return Image::PixelFormat::RGBAF;
+			return Image::Format::RGBAF;
 		default:
-			return Image::PixelFormat::Invalid;
+			return Image::Format::Invalid;
 	}
 }
 
-static FREE_IMAGE_TYPE getFreeImageFormat(Image::PixelFormat format, unsigned int& bpp,
+static FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bpp,
 	unsigned int& redMask, unsigned int& greenMask, unsigned int& blueMask)
 {
 	bpp = 0;
@@ -101,50 +101,50 @@ static FREE_IMAGE_TYPE getFreeImageFormat(Image::PixelFormat format, unsigned in
 	blueMask = 0;
 	switch (format)
 	{
-		case Image::PixelFormat::Gray8:
+		case Image::Format::Gray8:
 			bpp = 8;
 			return FIT_BITMAP;
-		case Image::PixelFormat::RGB5:
+		case Image::Format::RGB5:
 			bpp = 16;
 			redMask = FI16_555_RED_MASK;
 			greenMask = FI16_555_GREEN_MASK;
 			blueMask = FI16_555_BLUE_MASK;
 			return FIT_BITMAP;
-		case Image::PixelFormat::RGB565:
+		case Image::Format::RGB565:
 			bpp = 16;
 			redMask = FI16_565_RED_MASK;
 			greenMask = FI16_565_GREEN_MASK;
 			blueMask = FI16_565_BLUE_MASK;
 			return FIT_BITMAP;
-		case Image::PixelFormat::RGB8:
+		case Image::Format::RGB8:
 			bpp = 24;
 			return FIT_BITMAP;
-		case Image::PixelFormat::RGB16:
+		case Image::Format::RGB16:
 			return FIT_RGB16;
-		case Image::PixelFormat::RGBF:
+		case Image::Format::RGBF:
 			return FIT_RGBF;
-		case Image::PixelFormat::RGBA8:
+		case Image::Format::RGBA8:
 			bpp = 32;
 			return FIT_BITMAP;
-		case Image::PixelFormat::RGBA16:
+		case Image::Format::RGBA16:
 			return FIT_RGBA16;
-		case Image::PixelFormat::RGBAF:
+		case Image::Format::RGBAF:
 			return FIT_RGBAF;
-		case Image::PixelFormat::Int16:
+		case Image::Format::Int16:
 			return FIT_INT16;
-		case Image::PixelFormat::UInt16:
+		case Image::Format::UInt16:
 			return FIT_UINT16;
-		case Image::PixelFormat::Int32:
+		case Image::Format::Int32:
 			return FIT_INT32;
-		case Image::PixelFormat::UInt32:
+		case Image::Format::UInt32:
 			return FIT_UINT32;
-		case Image::PixelFormat::Float:
+		case Image::Format::Float:
 			return FIT_FLOAT;
-		case Image::PixelFormat::Double:
+		case Image::Format::Double:
 			return FIT_DOUBLE;
-		case Image::PixelFormat::Complex:
+		case Image::Format::Complex:
 			return FIT_COMPLEX;
-		case Image::PixelFormat::Invalid:
+		case Image::Format::Invalid:
 		default:
 			return FIT_UNKNOWN;
 	}
@@ -205,17 +205,17 @@ static double toLinear(double c)
 	return std::pow((c + 0.055)/1.055, 2.4);
 }
 
-static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const void* scanline,
+static bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanline,
 	unsigned int x)
 {
 	switch (format)
 	{
-		case Image::PixelFormat::Gray8:
+		case Image::Format::Gray8:
 			outColor.r = outColor.g = outColor.b = toDoubleNorm(
 				reinterpret_cast<const std::uint8_t*>(scanline)[x]);
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::RGB5:
+		case Image::Format::RGB5:
 		{
 			std::uint16_t pixel = static_cast<const std::uint16_t*>(scanline)[x];
 			outColor.r = toDoubleNorm5((pixel & FI16_555_RED_MASK) >> FI16_555_RED_SHIFT);
@@ -224,7 +224,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = 1.0;
 			return true;
 		}
-		case Image::PixelFormat::RGB565:
+		case Image::Format::RGB565:
 		{
 			std::uint16_t pixel = static_cast<const std::uint16_t*>(scanline)[x];
 			outColor.r = toDoubleNorm5((pixel & FI16_565_RED_MASK) >> FI16_565_RED_SHIFT);
@@ -233,7 +233,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = 1.0;
 			return true;
 		}
-		case Image::PixelFormat::RGB8:
+		case Image::Format::RGB8:
 		{
 			const RGBTRIPLE& pixel = static_cast<const RGBTRIPLE*>(scanline)[x];
 			outColor.r = toDoubleNorm(pixel.rgbtRed);
@@ -242,7 +242,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = 1.0;
 			return true;
 		}
-		case Image::PixelFormat::RGB16:
+		case Image::Format::RGB16:
 		{
 			const FIRGB16& pixel = static_cast<const FIRGB16*>(scanline)[x];
 			outColor.r = toDoubleNorm(pixel.red);
@@ -251,7 +251,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = 1.0;
 			return true;
 		}
-		case Image::PixelFormat::RGBF:
+		case Image::Format::RGBF:
 		{
 			const FIRGBF& pixel = static_cast<const FIRGBF*>(scanline)[x];
 			outColor.r = pixel.red;
@@ -260,7 +260,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = 1.0;
 			return true;
 		}
-		case Image::PixelFormat::RGBA8:
+		case Image::Format::RGBA8:
 		{
 			const RGBQUAD& pixel = static_cast<const RGBQUAD*>(scanline)[x];
 			outColor.r = toDoubleNorm(pixel.rgbRed);
@@ -269,7 +269,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = toDoubleNorm(pixel.rgbReserved);
 			return true;
 		}
-		case Image::PixelFormat::RGBA16:
+		case Image::Format::RGBA16:
 		{
 			const FIRGBA16& pixel = static_cast<const FIRGBA16*>(scanline)[x];
 			outColor.r = toDoubleNorm(pixel.red);
@@ -278,7 +278,7 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = toDoubleNorm(pixel.alpha);
 			return true;
 		}
-		case Image::PixelFormat::RGBAF:
+		case Image::Format::RGBAF:
 		{
 			const FIRGBAF& pixel = static_cast<const FIRGBAF*>(scanline)[x];
 			outColor.r = pixel.red;
@@ -287,37 +287,37 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 			outColor.a = pixel.alpha;
 			return true;
 		}
-		case Image::PixelFormat::Int16:
+		case Image::Format::Int16:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const std::int16_t*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::UInt16:
+		case Image::Format::UInt16:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const std::uint16_t*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::Int32:
+		case Image::Format::Int32:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const std::int32_t*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::UInt32:
+		case Image::Format::UInt32:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const std::uint32_t*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::Float:
+		case Image::Format::Float:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const float*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::Double:
+		case Image::Format::Double:
 			outColor.r = outColor.g = outColor.b =
 				reinterpret_cast<const double*>(scanline)[x];
 			outColor.a = 1.0;
 			return true;
-		case Image::PixelFormat::Complex:
+		case Image::Format::Complex:
 		{
 			const FICOMPLEX& pixel = static_cast<const FICOMPLEX*>(scanline)[x];
 			outColor.r = pixel.r;
@@ -331,16 +331,16 @@ static bool getPixelImpl(ColorRGBAd& outColor, Image::PixelFormat format, const 
 	}
 }
 
-static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int x,
+static bool setPixelImpl(Image::Format format, void* scanline, unsigned int x,
 	const ColorRGBAd& color)
 {
 	switch (format)
 	{
-		case Image::PixelFormat::Gray8:
+		case Image::Format::Gray8:
 			reinterpret_cast<std::uint8_t*>(scanline)[x] =
 				fromDoubleNorm<std::uint8_t>(toGrayscale(color.r, color.g, color.b));
 			return true;
-		case Image::PixelFormat::RGB5:
+		case Image::Format::RGB5:
 		{
 			std::uint16_t& pixel = static_cast<std::uint16_t*>(scanline)[x];
 			pixel = static_cast<std::uint16_t>(
@@ -349,7 +349,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 				(fromDoubleNorm5(color.b) << FI16_555_BLUE_SHIFT));
 			return true;
 		}
-		case Image::PixelFormat::RGB565:
+		case Image::Format::RGB565:
 		{
 			std::uint16_t& pixel = static_cast<std::uint16_t*>(scanline)[x];
 			pixel = static_cast<std::uint16_t>(
@@ -358,7 +358,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 				(fromDoubleNorm5(color.b) << FI16_565_BLUE_SHIFT));
 			return true;
 		}
-		case Image::PixelFormat::RGB8:
+		case Image::Format::RGB8:
 		{
 			RGBTRIPLE& pixel = static_cast<RGBTRIPLE*>(scanline)[x];
 			pixel.rgbtRed = fromDoubleNorm<std::uint8_t>(color.r);
@@ -366,7 +366,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.rgbtBlue = fromDoubleNorm<std::uint8_t>(color.b);
 			return true;
 		}
-		case Image::PixelFormat::RGB16:
+		case Image::Format::RGB16:
 		{
 			FIRGB16& pixel = static_cast<FIRGB16*>(scanline)[x];
 			pixel.red = fromDoubleNorm<std::uint16_t>(color.r);
@@ -374,7 +374,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.blue = fromDoubleNorm<std::uint16_t>(color.b);
 			return true;
 		}
-		case Image::PixelFormat::RGBF:
+		case Image::Format::RGBF:
 		{
 			FIRGBF& pixel = static_cast<FIRGBF*>(scanline)[x];
 			pixel.red = static_cast<float>(color.r);
@@ -382,7 +382,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.blue = static_cast<float>(color.b);
 			return true;
 		}
-		case Image::PixelFormat::RGBA8:
+		case Image::Format::RGBA8:
 		{
 			RGBQUAD& pixel = static_cast<RGBQUAD*>(scanline)[x];
 			pixel.rgbRed = fromDoubleNorm<std::uint8_t>(color.r);
@@ -391,7 +391,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.rgbReserved = fromDoubleNorm<std::uint8_t>(color.a);
 			return true;
 		}
-		case Image::PixelFormat::RGBA16:
+		case Image::Format::RGBA16:
 		{
 			FIRGBA16& pixel = static_cast<FIRGBA16*>(scanline)[x];
 			pixel.red = fromDoubleNorm<std::uint16_t>(color.r);
@@ -400,7 +400,7 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.alpha = fromDoubleNorm<std::uint16_t>(color.a);
 			return true;
 		}
-		case Image::PixelFormat::RGBAF:
+		case Image::Format::RGBAF:
 		{
 			FIRGBAF& pixel = static_cast<FIRGBAF*>(scanline)[x];
 			pixel.red = static_cast<float>(color.r);
@@ -409,29 +409,29 @@ static bool setPixelImpl(Image::PixelFormat format, void* scanline, unsigned int
 			pixel.alpha = static_cast<float>(color.a);
 			return true;
 		}
-		case Image::PixelFormat::Int16:
+		case Image::Format::Int16:
 			reinterpret_cast<std::int16_t*>(scanline)[x] = clamp(
 				static_cast<std::int16_t>(color.r));
 			return true;
-		case Image::PixelFormat::UInt16:
+		case Image::Format::UInt16:
 			reinterpret_cast<std::uint16_t*>(scanline)[x] = clamp(
 				static_cast<std::uint16_t>(color.r));
 			return true;
-		case Image::PixelFormat::Int32:
+		case Image::Format::Int32:
 			reinterpret_cast<std::int32_t*>(scanline)[x] = clamp(
 				static_cast<std::int32_t>(color.r));
 			return true;
-		case Image::PixelFormat::UInt32:
+		case Image::Format::UInt32:
 			reinterpret_cast<std::uint32_t*>(scanline)[x] = clamp(
 				static_cast<std::uint32_t>(color.r));
 			return true;
-		case Image::PixelFormat::Float:
+		case Image::Format::Float:
 			reinterpret_cast<float*>(scanline)[x] = static_cast<float>(color.r);
 			return true;
-		case Image::PixelFormat::Double:
+		case Image::Format::Double:
 			reinterpret_cast<double*>(scanline)[x] = color.r;
 			return true;
-		case Image::PixelFormat::Complex:
+		case Image::Format::Complex:
 		{
 			FICOMPLEX& pixel = static_cast<FICOMPLEX*>(scanline)[x];
 			pixel.r = color.r;
@@ -464,8 +464,8 @@ struct Image::Impl
 				return nullptr;
 		}
 
-		PixelFormat format = getPixelFormat(image);
-		if (format == PixelFormat::Invalid)
+		Format format = getFormat(image);
+		if (format == Format::Invalid)
 		{
 			FreeImage_Unload(image);
 			return nullptr;
@@ -474,12 +474,12 @@ struct Image::Impl
 		return new Impl(image, format);
 	}
 
-	Impl(FIBITMAP* img, PixelFormat format)
-		: image(img), pixelFormat(format), bitsPerPixel(FreeImage_GetBPP(img)),
+	Impl(FIBITMAP* img, Format format)
+		: image(img), format(format), bitsPerPixel(FreeImage_GetBPP(img)),
 		width(FreeImage_GetWidth(img)), height(FreeImage_GetHeight(img)),
 		redMask(FreeImage_GetRedMask(img)), greenMask(FreeImage_GetGreenMask(img)),
 		blueMask(FreeImage_GetGreenMask(img)),
-		alphaMask(format == PixelFormat::RGBA8 ? FI_RGBA_ALPHA_MASK : 0), redShift(0),
+		alphaMask(format == Format::RGBA8 ? FI_RGBA_ALPHA_MASK : 0), redShift(0),
 		greenShift(0), blueShift(0), alphaShift(0)
 	{
 		if (redMask == FI_RGBA_RED)
@@ -514,7 +514,7 @@ struct Image::Impl
 	}
 
 	FIBITMAP* image;
-	PixelFormat pixelFormat;
+	Format format;
 	unsigned int bitsPerPixel;
 	unsigned int width;
 	unsigned int height;
@@ -546,7 +546,7 @@ Image::Image(const std::uint8_t* data, std::size_t size)
 	load(data, size);
 }
 
-Image::Image(PixelFormat format, unsigned int width, unsigned int height)
+Image::Image(Format format, unsigned int width, unsigned int height)
 	: Image()
 {
 	initialize(format, width, height);
@@ -642,7 +642,7 @@ bool Image::load(const std::uint8_t* data, std::size_t size)
 	return m_impl != nullptr;
 }
 
-bool Image::initialize(PixelFormat format, unsigned int width, unsigned int height)
+bool Image::initialize(Format format, unsigned int width, unsigned int height)
 {
 	reset();
 
@@ -662,12 +662,12 @@ void Image::reset()
 	m_impl = nullptr;
 }
 
-Image::PixelFormat Image::pixelFormat() const
+Image::Format Image::format() const
 {
 	if (!m_impl)
-		return PixelFormat::Invalid;
+		return Format::Invalid;
 
-	return m_impl->pixelFormat;
+	return m_impl->format;
 }
 
 unsigned int Image::bitsPerPixel() const
@@ -779,7 +779,7 @@ bool Image::getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const
 	if (!m_impl || x >= m_impl->width || y >= m_impl->height)
 		return false;
 
-	return getPixelImpl(outColor, m_impl->pixelFormat, FreeImage_GetScanLine(m_impl->image, y), x);
+	return getPixelImpl(outColor, m_impl->format, FreeImage_GetScanLine(m_impl->image, y), x);
 }
 
 bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color)
@@ -787,10 +787,10 @@ bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color)
 	if (!m_impl || x >= m_impl->width || y >= m_impl->height)
 		return false;
 
-	return setPixelImpl(m_impl->pixelFormat, FreeImage_GetScanLine(m_impl->image, y), x, color);
+	return setPixelImpl(m_impl->format, FreeImage_GetScanLine(m_impl->image, y), x, color);
 }
 
-Image Image::convert(PixelFormat format) const
+Image Image::convert(Format format) const
 {
 	Image image;
 	if (!m_impl)
@@ -803,52 +803,52 @@ Image Image::convert(PixelFormat format) const
 
 	switch (format)
 	{
-		case PixelFormat::Gray8:
+		case Format::Gray8:
 			image.m_impl = Impl::create(FreeImage_ConvertTo8Bits(m_impl->image));
 			break;
-		case PixelFormat::RGB5:
+		case Format::RGB5:
 			image.m_impl = Impl::create(FreeImage_ConvertTo16Bits555(m_impl->image));
 			break;
-		case PixelFormat::RGB565:
+		case Format::RGB565:
 			image.m_impl = Impl::create(FreeImage_ConvertTo16Bits565(m_impl->image));
 			break;
-		case PixelFormat::RGB8:
+		case Format::RGB8:
 			image.m_impl = Impl::create(FreeImage_ConvertTo24Bits(m_impl->image));
 			break;
-		case PixelFormat::RGB16:
+		case Format::RGB16:
 			image.m_impl = Impl::create(FreeImage_ConvertToRGB16(m_impl->image));
 			break;
-		case PixelFormat::RGBF:
+		case Format::RGBF:
 			image.m_impl = Impl::create(FreeImage_ConvertToRGBF(m_impl->image));
 			break;
-		case PixelFormat::RGBA8:
+		case Format::RGBA8:
 			image.m_impl = Impl::create(FreeImage_ConvertTo32Bits(m_impl->image));
 			break;
-		case PixelFormat::RGBA16:
+		case Format::RGBA16:
 			image.m_impl = Impl::create(FreeImage_ConvertToRGBA16(m_impl->image));
 			break;
-		case PixelFormat::RGBAF:
+		case Format::RGBAF:
 			image.m_impl = Impl::create(FreeImage_ConvertToRGBAF(m_impl->image));
 			break;
-		case PixelFormat::Int16:
+		case Format::Int16:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_INT16));
 			break;
-		case PixelFormat::UInt16:
+		case Format::UInt16:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT16));
 			break;
-		case PixelFormat::Int32:
+		case Format::Int32:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_INT32));
 			break;
-		case PixelFormat::UInt32:
+		case Format::UInt32:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT32));
 			break;
-		case PixelFormat::Float:
+		case Format::Float:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_FLOAT));
 			break;
-		case PixelFormat::Double:
+		case Format::Double:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE));
 			break;
-		case PixelFormat::Complex:
+		case Format::Complex:
 			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_COMPLEX));
 			break;
 		default:
@@ -869,8 +869,8 @@ Image Image::convert(PixelFormat format) const
 			for (unsigned int x = 0; x < m_impl->width; ++x)
 			{
 				ColorRGBAd color;
-				getPixelImpl(color, m_impl->pixelFormat, srcScanline, x);
-				setPixelImpl(image.m_impl->pixelFormat, dstScanline, x, color);
+				getPixelImpl(color, m_impl->format, srcScanline, x);
+				setPixelImpl(image.m_impl->format, dstScanline, x, color);
 			}
 		}
 	}
@@ -907,13 +907,13 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 			break;
 	}
 
-	switch (m_impl->pixelFormat)
+	switch (m_impl->format)
 	{
-		case PixelFormat::Int16:
-		case PixelFormat::Int32:
-		case PixelFormat::UInt32:
-		case PixelFormat::Double:
-		case PixelFormat::Complex:
+		case Format::Int16:
+		case Format::Int32:
+		case Format::UInt32:
+		case Format::Double:
+		case Format::Complex:
 			break;
 		default:
 			image.m_impl = Impl::create(FreeImage_Rescale(m_impl->image, width, height, fiFilter));
@@ -933,7 +933,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 		switch (filter)
 		{
 			case ResizeFilter::Box:
-				image.initialize(m_impl->pixelFormat, width, height);
+				image.initialize(m_impl->format, width, height);
 				if (!image)
 					return image;
 
@@ -969,7 +969,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 									continue;
 
 								ColorRGBAd curColor;
-								getPixelImpl(curColor, m_impl->pixelFormat, srcScanline, j);
+								getPixelImpl(curColor, m_impl->format, srcScanline, j);
 
 								color.r += curColor.r;
 								color.g += curColor.g;
@@ -983,12 +983,12 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 						color.g /= totalScale;
 						color.b /= totalScale;
 						color.a /= totalScale;
-						setPixelImpl(image.m_impl->pixelFormat, dstScanline, x, color);
+						setPixelImpl(image.m_impl->format, dstScanline, x, color);
 					}
 				}
 				break;
 			case ResizeFilter::Linear:
-				image.initialize(m_impl->pixelFormat, width, height);
+				image.initialize(m_impl->format, width, height);
 				if (!image)
 					return image;
 
@@ -1026,7 +1026,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 									continue;
 
 								ColorRGBAd curColor;
-								getPixelImpl(curColor, m_impl->pixelFormat, srcScanline, j);
+								getPixelImpl(curColor, m_impl->format, srcScanline, j);
 
 								double scale = scaleX*scaleY;
 								color.r += curColor.r*scale;
@@ -1041,7 +1041,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 						color.g /= totalScale;
 						color.b /= totalScale;
 						color.a /= totalScale;
-						setPixelImpl(image.m_impl->pixelFormat, dstScanline, x, color);
+						setPixelImpl(image.m_impl->format, dstScanline, x, color);
 					}
 				}
 				break;
@@ -1083,7 +1083,7 @@ Image Image::rotate(RotateAngle angle) const
 		{
 			case RotateAngle::CCW90:
 			case RotateAngle::CW270:
-				image.initialize(m_impl->pixelFormat, m_impl->height, m_impl->width);
+				image.initialize(m_impl->format, m_impl->height, m_impl->width);
 				if (!image)
 					return image;
 
@@ -1093,16 +1093,16 @@ Image Image::rotate(RotateAngle angle) const
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
 						ColorRGBAd color;
-						getPixelImpl(color, m_impl->pixelFormat, srcScanline, x);
+						getPixelImpl(color, m_impl->format, srcScanline, x);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);
-						setPixelImpl(image.m_impl->pixelFormat, dstScanline,
+						setPixelImpl(image.m_impl->format, dstScanline,
 							image.m_impl->width - y - 1, color);
 					}
 				}
 				break;
 			case RotateAngle::CCW180:
 			case RotateAngle::CW180:
-				image.initialize(m_impl->pixelFormat, m_impl->width, m_impl->height);
+				image.initialize(m_impl->format, m_impl->width, m_impl->height);
 				if (!image)
 					return image;
 
@@ -1114,15 +1114,15 @@ Image Image::rotate(RotateAngle angle) const
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
 						ColorRGBAd color;
-						getPixelImpl(color, m_impl->pixelFormat, srcScanline, x);
-						setPixelImpl(image.m_impl->pixelFormat, dstScanline, m_impl->width - x - 1,
+						getPixelImpl(color, m_impl->format, srcScanline, x);
+						setPixelImpl(image.m_impl->format, dstScanline, m_impl->width - x - 1,
 							color);
 					}
 				}
 				break;
 			case RotateAngle::CCW270:
 			case RotateAngle::CW90:
-				image.initialize(m_impl->pixelFormat, m_impl->height, m_impl->width);
+				image.initialize(m_impl->format, m_impl->height, m_impl->width);
 				if (!image)
 					return image;
 
@@ -1132,10 +1132,10 @@ Image Image::rotate(RotateAngle angle) const
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
 						ColorRGBAd color;
-						getPixelImpl(color, m_impl->pixelFormat, srcScanline,
+						getPixelImpl(color, m_impl->format, srcScanline,
 							m_impl->width - x - 1);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);
-						setPixelImpl(image.m_impl->pixelFormat, dstScanline, y, color);
+						setPixelImpl(image.m_impl->format, dstScanline, y, color);
 					}
 				}
 				break;
@@ -1166,22 +1166,22 @@ bool Image::preMultiplyAlpha()
 	if (!m_impl)
 		return false;
 
-	switch (m_impl->pixelFormat)
+	switch (m_impl->format)
 	{
-		case PixelFormat::RGBA8:
-		case PixelFormat::RGBA16:
-		case PixelFormat::RGBAF:
+		case Format::RGBA8:
+		case Format::RGBA16:
+		case Format::RGBAF:
 			for (unsigned int y = 0; y < m_impl->height; ++y)
 			{
 				void* scanline = FreeImage_GetScanLine(m_impl->image, y);
 				for (unsigned int x = 0; x < m_impl->width; ++x)
 				{
 					ColorRGBAd color;
-					getPixelImpl(color, m_impl->pixelFormat, scanline, x);
+					getPixelImpl(color, m_impl->format, scanline, x);
 					color.r *= color.a;
 					color.g *= color.a;
 					color.b *= color.a;
-					setPixelImpl(m_impl->pixelFormat, scanline, x, color);
+					setPixelImpl(m_impl->format, scanline, x, color);
 				}
 			}
 		default:
@@ -1201,11 +1201,11 @@ bool Image::linearize()
 		for (unsigned int x = 0; x < m_impl->width; ++x)
 		{
 			ColorRGBAd color;
-			getPixelImpl(color, m_impl->pixelFormat, scanline, x);
+			getPixelImpl(color, m_impl->format, scanline, x);
 			color.r = toLinear(color.r);
 			color.g = toLinear(color.g);
 			color.b = toLinear(color.b);
-			setPixelImpl(m_impl->pixelFormat, scanline, x, color);
+			setPixelImpl(m_impl->format, scanline, x, color);
 		}
 	}
 
