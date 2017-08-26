@@ -78,6 +78,7 @@ target_include_directories(cuttlefish_lib
 			${ETC_INCLUDE_DIRS}
 			${ASTC_INCLUDE_DIRS}
 			${PVRTEXLIB_INCLUDE_DIRS}
+			glm
 			src)
 target_link_libraries(cuttlefish_lib
 	PRIVATE ${FreeImage_LIBRARIES} ${PVRTEXLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

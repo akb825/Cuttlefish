@@ -124,10 +124,10 @@ bool Texture::isFormatValid(Format format, Type type)
 		{true, true, true, true, false, false},    // R8
 		{true, true, true, true, false, false},    // R8G8
 		{true, true, true, true, false, false},    // R8G8B8
-		{true, true, true, true, false, false},    // B8G8R8
-		{true, true, true, true, false, false},    // R8G8B8A8
-		{true, true, true, true, false, false},    // B8G8R8A8
-		{true, true, true, true, false, false},    // A8B8G8R8
+		{true, false, false, false, false, false}, // B8G8R8
+		{true, false, false, false, false, false}, // R8G8B8A8
+		{true, false, false, false, false, false}, // B8G8R8A8
+		{true, false, false, false, false, false}, // A8B8G8R8
 		{true, false, true, false, false, false},  // A2R10G10B10
 		{true, false, true, false, false, false},  // A2B10G10R10
 		{true, true, true, true, false, true},     // R16
@@ -916,7 +916,7 @@ bool Texture::imagesComplete() const
 	return true;
 }
 
-bool Texture::convert(Format format, Type type, Color colorSpace, Alpha alphaType,
+bool Texture::convert(Format format, Type type, Quality quality, Color colorSpace, Alpha alphaType,
 	unsigned int threads)
 {
 	if (!imagesComplete() || !isFormatValid(format, type))
@@ -941,7 +941,7 @@ bool Texture::convert(Format format, Type type, Color colorSpace, Alpha alphaTyp
 	if (threads == allCores)
 		threads = std::thread::hardware_concurrency();
 
-	if (!Converter::convert(*this, m_impl->images, m_impl->textures, threads))
+	if (!Converter::convert(*this, m_impl->images, m_impl->textures, quality, threads))
 	{
 		m_impl->format = Format::Unknown;
 		return false;

@@ -17,13 +17,15 @@
 #pragma once
 
 #include <cuttlefish/Config.h>
+#include <cuttlefish/Image.h>
+#include <cuttlefish/Texture.h>
+#include <cassert>
 #include <memory>
 #include <vector>
 
 namespace cuttlefish
 {
 
-class Image;
 class Texture;
 
 class Converter
@@ -39,16 +41,17 @@ public:
 	using MipTextureList = std::vector<DepthTextureList>;
 
 	static bool convert(const Texture& texture, MipImageList& images, MipTextureList& textureData,
-		unsigned int threadCount);
+		Texture::Quality quality, unsigned int threadCount);
 
 	explicit Converter(const Image& image)
 		: m_image(&image)
 	{
+		assert(m_image->format() == Image::Format::RGBAF);
 	}
 
 	virtual ~Converter() = default;
 
-	const Image& getImage() const {return *m_image;}
+	const Image& image() const {return *m_image;}
 
 	std::vector<std::uint8_t>& data() {return m_data;}
 	const std::vector<std::uint8_t>& data() const {return m_data;}

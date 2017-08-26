@@ -10,3 +10,6 @@
 [submodule "lib/astc-encoder"]
 	path = lib/astc-encoder
 	url = https://github.com/akb825/astc-encoder.git
+[submodule "lib/glm"]
+	path = lib/glm
+	url = https://github.com/g-truc/glm

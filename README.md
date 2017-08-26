@@ -8,6 +8,7 @@ The following software is required to build Cuttlefish:
 
 * [cmake](https://cmake.org/) 3.0.2 or later
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
+* [GLM](https://glm.g-truc.net/0.9.8/index.html) (required, included as a submodule)
 * [nvidia-texture-tools](https://github.com/castano/nvidia-texture-tools) (optional, included as a submodule)
 * [etc2comp](https://github.com/google/etc2comp) (optional, included as a submodule)
 * [astc-encoder](https://github.com/ARM-software/astc-encoder) (optional, included as a submodule)

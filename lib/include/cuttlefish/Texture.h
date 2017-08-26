@@ -169,6 +169,16 @@ public:
 	};
 
 	/**
+	 * @brief Enum for the compression quality.
+	 */
+	enum class Quality
+	{
+		Low,      ///< Low quality, but faster.
+		Standard, ///< Tradeoff between quality and speed.
+		High      ///< High quality, but slower.
+	};
+
+	/**
 	 * @brief Constant for all mip livels.
 	 */
 	static const unsigned int allMipLevels = (unsigned int)-1;
@@ -433,14 +443,16 @@ public:
 	 *
 	 * @param format The texture format to use.
 	 * @param type The type of the data within the texture.
+	 * @param quality The quality of compression.
 	 * @param colorSpace The color space the images are represented in.
 	 * @param alphaType The type of the alpha.
 	 * @param threads The number of threads to use during conversion.
 	 * @return False if the format and type combination is invalid, the color space cannot be used
 	 *     with the format, or the size is invalid for the type.
 	 */
-	bool convert(Format format, Type type, Color colorSpace = Color::Linear,
-		Alpha alphaType = Alpha::Standard, unsigned int threads = allCores);
+	bool convert(Format format, Type type, Quality quality = Quality::Standard,
+		Color colorSpace = Color::Linear, Alpha alphaType = Alpha::Standard,
+		unsigned int threads = allCores);
 
 	/**
 	 * @brief Returns whether or not the images have been converted into a texture.

@@ -15,6 +15,7 @@
  */
 
 #include "Converter.h"
+#include "StandardConvert.h"
 #include <cuttlefish/Texture.h>
 #include <algorithm>
 #include <atomic>
@@ -25,15 +26,381 @@
 namespace cuttlefish
 {
 
-static std::unique_ptr<Converter> createConverter(const Texture& texture, const Image& image)
+static std::unique_ptr<Converter> createConverter(const Texture& texture, const Image& image,
+	Texture::Quality quality)
 {
-	(void)texture;
-	(void)image;
-	return nullptr;
+	(void)quality;
+	switch (texture.format())
+	{
+		case Texture::Format::R4G4:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new R4G4Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R4G4B4A4:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new R4G4B4A4Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B4G4R4A4:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B4G4R4A4Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R5G6B5:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new R5G6B5Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B5G6R5:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B5G6R5Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R5G5B5A1:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new R5G5B5A1Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B5G5R5A1:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B5G5R5A1Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::A1R5G5B5:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new A1R5G5B5Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint8_t, 1>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int8_t, 1>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint8_t, 1>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int8_t, 1>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R8G8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint8_t, 2>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int8_t, 2>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint8_t, 2>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int8_t, 2>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R8G8B8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint8_t, 3>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int8_t, 3>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint8_t, 3>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int8_t, 3>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B8G8R8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B8G8R8Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R8G8B8A8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint8_t, 4>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int8_t, 4>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint8_t, 4>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int8_t, 4>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B8G8R8A8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::A8B8G8R8:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::A2R10G10B10:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new A2R10G10B10UNormConverter(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new A2R10G10B10UIntConverter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::A2B10G10R10:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new A2B10G10R10UNormConverter(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new A2B10G10R10UIntConverter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R16:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint16_t, 1>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int16_t, 1>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint16_t, 1>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 1>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 1>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R16G16:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint16_t, 2>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int16_t, 2>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint16_t, 2>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 2>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 2>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R16G16B16:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint16_t, 3>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int16_t, 3>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint16_t, 3>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 3>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 3>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R16G16B16A16:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint16_t, 4>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int16_t, 4>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint16_t, 4>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 4>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 4>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R32:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 1>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 1>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 1>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 1>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<float, 1>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R32G32:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 2>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 2>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 2>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 2>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<float, 2>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R32G32B32:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 3>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 3>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 3>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 3>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<float, 3>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::R32G32B32A32:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 4>(image));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 4>(image));
+				case Texture::Type::UInt:
+					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 4>(image));
+				case Texture::Type::Int:
+					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 4>(image));
+				case Texture::Type::Float:
+					return std::unique_ptr<Converter>(new FloatConverter<float, 4>(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::B10G11R11_UFloat:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UFloat:
+					return std::unique_ptr<Converter>(new B10R11R11UFloatConverter(image));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::E5B9G9R9_UFloat:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UFloat:
+					return std::unique_ptr<Converter>(new E5B9G9R9UFloatConverter(image));
+				default:
+					return nullptr;
+			}
+		}
+		default:
+			return nullptr;
+	}
 }
 
 bool Converter::convert(const Texture& texture, MipImageList& images, MipTextureList& textureData,
-	unsigned int threadCount)
+	Texture::Quality quality, unsigned int threadCount)
 {
 	std::atomic<unsigned int> curJob(0);
 	std::vector<std::pair<unsigned int, unsigned int>> jobs;
@@ -50,7 +417,7 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 			textureData[mip][d].resize(images[mip][d].size());
 			for (unsigned int f = 0; f < images[mip][d].size(); ++f)
 			{
-				auto converter = createConverter(texture, images[mip][d][f]);
+				auto converter = createConverter(texture, images[mip][d][f], quality);
 				if (!converter)
 				{
 					// If the converter can't be created, should only do so for the first one.
