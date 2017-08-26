@@ -173,9 +173,9 @@ public:
 	 */
 	enum class Quality
 	{
-		Low,      ///< Low quality, but faster.
-		Standard, ///< Tradeoff between quality and speed.
-		High      ///< High quality, but slower.
+		Low,    ///< Low quality, but faster.
+		Normal, ///< Tradeoff between quality and speed.
+		High    ///< High quality, but slower.
 	};
 
 	/**
@@ -450,7 +450,7 @@ public:
 	 * @return False if the format and type combination is invalid, the color space cannot be used
 	 *     with the format, or the size is invalid for the type.
 	 */
-	bool convert(Format format, Type type, Quality quality = Quality::Standard,
+	bool convert(Format format, Type type, Quality quality = Quality::Normal,
 		Color colorSpace = Color::Linear, Alpha alphaType = Alpha::Standard,
 		unsigned int threads = allCores);
 

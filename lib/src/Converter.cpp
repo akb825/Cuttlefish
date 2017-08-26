@@ -15,7 +15,8 @@
  */
 
 #include "Converter.h"
-#include "StandardConvert.h"
+#include "S3tcConverter.h"
+#include "StandardConverter.h"
 #include <cuttlefish/Texture.h>
 #include <algorithm>
 #include <atomic>
@@ -34,83 +35,51 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 	{
 		case Texture::Format::R4G4:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new R4G4Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new R4G4Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::R4G4B4A4:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new R4G4B4A4Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new R4G4B4A4Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::B4G4R4A4:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B4G4R4A4Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B4G4R4A4Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::R5G6B5:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new R5G6B5Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new R5G6B5Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::B5G6R5:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B5G6R5Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B5G6R5Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::R5G5B5A1:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new R5G5B5A1Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new R5G5B5A1Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::B5G5R5A1:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B5G5R5A1Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B5G5R5A1Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::A1R5G5B5:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new A1R5G5B5Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new A1R5G5B5Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::R8:
 		{
@@ -162,13 +131,9 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		}
 		case Texture::Format::B8G8R8:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B8G8R8Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B8G8R8Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::R8G8B8A8:
 		{
@@ -188,23 +153,15 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		}
 		case Texture::Format::B8G8R8A8:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::A8B8G8R8:
 		{
-			switch (texture.type())
-			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
-				default:
-					return nullptr;
-			}
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
+			return nullptr;
 		}
 		case Texture::Format::A2R10G10B10:
 		{
@@ -376,24 +333,90 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		}
 		case Texture::Format::B10G11R11_UFloat:
 		{
+			if (texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new B10R11R11UFloatConverter(image));
+			return nullptr;
+		}
+		case Texture::Format::E5B9G9R9_UFloat:
+		{
+			if (texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new E5B9G9R9UFloatConverter(image));
+			return nullptr;
+		}
+#if CUTTLEFISH_HAS_S3TC
+		case Texture::Format::BC1_RGB:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new Bc1Converter(texture, image, quality));
+			return nullptr;
+		}
+		case Texture::Format::BC1_RGBA:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new Bc1AConverter(texture, image, quality));
+			return nullptr;
+		}
+		case Texture::Format::BC2:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new Bc2Converter(texture, image, quality));
+			return nullptr;
+		}
+		case Texture::Format::BC3:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new Bc3Converter(texture, image, quality));
+			return nullptr;
+		}
+		case Texture::Format::BC4:
+		{
 			switch (texture.type())
 			{
-				case Texture::Type::UFloat:
-					return std::unique_ptr<Converter>(new B10R11R11UFloatConverter(image));
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new Bc4Converter(texture, image, quality,
+						false));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new Bc4Converter(texture, image, quality,
+						true));
 				default:
 					return nullptr;
 			}
 		}
-		case Texture::Format::E5B9G9R9_UFloat:
+		case Texture::Format::BC5:
+		{
+			switch (texture.type())
+			{
+				case Texture::Type::UNorm:
+					return std::unique_ptr<Converter>(new Bc5Converter(texture, image, quality,
+						false));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new Bc5Converter(texture, image, quality,
+						true));
+				default:
+					return nullptr;
+			}
+		}
+		case Texture::Format::BC6H:
 		{
 			switch (texture.type())
 			{
 				case Texture::Type::UFloat:
-					return std::unique_ptr<Converter>(new E5B9G9R9UFloatConverter(image));
+					return std::unique_ptr<Converter>(new Bc6HConverter(texture, image, quality,
+						false));
+				case Texture::Type::SNorm:
+					return std::unique_ptr<Converter>(new Bc6HConverter(texture, image, quality,
+						true));
 				default:
 					return nullptr;
 			}
 		}
+		case Texture::Format::BC7:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new Bc7Converter(texture, image, quality));
+			return nullptr;
+		}
+#endif // CUTTLEFISH_HAS_S3TC
 		default:
 			return nullptr;
 	}
@@ -437,7 +460,7 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 				}
 
 				unsigned int curThreads = std::min(jobsX*jobsY, threadCount);
-				if (curThreads == 1)
+				if (curThreads <= 1)
 				{
 					for (const std::pair<unsigned int, unsigned int>& job : jobs)
 						converter->process(job.first, job.second);

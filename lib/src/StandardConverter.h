@@ -16,7 +16,10 @@
 
 #pragma once
 
+#include <cuttlefish/Config.h>
+
 #include "Converter.h"
+#include "Shared.h"
 #include <cuttlefish/Color.h>
 #include <glm/gtc/packing.hpp>
 #include <algorithm>
@@ -25,15 +28,6 @@
 
 namespace cuttlefish
 {
-
-inline float clamp(float v, float minVal, float maxVal)
-{
-	if (v < minVal)
-		return minVal;
-	else if (v > maxVal)
-		return maxVal;
-	return v;
-}
 
 template <typename T>
 inline T toFloat(float f)

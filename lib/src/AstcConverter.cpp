@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "AstcCompress.h"
+#include "AstcConverter.h"
 
 #if CUTTLEFISH_HAS_ASTC
 
