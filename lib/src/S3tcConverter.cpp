@@ -130,7 +130,7 @@ S3tcConverter::S3tcConverter(const Texture& texture, const Image& image, unsigne
 	m_jobsY((image.height() + blockDim - 1)/blockDim),
 	m_quality(quality), m_weightAlpha(texture.alphaType() != Texture::Alpha::Encoded)
 {
-	data().resize(jobsX()*jobsY()*m_blockSize);
+	data().resize(m_jobsX*m_jobsY*m_blockSize);
 }
 
 void S3tcConverter::process(unsigned int x, unsigned int y)

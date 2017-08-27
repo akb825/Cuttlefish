@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Converter.h"
+#include "EtcConverter.h"
 #include "S3tcConverter.h"
 #include "StandardConverter.h"
 #include <cuttlefish/Texture.h>
@@ -417,6 +417,24 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 			return nullptr;
 		}
 #endif // CUTTLEFISH_HAS_S3TC
+#if CUTTLEFISH_HAS_ETC
+		case Texture::Format::ETC1:
+		case Texture::Format::ETC2_R8G8B8:
+		case Texture::Format::ETC2_R8G8B8A1:
+		case Texture::Format::ETC2_R8G8B8A8:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new EtcConverter(texture, image, quality));
+			return nullptr;
+		}
+		case Texture::Format::EAC_R11:
+		case Texture::Format::EAC_R11G11:
+		{
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::SNorm)
+				return std::unique_ptr<Converter>(new EtcConverter(texture, image, quality));
+			return nullptr;
+		}
+#endif // CUTTLEFISH_HAS_ETC
 		default:
 			return nullptr;
 	}

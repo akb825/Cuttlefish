@@ -937,7 +937,6 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	m_impl->colorSpace = colorSpace;
 	m_impl->alphaType = alphaType;
 
-	threads = std::max(threads, 1U);
 	if (threads == allCores)
 		threads = std::thread::hardware_concurrency();
 
