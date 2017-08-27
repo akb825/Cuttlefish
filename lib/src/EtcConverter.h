@@ -28,8 +28,6 @@ namespace Etc { class Image; }
 namespace cuttlefish
 {
 
-struct ColorRGBAf;
-
 class EtcConverter : public Converter
 {
 public:

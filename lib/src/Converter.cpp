@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "AstcConverter.h"
 #include "EtcConverter.h"
 #include "S3tcConverter.h"
 #include "StandardConverter.h"
@@ -435,6 +436,64 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 			return nullptr;
 		}
 #endif // CUTTLEFISH_HAS_ETC
+#if CUTTLEFISH_HAS_ASTC
+		case Texture::Format::ASTC_4x4:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 4, 4, quality));
+			return nullptr;
+		case Texture::Format::ASTC_5x4:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 5, 4, quality));
+			return nullptr;
+		case Texture::Format::ASTC_5x5:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 5, 5, quality));
+			return nullptr;
+		case Texture::Format::ASTC_6x5:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 6, 5, quality));
+			return nullptr;
+		case Texture::Format::ASTC_6x6:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 6, 6, quality));
+			return nullptr;
+		case Texture::Format::ASTC_8x5:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 8, 5, quality));
+			return nullptr;
+		case Texture::Format::ASTC_8x6:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 8, 6, quality));
+			return nullptr;
+		case Texture::Format::ASTC_8x8:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 8, 8, quality));
+			return nullptr;
+		case Texture::Format::ASTC_10x5:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 10, 5, quality));
+			return nullptr;
+		case Texture::Format::ASTC_10x6:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 10, 6, quality));
+			return nullptr;
+		case Texture::Format::ASTC_10x8:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 10, 8, quality));
+			return nullptr;
+		case Texture::Format::ASTC_10x10:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 10, 10, quality));
+			return nullptr;
+		case Texture::Format::ASTC_12x10:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 12, 10, quality));
+			return nullptr;
+		case Texture::Format::ASTC_12x12:
+			if (texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat)
+				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 12, 12, quality));
+			return nullptr;
+#endif // CUTTLEFISH_HAS_ASTC
 		default:
 			return nullptr;
 	}

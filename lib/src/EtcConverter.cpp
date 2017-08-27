@@ -33,15 +33,23 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 {
 	switch (quality)
 	{
-		case Texture::Quality::Low:
+		case Texture::Quality::Lowest:
 			m_effort = ETCCOMP_MIN_EFFORT_LEVEL;
 			break;
-		case Texture::Quality::High:
-			m_effort = ETCCOMP_MAX_EFFORT_LEVEL;
+		case Texture::Quality::Low:
+			m_effort = (ETCCOMP_MIN_EFFORT_LEVEL + ETCCOMP_DEFAULT_EFFORT_LEVEL)/2;
 			break;
 		case Texture::Quality::Normal:
-		default:
 			m_effort = ETCCOMP_DEFAULT_EFFORT_LEVEL;
+			break;
+		case Texture::Quality::High:
+			m_effort = (ETCCOMP_DEFAULT_EFFORT_LEVEL + ETCCOMP_MAX_EFFORT_LEVEL)/2;
+			break;
+		case Texture::Quality::Highest:
+			m_effort = ETCCOMP_MAX_EFFORT_LEVEL;
+			break;
+		default:
+			assert(false);
 			break;
 	}
 

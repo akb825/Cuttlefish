@@ -173,9 +173,11 @@ public:
 	 */
 	enum class Quality
 	{
-		Low,    ///< Low quality, but faster.
+		Lowest, ///< Lowest quality, but fastest results.
+		Low,    ///< Low quality and moderately fast.
 		Normal, ///< Tradeoff between quality and speed.
-		High    ///< High quality, but slower.
+		High,   ///< High quality, but moderately slow.
+		Highest ///< Highest quality, but slow.
 	};
 
 	/**

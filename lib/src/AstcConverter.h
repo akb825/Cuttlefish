@@ -17,11 +17,46 @@
 #pragma once
 
 #include <cuttlefish/Config.h>
+#include "Converter.h"
+#include <mutex>
 
 #if CUTTLEFISH_HAS_ASTC
 
 namespace cuttlefish
 {
+
+class AstcConverter : public Converter
+{
+public:
+	static const unsigned int blockSize = 16;
+
+	explicit AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
+		unsigned int blockY, Texture::Quality quality);
+	~AstcConverter();
+
+	unsigned int jobsX() const override {return m_jobsX;}
+	unsigned int jobsY() const override {return m_jobsY;}
+	void process(unsigned int x, unsigned int y) override;
+
+private:
+	unsigned int m_blockSize;
+	unsigned int m_blockX;
+	unsigned int m_blockY;
+	unsigned int m_jobsX;
+	unsigned int m_jobsY;
+	bool m_hdr;
+
+	bool m_alphaWeight;
+	int m_partitionsToTest;
+	float m_oplimit;
+	float m_mincorrel;
+	float m_averageErrorLimit;
+	float m_blockModeCutoff;
+	int m_maxIters;
+
+	static std::mutex m_mutex;
+};
+
 } // namespace cuttlefish
 
 #endif // CUTTLEFISH_HAS_ASTC
