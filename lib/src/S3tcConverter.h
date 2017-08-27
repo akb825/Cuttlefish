@@ -32,7 +32,7 @@ class S3tcConverter : public Converter
 public:
 	static const unsigned int blockDim = 4;
 
-	explicit S3tcConverter(const Texture& texture, const Image& image, unsigned int blockSize,
+	S3tcConverter(const Texture& texture, const Image& image, unsigned int blockSize,
 		Texture::Quality quality);
 
 	unsigned int jobsX() const override {return m_jobsX;}

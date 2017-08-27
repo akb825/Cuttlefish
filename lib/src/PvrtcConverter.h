@@ -19,35 +19,30 @@
 #include <cuttlefish/Config.h>
 #include "Converter.h"
 
-#if CUTTLEFISH_HAS_ETC
+#if CUTTLEFISH_HAS_PVRTC
 
-#include <EtcImage.h>
-
-namespace Etc { class Image; }
+namespace pvrtexture { class CPVRTexture; }
 
 namespace cuttlefish
 {
 
-class EtcConverter : public Converter
+class PvrtcConverter : public Converter
 {
 public:
 	static const unsigned int blockDim = 4;
 
-	EtcConverter(const Texture& texture, const Image& image, Texture::Quality quality);
+	PvrtcConverter(const Texture& texture, const Image& image, Texture::Quality quality);
 
-	unsigned int jobsX() const override {return m_jobsX;}
-	unsigned int jobsY() const override {return m_jobsY;}
+	unsigned int jobsX() const override {return 1;}
+	unsigned int jobsY() const override {return 1;}
 	void process(unsigned int x, unsigned int y) override;
 
 private:
-	unsigned int m_blockSize;
-	unsigned int m_jobsX;
-	unsigned int m_jobsY;
-	Etc::Image::Format m_format;
-	Etc::ErrorMetric m_metric;
-	float m_effort;
+	Texture::Format m_format;
+	Texture::Quality m_quality;
+	bool m_premultipliedAlpha;
 };
 
 } // namespace cuttlefish
 
-#endif // CUTTLEFISH_HAS_ETC
+#endif // CUTTLEFISH_HAS_PVRTC

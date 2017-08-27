@@ -30,7 +30,7 @@ class AstcConverter : public Converter
 public:
 	static const unsigned int blockSize = 16;
 
-	explicit AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
+	AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
 		unsigned int blockY, Texture::Quality quality);
 	~AstcConverter();
 

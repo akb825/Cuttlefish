@@ -16,6 +16,7 @@
 
 #include "AstcConverter.h"
 #include "EtcConverter.h"
+#include "PvrtcConverter.h"
 #include "S3tcConverter.h"
 #include "StandardConverter.h"
 #include <cuttlefish/Texture.h>
@@ -494,6 +495,17 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				return std::unique_ptr<Converter>(new AstcConverter(texture, image, 12, 12, quality));
 			return nullptr;
 #endif // CUTTLEFISH_HAS_ASTC
+#if CUTTLEFISH_HAS_PVRTC
+		case Texture::Format::PVRTC1_RGB_2BPP:
+		case Texture::Format::PVRTC1_RGBA_2BPP:
+		case Texture::Format::PVRTC1_RGB_4BPP:
+		case Texture::Format::PVRTC1_RGBA_4BPP:
+		case Texture::Format::PVRTC2_RGBA_2BPP:
+		case Texture::Format::PVRTC2_RGBA_4BPP:
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new PvrtcConverter(texture, image, quality));
+			return nullptr;
+#endif //CUTTLEFISH_HAS_PVRTC
 		default:
 			return nullptr;
 	}
