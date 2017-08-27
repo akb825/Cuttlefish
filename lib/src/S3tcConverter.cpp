@@ -139,21 +139,10 @@ void S3tcConverter::process(unsigned int x, unsigned int y)
 	ColorRGBAf blockColors[blockDim][blockDim];
 	for (unsigned int j = 0; j < blockDim; ++j)
 	{
-		if (y*blockDim + j < image().height())
-		{
-			for (unsigned int i = 0; i < blockDim; ++i)
-				blockColors[i][j] = ColorRGBAf{0, 0, 0, 0};
-			continue;
-		}
-
-		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(y*blockDim + j));
+		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
+			std::min(y*blockDim + j, image().height() - 1)));
 		for (unsigned int i = 0; i < blockDim; ++i)
-		{
-			if (x*blockDim + i < image().width())
-				blockColors[i][j] = scanline[x*blockDim + i];
-			else
-				blockColors[i][j] = ColorRGBAf{0, 0, 0, 0};
-		}
+			blockColors[i][j] = scanline[std::min(x*blockDim + i, image().width() - 1)];
 	}
 
 	compressBlock(block, reinterpret_cast<ColorRGBAf*>(blockColors));
