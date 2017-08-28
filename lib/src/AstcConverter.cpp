@@ -85,7 +85,8 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	m_colorMask = texture.colorMask();
 	m_hdr = texture.type() == Texture::Type::UFloat;
 	float log10Size = std::log10(static_cast<float>(m_blockX*m_blockY));
-	m_alphaWeight = texture.alphaType() != Texture::Alpha::Encoded;
+	m_alphaWeight = texture.alphaType() == Texture::Alpha::Standard ||
+		texture.alphaType() == Texture::Alpha::PreMultiplied;
 	switch (quality)
 	{
 		case Texture::Quality::Lowest:

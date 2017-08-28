@@ -265,10 +265,6 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		{
 			switch (texture.type())
 			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 1>(image));
-				case Texture::Type::SNorm:
-					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 1>(image));
 				case Texture::Type::UInt:
 					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 1>(image));
 				case Texture::Type::Int:
@@ -283,10 +279,6 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		{
 			switch (texture.type())
 			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 2>(image));
-				case Texture::Type::SNorm:
-					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 2>(image));
 				case Texture::Type::UInt:
 					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 2>(image));
 				case Texture::Type::Int:
@@ -301,10 +293,6 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		{
 			switch (texture.type())
 			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 3>(image));
-				case Texture::Type::SNorm:
-					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 3>(image));
 				case Texture::Type::UInt:
 					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 3>(image));
 				case Texture::Type::Int:
@@ -319,10 +307,6 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		{
 			switch (texture.type())
 			{
-				case Texture::Type::UNorm:
-					return std::unique_ptr<Converter>(new UNormConverter<std::uint32_t, 4>(image));
-				case Texture::Type::SNorm:
-					return std::unique_ptr<Converter>(new SNormConverter<std::int32_t, 4>(image));
 				case Texture::Type::UInt:
 					return std::unique_ptr<Converter>(new IntConverter<std::uint32_t, 4>(image));
 				case Texture::Type::Int:

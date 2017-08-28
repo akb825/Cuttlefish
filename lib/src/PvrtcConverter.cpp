@@ -19,7 +19,6 @@
 #include <cuttlefish/Color.h>
 #include <cassert>
 #include <cmath>
-#include <string.h>
 
 #if CUTTLEFISH_HAS_PVRTC
 

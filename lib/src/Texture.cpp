@@ -17,9 +17,11 @@
 #include <cuttlefish/Texture.h>
 
 #include "Converter.h"
+#include "SaveDds.h"
 #include <cuttlefish/Color.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <thread>
 #include <vector>
 
@@ -135,10 +137,10 @@ bool Texture::isFormatValid(Format format, Type type)
 		{true, true, true, true, false, true},     // R16G16
 		{true, true, true, true, false, true},     // R16G16B16
 		{true, true, true, true, false, true},     // R16G16B16A16
-		{true, true, true, true, false, true},     // R32
-		{true, true, true, true, false, true},     // R32G32
-		{true, true, true, true, false, true},     // R32G32B32
-		{true, true, true, true, false, true},     // R32G32B32A32
+		{false, false, true, true, false, true},   // R32
+		{false, false, true, true, false, true},   // R32G32
+		{false, false, true, true, false, true},   // R32G32B32
+		{false, false, true, true, false, true},   // R32G32B32A32
 
 		// Special formats.
 		{false, false, false, false, true, false}, // B10G11R11_UFloat
@@ -1007,7 +1009,7 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	if (!imagesComplete() || !isFormatValid(format, type))
 		return false;
 
-	if (colorSpace == Color::sRGB && !hasNativeSRGB(format))
+	if (colorSpace == Color::sRGB && (!hasNativeSRGB(format) || type != Type::UNorm))
 		return false;
 
 	m_impl->format = format;
@@ -1022,6 +1024,7 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	if (!Converter::convert(*this, m_impl->images, m_impl->textures, quality, threads))
 	{
 		m_impl->format = Format::Unknown;
+		m_impl->textures.clear();
 		return false;
 	}
 
@@ -1060,7 +1063,7 @@ Texture::Color Texture::colorSpace() const
 Texture::Alpha Texture::alphaType() const
 {
 	if (!m_impl)
-		return Alpha::Standard;
+		return Alpha::None;
 
 	return m_impl->alphaType;
 }
@@ -1109,6 +1112,42 @@ const void* Texture::data(CubeFace face, unsigned int mipLevel, unsigned int dep
 	}
 
 	return m_impl->textures[mipLevel][depth][static_cast<unsigned int>(face)].data();
+}
+
+Texture::SaveResult Texture::save(const char* fileName, FileType fileType)
+{
+	if (!converted() || !fileName)
+		return SaveResult::Invalid;
+
+	if (fileType == FileType::Auto)
+	{
+		const char* ddsExt = ".dds";
+		const std::size_t ddsLen = std::strlen(ddsExt);
+		const char* ktxExt = ".ktx";
+		const std::size_t ktxLen = std::strlen(ktxExt);
+		const char* pvrExt = ".pvr";
+		const std::size_t pvrLen = std::strlen(pvrExt);
+
+		std::size_t len = std::strlen(fileName);
+		if (len >= ddsLen && std::strcmp(fileName + len - ddsLen, ddsExt) == 0)
+			fileType = FileType::DDS;
+		else if (len >= ktxLen && std::strcmp(fileName + len - ktxLen, ktxExt) == 0)
+			fileType = FileType::KTX;
+		else if (len >= pvrLen && std::strcmp(fileName + len - pvrLen, pvrExt) == 0)
+			fileType = FileType::PVR;
+	}
+
+	switch (fileType)
+	{
+		case FileType::DDS:
+			return saveDds(*this, fileName);;
+		case FileType::KTX:
+			return SaveResult::UnknownFormat;
+		case FileType::PVR:
+			return SaveResult::UnknownFormat;
+		default:
+			return SaveResult::UnknownFormat;
+	}
 }
 
 } // namespace cuttlefish

@@ -163,6 +163,7 @@ public:
 	 */
 	enum class Alpha
 	{
+		None,          ///< No alpha.
 		Standard,      ///< Standard alpha.
 		PreMultiplied, ///< Alpha pre-multiplied with the color.
 		Encoded        ///< Alpha encodes other data, not representing alpha.
@@ -178,6 +179,29 @@ public:
 		Normal, ///< Tradeoff between quality and speed.
 		High,   ///< High quality, but moderately slow.
 		Highest ///< Highest quality, but slow.
+	};
+
+	/**
+	 * @brief Enum for an output texture file type.
+	 */
+	enum class FileType
+	{
+		Auto, ///< Automatically choose the format based on the extension.
+		DDS,  ///< Direct Draw Surface format.
+		KTX,  ///< Kronos texture format.
+		PVR   ///< PowerVR texture format.
+	};
+
+	/**
+	 * @brief Enum for the result of saving a file.
+	 */
+	enum class SaveResult
+	{
+		Success,       ///< File was succesfully saved.
+		Invalid,       ///< Texture or parameters were invalid.
+		UnknownFormat, ///< Unknown file format.
+		Unsupported,   ///< The texture is unsupported for the requested file format.
+		WriteError     ///< Couldn't write the file.
 	};
 
 	/**
@@ -561,6 +585,14 @@ public:
 	 * @return The data, or null if the parameters are invalid or the texture is a cube map.
 	 */
 	const void* data(CubeFace face, unsigned int mipLevel = 0, unsigned int depth = 0) const;
+
+	/**
+	 * @brief Saves a texture to a file.
+	 * @param fileName The name of the file to save to.
+	 * @param fileType The type of the file to save.
+	 * @return False if the texture hasn't been converted or the file couldn't be saved.
+	 */
+	SaveResult save(const char* fileName, FileType fileType = FileType::Auto);
 
 private:
 	struct Impl;

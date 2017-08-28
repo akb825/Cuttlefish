@@ -11,4 +11,4 @@ target_link_libraries(cuttlefish_test PRIVATE
 	${GTEST_BOTH_LIBRARIES})
 
 cfs_set_folder(cuttlefish_test tests)
-add_test(NAME DeepSeaCoreTest COMMAND cuttlefish_test)
+add_test(NAME CuttlefishTest COMMAND cuttlefish_test)

@@ -18,7 +18,7 @@
 #include <cuttlefish/Color.h>
 #include <cassert>
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 
 #if CUTTLEFISH_HAS_ETC
 
@@ -135,7 +135,7 @@ void EtcConverter::process(unsigned int x, unsigned int y)
 
 	assert(etcImage.GetEncodingBitsBytes() == m_blockSize);
 	void* block = data().data() + (y*m_jobsX + x)*m_blockSize;
-	memcpy(block, etcImage.GetEncodingBits(), m_blockSize);
+	std::memcpy(block, etcImage.GetEncodingBits(), m_blockSize);
 }
 
 } // namespace cuttlefish
