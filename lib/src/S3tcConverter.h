@@ -40,6 +40,7 @@ public:
 	void process(unsigned int x, unsigned int y) override;
 
 	Texture::Quality quality() const {return m_quality;}
+	Texture::ColorMask colorMask() const {return m_colorMask;}
 	bool weightAlpha() const {return m_weightAlpha;}
 	virtual void compressBlock(void* block, ColorRGBAf* blockColors) = 0;
 
@@ -48,6 +49,7 @@ private:
 	unsigned int m_jobsX;
 	unsigned int m_jobsY;
 	Texture::Quality m_quality;
+	Texture::ColorMask m_colorMask;
 	bool m_weightAlpha;
 };
 

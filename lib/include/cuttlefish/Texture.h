@@ -181,6 +181,32 @@ public:
 	};
 
 	/**
+	 * @brief Structure containing a mask for each channel.
+	 */
+	struct ColorMask
+	{
+		/**
+		 * @brief Initializes the color mask with all channels enabled.
+		 */
+		ColorMask() : r(true), g(true), b(true), a(true) {}
+
+		/**
+		 * @brief Initializes the color mask.
+		 * @param red True if the red channel is enabled.
+		 * @param green True if the green channel is enabled.
+		 * @param blue True if the blue channel is enabled.
+		 * @param alpha True if the alpha channel is enabled.
+		 */
+		ColorMask(bool red, bool green, bool blue, bool alpha = true)
+			: r(red), g(green), b(blue), a(alpha) {}
+
+		bool r; ///< True if the red channel is enabled.
+		bool g; ///< True if the green channel is enabled.
+		bool b; ///< True if the blue channel is enabled.
+		bool a; ///< True if the alpha channel is enabled.
+	};
+
+	/**
 	 * @brief Constant for all mip livels.
 	 */
 	static const unsigned int allMipLevels = (unsigned int)-1;
@@ -448,13 +474,15 @@ public:
 	 * @param quality The quality of compression.
 	 * @param colorSpace The color space the images are represented in.
 	 * @param alphaType The type of the alpha.
+	 * @param colorMask The color mask for the channels that are used. This may be used to avoid
+	 *     those channels from impacting block compression.
 	 * @param threads The number of threads to use during conversion.
 	 * @return False if the format and type combination is invalid, the color space cannot be used
 	 *     with the format, or the size is invalid for the type.
 	 */
 	bool convert(Format format, Type type, Quality quality = Quality::Normal,
 		Color colorSpace = Color::Linear, Alpha alphaType = Alpha::Standard,
-		unsigned int threads = allCores);
+		ColorMask colorMask = ColorMask(), unsigned int threads = allCores);
 
 	/**
 	 * @brief Returns whether or not the images have been converted into a texture.
@@ -485,6 +513,12 @@ public:
 	 * @return The alpha type.
 	 */
 	Alpha alphaType() const;
+
+	/**
+	 * @brief Gets the color mask.
+	 * @return The color mask.
+	 */
+	ColorMask colorMask() const;
 
 	/**
 	 * @brief Gets the data size for a portion of a non-cube map texture.

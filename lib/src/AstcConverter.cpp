@@ -82,6 +82,7 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	data().resize(m_jobsX*m_jobsY*blockSize);
 
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
+	m_colorMask = texture.colorMask();
 	m_hdr = texture.type() == Texture::Type::UFloat;
 	float log10Size = std::log10(static_cast<float>(m_blockX*m_blockY));
 	m_alphaWeight = texture.alphaType() != Texture::Alpha::Encoded;
@@ -219,12 +220,12 @@ void AstcConverter::process(unsigned int x, unsigned int y)
 	errorParams.enable_rgb_scale_with_alpha = m_alphaWeight;
 	errorParams.alpha_radius = 0;
 
-	// NOTE: If weights are added later, must be set to small values instead of 0.
 	errorParams.block_artifact_suppression = 0.0f;
-	errorParams.rgba_weights[0] = 1.0f;
-	errorParams.rgba_weights[1] = 1.0f;
-	errorParams.rgba_weights[2] = 1.0f;
-	errorParams.rgba_weights[3] = 1.0f;
+	// NOTE: Cannot have a weight of 0.
+	errorParams.rgba_weights[0] = m_colorMask.r ? 1.0f : 1e-4f;
+	errorParams.rgba_weights[1] = m_colorMask.g ? 1.0f : 1e-4f;
+	errorParams.rgba_weights[2] = m_colorMask.b ? 1.0f : 1e-4f;
+	errorParams.rgba_weights[3] = m_colorMask.a ? 1.0f : 1e-4f;
 	errorParams.ra_normal_angular_scale = 0;
 	expand_block_artifact_suppression(m_blockX, m_blockY, 1, &errorParams);
 

@@ -44,6 +44,7 @@ private:
 	unsigned int m_blockY;
 	unsigned int m_jobsX;
 	unsigned int m_jobsY;
+	Texture::ColorMask m_colorMask;
 	bool m_hdr;
 
 	bool m_alphaWeight;

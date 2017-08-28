@@ -102,6 +102,7 @@ struct Texture::Impl
 	Type type = Type::UNorm;
 	Color colorSpace = Color::Linear;
 	Alpha alphaType = Alpha::Standard;
+	ColorMask colorMask;
 	MipTextureList textures;
 };
 
@@ -917,7 +918,7 @@ bool Texture::imagesComplete() const
 }
 
 bool Texture::convert(Format format, Type type, Quality quality, Color colorSpace, Alpha alphaType,
-	unsigned int threads)
+	ColorMask colorMask, unsigned int threads)
 {
 	if (!imagesComplete() || !isFormatValid(format, type))
 		return false;
@@ -936,6 +937,7 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	m_impl->type = type;
 	m_impl->colorSpace = colorSpace;
 	m_impl->alphaType = alphaType;
+	m_impl->colorMask = colorMask;
 
 	if (threads == allCores)
 		threads = std::thread::hardware_concurrency();
@@ -984,6 +986,14 @@ Texture::Alpha Texture::alphaType() const
 		return Alpha::Standard;
 
 	return m_impl->alphaType;
+}
+
+Texture::ColorMask Texture::colorMask() const
+{
+	if (!m_impl)
+		return ColorMask();
+
+	return m_impl->colorMask;
 }
 
 std::size_t Texture::dataSize(unsigned int mipLevel, unsigned int depth) const

@@ -123,12 +123,24 @@ static void createWeights(float* weights, const ColorRGBAf* blockColors, bool we
 	}
 }
 
+static nv::Vector3 createChannelWeights(Texture::ColorMask colorMask)
+{
+	return nv::Vector3(colorMask.r ? 1.0f : 0.0f, colorMask.g ? 1.0f : 0.0f,
+		colorMask.b ? 1.0f : 0.0f);
+}
+
+static void setChannelWeights(nvsquish::WeightedClusterFit& fit, Texture::ColorMask colorMask)
+{
+	fit.SetMetric(colorMask.r ? 1.0f : 0.0f, colorMask.g ? 1.0f : 0.0f, colorMask.b ? 1.0f : 0.0f);
+}
+
 S3tcConverter::S3tcConverter(const Texture& texture, const Image& image, unsigned int blockSize,
 	Texture::Quality quality)
 	: Converter(image), m_blockSize(blockSize),
 	m_jobsX((image.width() + blockDim - 1)/blockDim),
 	m_jobsY((image.height() + blockDim - 1)/blockDim),
-	m_quality(quality), m_weightAlpha(texture.alphaType() != Texture::Alpha::Encoded)
+	m_quality(quality), m_colorMask(texture.colorMask()),
+	m_weightAlpha(texture.alphaType() != Texture::Alpha::Encoded)
 {
 	data().resize(m_jobsX*m_jobsY*m_blockSize);
 }
@@ -156,7 +168,7 @@ Bc1Converter::Bc1Converter(const Texture& texture, const Image& image, Texture::
 void Bc1Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 	auto dxtBlock = reinterpret_cast<nv::BlockDXT1*>(block);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 	{
 		nv::QuickCompress::compressDXT1(toColorBlock(blockColors), dxtBlock);
 		return;
@@ -167,7 +179,7 @@ void Bc1Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	createWeights(weights, blockColors, weightAlpha());
 
 	nv::compress_dxt1(reinterpret_cast<const nv::Vector4*>(blockColors), weights,
-		nv::Vector3(1, 1, 1), true, dxtBlock);
+		createChannelWeights(colorMask()), true, dxtBlock);
 }
 
 Bc1AConverter::Bc1AConverter(const Texture& texture, const Image& image, Texture::Quality quality)
@@ -179,7 +191,7 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 	auto dxtBlock = reinterpret_cast<nv::BlockDXT1*>(block);
 	nv::ColorBlock colorBlock = toColorBlock(blockColors);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 	{
 		nv::QuickCompress::compressDXT1a(colorBlock, dxtBlock);
 		return;
@@ -200,7 +212,7 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
     }
 
 	nvsquish::WeightedClusterFit fit;
-	fit.SetMetric(1, 1, 1);
+	setChannelWeights(fit, colorMask());
 
 	int flags = nvsquish::kDxt1;
 	if (weightAlpha())
@@ -220,7 +232,7 @@ void Bc2Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 	nv::BlockDXT3* dxtBlock = reinterpret_cast<nv::BlockDXT3*>(block);
 	nv::ColorBlock colorBlock = toColorBlock(blockColors);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 	{
 		nv::QuickCompress::compressDXT3(colorBlock, dxtBlock);
 		return;
@@ -239,7 +251,7 @@ void Bc2Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	}
 
 	nvsquish::WeightedClusterFit fit;
-	fit.SetMetric(1, 1, 1);
+	setChannelWeights(fit, colorMask());
 
 	int flags = 0;
 	if (weightAlpha())
@@ -259,7 +271,7 @@ void Bc3Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 	nv::BlockDXT5* dxtBlock = reinterpret_cast<nv::BlockDXT5*>(block);
 	nv::ColorBlock colorBlock = toColorBlock(blockColors);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 	{
 		nv::QuickCompress::compressDXT5(colorBlock, dxtBlock);
 		return;
@@ -268,7 +280,7 @@ void Bc3Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	// Same implementation as nv::CompressorDXT5::compressBlock()
 
 	// Compress explicit alpha.
-	if (quality() == Texture::Quality::High)
+	if (quality() == Texture::Quality::High || quality() == Texture::Quality::Highest)
 		nv::OptimalCompress::compressDXT5A(colorBlock, &dxtBlock->alpha);
 	else
 		nv::QuickCompress::compressDXT5A(colorBlock, &dxtBlock->alpha);
@@ -281,7 +293,7 @@ void Bc3Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	}
 
 	nvsquish::WeightedClusterFit fit;
-	fit.SetMetric(1, 1, 1);
+	setChannelWeights(fit, colorMask());
 
 	int flags = 0;
 	if (weightAlpha())
@@ -303,7 +315,7 @@ void Bc4Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 	auto dxtBlock = reinterpret_cast<nv::BlockATI1*>(block);
 	nv::AlphaBlock4x4 alphaBlock = toAlphaBlock(blockColors, 0, m_signed);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 		nv::QuickCompress::compressDXT5A(alphaBlock, &dxtBlock->alpha);
 	else
 		nv::OptimalCompress::compressDXT5A(alphaBlock, &dxtBlock->alpha);
@@ -321,7 +333,7 @@ void Bc5Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	auto dxtBlock = reinterpret_cast<nv::BlockATI2*>(block);
 	nv::AlphaBlock4x4 xBlock = toAlphaBlock(blockColors, 0, m_signed);
 	nv::AlphaBlock4x4 yBlock = toAlphaBlock(blockColors, 1, m_signed);
-	if (quality() == Texture::Quality::Low)
+	if (quality() == Texture::Quality::Lowest || quality() == Texture::Quality::Low)
 	{
 		nv::QuickCompress::compressDXT5A(xBlock, &dxtBlock->x);
 		nv::QuickCompress::compressDXT5A(yBlock, &dxtBlock->y);
