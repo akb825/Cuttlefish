@@ -38,6 +38,10 @@ class TextureConvertTest : public testing::TestWithParam<TextureConvertTestInfo>
 {
 };
 
+class TextureConvertSpecialTest : public testing::TestWithParam<TextureConvertTestInfo>
+{
+};
+
 TEST(TextureTest, Create)
 {
 	Texture texture(Texture::Dimension::Dim2D, 10, 15, 0);
@@ -165,6 +169,29 @@ TEST_P(TextureConvertTest, Convert)
 	}
 }
 
+TEST_P(TextureConvertSpecialTest, Convert)
+{
+	const TextureConvertTestInfo& info = GetParam();
+	for (Texture::Type type : info.types)
+	{
+		Texture texture(Texture::Dimension::Dim2D, 16, 16);
+		Image image(Image::Format::RGBAF, 16, 16);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, ColorRGBAd{0.0, 0.0, 0.0, 1.0}));
+		}
+		EXPECT_TRUE(texture.setImage(image));
+
+		EXPECT_TRUE(texture.convert(info.format, type));
+		unsigned int blockX = (texture.width() + Texture::blockWidth(info.format) - 1)/
+			Texture::blockWidth(info.format);
+		unsigned int blockY = (texture.height() + Texture::blockHeight(info.format) - 1)/
+			Texture::blockHeight(info.format);
+		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
+	}
+}
+
 INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
 	TextureConvertTest,
 	testing::Values(
@@ -205,7 +232,11 @@ INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
 		TextureConvertTestInfo(Texture::Format::R32G32B32, {Texture::Type::UNorm,
 			Texture::Type::SNorm, Texture::Type::UInt, Texture::Type::Int, Texture::Type::Float}),
 		TextureConvertTestInfo(Texture::Format::R32G32B32A32, {Texture::Type::UNorm,
-			Texture::Type::SNorm, Texture::Type::UInt, Texture::Type::Int, Texture::Type::Float}),
+			Texture::Type::SNorm, Texture::Type::UInt, Texture::Type::Int, Texture::Type::Float})));
+
+INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+	TextureConvertSpecialTest,
+	testing::Values(
 		TextureConvertTestInfo(Texture::Format::B10G11R11_UFloat, {Texture::Type::UFloat}),
 		TextureConvertTestInfo(Texture::Format::E5B9G9R9_UFloat, {Texture::Type::UFloat})
 #if CUTTLEFISH_HAS_S3TC
@@ -228,7 +259,18 @@ INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
 #endif // CUTTLEFISH_HAS_ETC
 #if CUTTLEFISH_HAS_ASTC
 		, TextureConvertTestInfo(Texture::Format::ASTC_4x4, {Texture::Type::UNorm, Texture::Type::UFloat}),
-		TextureConvertTestInfo(Texture::Format::ASTC_8x8, {Texture::Type::UNorm, Texture::Type::UFloat})
+		TextureConvertTestInfo(Texture::Format::ASTC_5x4, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_5x5, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_6x5, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_8x5, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_8x6, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_8x8, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_10x5, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_10x6, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_10x8, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_10x10, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_12x10, {Texture::Type::UNorm, Texture::Type::UFloat}),
+		TextureConvertTestInfo(Texture::Format::ASTC_12x12, {Texture::Type::UNorm, Texture::Type::UFloat})
 #endif // CUTTLEFISH_HAS_ASTC
 #if CUTTLEFISH_HAS_PVRTC
 		, TextureConvertTestInfo(Texture::Format::PVRTC1_RGB_2BPP, {Texture::Type::UNorm}),

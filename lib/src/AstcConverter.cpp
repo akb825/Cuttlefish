@@ -154,46 +154,29 @@ AstcConverter::~AstcConverter()
 
 void AstcConverter::process(unsigned int x, unsigned int y)
 {
-	unsigned int limitX = std::min((x + 1)*m_blockX, image().width());
-	unsigned int limitY = std::min((y + 1)*m_blockY, image().height());
 	imageblock astcBlock;
 	astcBlock.xpos = x*m_blockX;
 	astcBlock.ypos = y*m_blockY;
 	astcBlock.zpos = 1;
-	unsigned int pixels = 0;
-	for (unsigned int j = y*m_blockY; j < limitY; ++j)
+	for (unsigned int j = 0, index = 0; j < m_blockY; ++j)
 	{
-		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(j));
-		for (unsigned int i = x*m_blockX; i < limitX; ++i, ++pixels)
+		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
+			std::min(y*m_blockY + j, image().height() - 1)));
+		for (unsigned int i = 0; i < m_blockX; ++i, ++index)
 		{
-			astcBlock.orig_data[pixels*4] = scanline[i].r;
-			astcBlock.orig_data[pixels*4 + 1] = scanline[i].g;
-			astcBlock.orig_data[pixels*4 + 2] = scanline[i].b;
-			astcBlock.orig_data[pixels*4 + 3] = scanline[i].a;
-			astcBlock.rgb_lns[pixels] = m_hdr;
-			astcBlock.alpha_lns[pixels] = m_hdr;
-			astcBlock.nan_texel[pixels] = false;
+			unsigned int scanlineIdx = std::min(y*m_blockX + i, image().width() - 1);
+			astcBlock.orig_data[index*4] = scanline[scanlineIdx].r;
+			astcBlock.orig_data[index*4 + 1] = scanline[scanlineIdx].g;
+			astcBlock.orig_data[index*4 + 2] = scanline[scanlineIdx].b;
+			astcBlock.orig_data[index*4 + 3] = scanline[scanlineIdx].a;
+			astcBlock.rgb_lns[index] = m_hdr;
+			astcBlock.alpha_lns[index] = m_hdr;
+			astcBlock.nan_texel[index] = false;
 		}
 	}
 
-	// Make sure everything inside the valid range is initialized, otherwise
-	// update_imageblock_flags() will use garbage data. The other parts of compression won't
-	// use this data. (they use the image bounds)
-	assert(pixels > 0);
-	unsigned int lastIndex = pixels - 1;
-	for (unsigned int i = pixels; i < m_blockX*m_blockY; ++i)
-	{
-		astcBlock.orig_data[i*4] = astcBlock.orig_data[lastIndex*4];
-		astcBlock.orig_data[i*4 + 1] = astcBlock.orig_data[lastIndex*4 + 1];
-		astcBlock.orig_data[i*4 + 2] = astcBlock.orig_data[lastIndex*4 + 2];
-		astcBlock.orig_data[i*4 + 3] = astcBlock.orig_data[lastIndex*4 + 3];
-		astcBlock.rgb_lns[i] = m_hdr;
-		astcBlock.alpha_lns[i] = m_hdr;
-		astcBlock.nan_texel[i] = false;
-	}
-
 	// Fill in the rest of the information.
-	imageblock_initialize_work_from_orig(&astcBlock, pixels);
+	imageblock_initialize_work_from_orig(&astcBlock, m_blockX*m_blockY);
 	update_imageblock_flags(&astcBlock, m_blockX, m_blockY, 1);
 
 	// Just need the image for sizing information.

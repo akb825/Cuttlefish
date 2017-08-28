@@ -1010,13 +1010,6 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	if (colorSpace == Color::sRGB && !hasNativeSRGB(format))
 		return false;
 
-	unsigned int w = width(), h = height();
-	if (w < minWidth(format) || h < minHeight(format) || w % blockWidth(format) != 0 ||
-		h % blockHeight(format) != 0)
-	{
-		return false;
-	}
-
 	m_impl->format = format;
 	m_impl->type = type;
 	m_impl->colorSpace = colorSpace;
