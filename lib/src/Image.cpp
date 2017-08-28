@@ -1212,4 +1212,138 @@ bool Image::linearize()
 	return true;
 }
 
+bool Image::grayscale()
+{
+	if (!m_impl)
+		return false;
+
+	for (unsigned int y = 0; y < m_impl->height; ++y)
+	{
+		void* scanline = FreeImage_GetScanLine(m_impl->image, y);
+		for (unsigned int x = 0; x < m_impl->width; ++x)
+		{
+			ColorRGBAd color;
+			getPixelImpl(color, m_impl->format, scanline, x);
+			color.r = color.g = color.b = toGrayscale(color.r, color.g, color.b);
+			setPixelImpl(m_impl->format, scanline, x, color);
+		}
+	}
+
+	return true;
+}
+
+bool Image::swizzle(Channel red, Channel green, Channel blue, Channel alpha)
+{
+	if (!m_impl)
+		return false;
+
+	for (unsigned int y = 0; y < m_impl->height; ++y)
+	{
+		void* scanline = FreeImage_GetScanLine(m_impl->image, y);
+		for (unsigned int x = 0; x < m_impl->width; ++x)
+		{
+			ColorRGBAd color, swzl;
+			getPixelImpl(color, m_impl->format, scanline, x);
+			if (static_cast<unsigned int>(red) < 4)
+				swzl.r = reinterpret_cast<double*>(&color)[static_cast<unsigned int>(red)];
+			else
+				swzl.r = 0;
+			if (static_cast<unsigned int>(green) < 4)
+				swzl.g = reinterpret_cast<double*>(&color)[static_cast<unsigned int>(green)];
+			else
+				swzl.g = 0;
+			if (static_cast<unsigned int>(blue) < 4)
+				swzl.b = reinterpret_cast<double*>(&color)[static_cast<unsigned int>(blue)];
+			else
+				swzl.b = 0;
+			if (static_cast<unsigned int>(alpha) < 4)
+				swzl.a = reinterpret_cast<double*>(&color)[static_cast<unsigned int>(alpha)];
+			else
+				swzl.a = 1;
+			setPixelImpl(m_impl->format, scanline, x, swzl);
+		}
+	}
+
+	return true;
+}
+
+Image Image::createNormalMap(bool keepSign, double height, Format format)
+{
+	Image image;
+	if (!m_impl)
+		return image;
+
+	if (!image.initialize(format, m_impl->width, m_impl->height))
+		return image;
+
+	for (unsigned int y = 0; y < m_impl->height; ++y)
+	{
+		const void* scanline1 = FreeImage_GetScanLine(m_impl->image, y);
+
+		double distY = 2.0;
+		const void* scanline0;
+		if (y == 0)
+		{
+			scanline0 = scanline1;
+			distY = 1.0;
+		}
+		else
+			scanline0 = FreeImage_GetScanLine(m_impl->image, y - 1);
+
+		const void* scanline2;
+		if (y == m_impl->height - 1)
+		{
+			scanline2 = scanline1;
+			distY = 1.0;
+		}
+		else
+			scanline2 = FreeImage_GetScanLine(m_impl->image, y + 1);
+
+		void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
+
+		for (unsigned int x = 0; x < m_impl->width; ++x)
+		{
+			ColorRGBAd curColor0, curColor1;
+			getPixelImpl(curColor0, m_impl->format, scanline0, x);
+			getPixelImpl(curColor1, m_impl->format, scanline2, x);
+			double dy = (curColor0.r - curColor1.r)*height/distY;
+
+			double distX = 2.0;
+			if (x == 0)
+			{
+				getPixelImpl(curColor0, m_impl->format, scanline1, 0);
+				distX = 1.0;
+			}
+			else
+				getPixelImpl(curColor0, m_impl->format, scanline1, x - 1);
+
+			if (x == m_impl->width - 1)
+			{
+				getPixelImpl(curColor1, m_impl->format, scanline1, m_impl->width - 1);
+				distX = 1.0;
+			}
+			else
+				getPixelImpl(curColor1, m_impl->format, scanline1, x + 1);
+
+			double dx = (curColor1.r - curColor0.r)*height/distX;
+
+			ColorRGBAd normal;
+			double len = std::sqrt(dx*dx + dy*dy + 1);
+			normal.r = dx/len;
+			normal.g = dy/len;
+			normal.b = 1.0/len;
+			normal.a = 1.0;
+			if (!keepSign)
+			{
+				normal.r = normal.r*0.5 + 0.5;
+				normal.g = normal.g*0.5 + 0.5;
+				normal.b = normal.b*0.5 + 0.5;
+			}
+			setPixelImpl(format, dstScanline, x, normal);
+		}
+	}
+
+	return image;
+}
+
 } // namespace cuttlefish

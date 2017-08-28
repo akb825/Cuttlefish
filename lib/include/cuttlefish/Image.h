@@ -91,6 +91,18 @@ public:
 		CCW270  ///< 270 degrees counter-clockwise.
 	};
 
+	/**
+	 * @brief Enum for a color channel.
+	 */
+	enum class Channel
+	{
+		Red,   ///< Red channel
+		Green, ///< Green channel
+		Blue,  ///< Blue channel
+		Alpha, ///< Alpha channel
+		None   ///< Unused. Will be set to 1 for alpha, 0 otherwise.
+	};
+
 	Image();
 
 	/**
@@ -322,6 +334,31 @@ public:
 	 * @return False if the image was invalid.
 	 */
 	bool linearize();
+
+	/**
+	 * @brief Converts to grayscale.
+	 * @return False if the image was invalid.
+	 */
+	bool grayscale();
+
+	/**
+	 * @brief Swizzles the texture.
+	 * @param red The channel to place in red.
+	 * @param green The channel to place in green.
+	 * @param blue The channel to place in blue.
+	 * @param alpha The channel to place in alpha.
+	 * @return False if the image was invalid.
+	 */
+	bool swizzle(Channel red, Channel green, Channel blue, Channel alpha);
+
+	/**
+	 * @brief Creates a normal map from the R channel of the image.
+	 * @param keepSign True to keep the sign of the image, false to make the values unsigned.
+	 * @param height The height for the image.
+	 * @param format The format of the final image.
+	 * @return The normal map image.
+	 */
+	Image createNormalMap(bool keepSign = false, double height = 1.0, Format format = Format::RGBF);
 
 private:
 	struct Impl;

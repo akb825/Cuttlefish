@@ -17,6 +17,7 @@
 #include <cuttlefish/Color.h>
 #include <cuttlefish/Image.h>
 #include <gtest/gtest.h>
+#include <cmath>
 
 namespace cuttlefish
 {
@@ -36,6 +37,10 @@ struct ImageTestInfo
 };
 
 class ImageTest : public testing::TestWithParam<ImageTestInfo>
+{
+};
+
+class ImageColorTest : public testing::TestWithParam<ImageTestInfo>
 {
 };
 
@@ -412,6 +417,196 @@ TEST_P(ImageTest, FlipVertical)
 	}
 }
 
+TEST_P(ImageTest, PreMultiplyAlpha)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.preMultiplyAlpha());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r *= color.a;
+			testColor.g *= color.a;
+			testColor.b *= color.a;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageColorTest, Grayscale)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.grayscale());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r = testColor.g = testColor.b = toGrayscale(testColor.r, testColor.g,
+				testColor.b);
+			testColor.a = color.a;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageColorTest, Swizzle)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.swizzle(Image::Channel::Blue, Image::Channel::Red, Image::Channel::Green,
+		Image::Channel::Alpha));
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			std::swap(testColor.r, testColor.b);
+			std::swap(testColor.g, testColor.b);
+			testColor.a = color.a;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+static double getHeight(const Image& image, unsigned int x, unsigned int y)
+{
+	return (x - image.width()/2.0)/(image.width()/2.0)*
+		(y - image.height()/2.0)/(image.height()/2.0);
+}
+
+TEST(NormalMapTest, CreateNormalMap)
+{
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBF, 9, 9));
+
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double h = getHeight(image, x, y);
+			ColorRGBAd color = {h, 0.0, 0.0, 1.0};
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	Image normalMap = image.createNormalMap(true, 2.5);
+	EXPECT_TRUE(normalMap);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double x0 = getHeight(image, x == 0 ? 0 : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? image.width() - 1 : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? 0 : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? image.height() - 1 : y + 1);
+
+			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
+			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
+			double dx = (x1 - x0)*2.5/width;
+			double dy = (y0 - y1)*2.5/height;
+			double len = std::sqrt(dx*dx + dy*dy + 1);
+
+			ColorRGBAd color;
+			EXPECT_TRUE(normalMap.getPixel(color, x, y));
+			EXPECT_GE(1.0, color.r);
+			EXPECT_LE(-1.0, color.r);
+			EXPECT_GE(1.0, color.g);
+			EXPECT_LE(-1.0, color.g);
+			EXPECT_GE(1.0, color.b);
+			EXPECT_LE(-1.0, color.b);
+			EXPECT_NEAR(dx/len, color.r, 1e-4);
+			EXPECT_NEAR(dy/len, color.g, 1e-4);
+			EXPECT_NEAR(1.0/len, color.b, 1e-4);
+		}
+	}
+
+
+	normalMap = image.createNormalMap(false, 2.5);
+	EXPECT_TRUE(normalMap);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double x0 = getHeight(image, x == 0 ? 0 : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? image.width() - 1 : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? 0 : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? image.height() - 1 : y + 1);
+
+			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
+			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
+			double dx = (x1 - x0)*2.5/width;
+			double dy = (y0 - y1)*2.5/height;
+			double len = std::sqrt(dx*dx + dy*dy + 1);
+
+			ColorRGBAd color;
+			EXPECT_TRUE(normalMap.getPixel(color, x, y));
+			EXPECT_GE(1.0, color.r);
+			EXPECT_LE(0.0, color.r);
+			EXPECT_GE(1.0, color.g);
+			EXPECT_LE(0.0, color.g);
+			EXPECT_GE(1.0, color.b);
+			EXPECT_LE(0.0, color.b);
+			EXPECT_NEAR(dx/len*0.5 + 0.5, color.r, 1e-4);
+			EXPECT_NEAR(dy/len*0.5 + 0.5, color.g, 1e-4);
+			EXPECT_NEAR(1.0/len*0.5 + 0.5, color.b, 1e-4);
+		}
+	}
+}
+
 INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 	ImageTest,
 	testing::Values(
@@ -431,5 +626,17 @@ INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 		ImageTestInfo(Image::Format::Float, 1e-6, 1),
 		ImageTestInfo(Image::Format::Double, 1e-15, 1),
 		ImageTestInfo(Image::Format::Complex, 1e-15, 2)));
+
+INSTANTIATE_TEST_CASE_P(ImageTestTypes,
+	ImageColorTest,
+	testing::Values(
+		ImageTestInfo(Image::Format::RGB5, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB565, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB8, 1/255.0, 3),
+		ImageTestInfo(Image::Format::RGB16, 1/65535.0, 3),
+		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
+		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
+		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
+		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4)));
 
 } // cuttlefish
