@@ -56,7 +56,7 @@ public:
 	unsigned int jobsX() const override
 	{
 		// Only give jobs in 1 dimension to guarantee minimum alignment for multithreading.
-		return image().width()*image().height()/batchSize;
+		return (image().width()*image().height() + batchSize - 1)/batchSize;
 	}
 
 	unsigned int jobsY() const override
@@ -81,7 +81,7 @@ public:
 	void process(unsigned int x, unsigned int) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*sizeof(T)*C);
+		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -89,6 +89,8 @@ public:
 			unsigned int curRow = (x + i)*batchSize/image().width();
 			if (curRow != row)
 			{
+				if (curRow >= image().height())
+					break;
 				row = curRow;
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
@@ -119,7 +121,7 @@ public:
 	void process(unsigned int x, unsigned int) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*sizeof(T)*C);
+		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -127,6 +129,8 @@ public:
 			unsigned int curRow = (x + i)*batchSize/image().width();
 			if (curRow != row)
 			{
+				if (curRow >= image().height())
+					break;
 				row = curRow;
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
@@ -159,7 +163,7 @@ public:
 		const float minVal = static_cast<float>(std::numeric_limits<T>::min());
 		const float maxVal = static_cast<float>(std::numeric_limits<T>::max());
 
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*sizeof(T)*C);
+		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -167,6 +171,8 @@ public:
 			unsigned int curRow = (x + i)*batchSize/image().width();
 			if (curRow != row)
 			{
+				if (curRow >= image().height())
+					break;
 				row = curRow;
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
@@ -196,7 +202,7 @@ public:
 
 	void process(unsigned int x, unsigned int) override
 	{
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*sizeof(T)*C);
+		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -204,6 +210,8 @@ public:
 			unsigned int curRow = (x + i)*batchSize/image().width();
 			if (curRow != row)
 			{
+				if (curRow >= image().height())
+					break;
 				row = curRow;
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}

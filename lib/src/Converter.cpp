@@ -405,7 +405,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::UFloat:
 					return std::unique_ptr<Converter>(new Bc6HConverter(texture, image, quality,
 						false));
-				case Texture::Type::SNorm:
+				case Texture::Type::Float:
 					return std::unique_ptr<Converter>(new Bc6HConverter(texture, image, quality,
 						true));
 				default:
@@ -520,7 +520,7 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 	if (threadCount > 1)
 		threads.reserve(threadCount);
 
-	textureData.resize(textureData.size());
+	textureData.resize(images.size());
 	for (unsigned int mip = 0; mip < images.size(); ++mip)
 	{
 		textureData[mip].resize(images[mip].size());

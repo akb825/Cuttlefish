@@ -39,7 +39,6 @@ public:
 	void process(unsigned int x, unsigned int y) override;
 
 private:
-	unsigned int m_blockSize;
 	unsigned int m_blockX;
 	unsigned int m_blockY;
 	unsigned int m_jobsX;

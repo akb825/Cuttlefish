@@ -126,7 +126,7 @@ bool Texture::isFormatValid(Format format, Type type)
 		{true, true, true, true, false, false},    // R8G8
 		{true, true, true, true, false, false},    // R8G8B8
 		{true, false, false, false, false, false}, // B8G8R8
-		{true, false, false, false, false, false}, // R8G8B8A8
+		{true, true, true, true, false, false},    // R8G8B8A8
 		{true, false, false, false, false, false}, // B8G8R8A8
 		{true, false, false, false, false, false}, // A8B8G8R8
 		{true, false, true, false, false, false},  // A2R10G10B10
@@ -409,6 +409,87 @@ unsigned int Texture::blockHeight(Format format)
 	return sizes[static_cast<unsigned int>(format)];
 }
 
+unsigned int Texture::blockSize(Format format)
+{
+	static unsigned int sizes[] =
+	{
+		0,  // Unknown
+
+		// Standard formats
+		1,  // R4G4
+		1,  // R4G4B4A4
+		1,  // B4G4R4A4
+		2,  // R5G6B5
+		2,  // B5G6R5
+		2,  // R5G5B5A1
+		2,  // B5G5R5A1
+		2,  // A1R5G5B5
+		1,  // R8
+		2,  // R8G8
+		3,  // R8G8B8
+		3,  // B8G8R8
+		4,  // R8G8B8A8
+		4,  // B8G8R8A8
+		4,  // A8B8G8R8
+		4,  // A2R10G10B10
+		4,  // A2B10G10R10
+		2,  // R16
+		4,  // R16G16
+		6,  // R16G16B16
+		8,  // R16G16B16A16
+		4,  // R32
+		8,  // R32G32
+		12, // R32G32B32
+		16, // R32G32B32A32
+
+		// Special formats.
+		4, // B10G11R11_UFloat
+		4, // E5B9G9R9_UFloat
+
+		// Compressed formats
+		8,  // BC1_RGB
+		8,  // BC1_RGBA
+		16, // BC2
+		16, // BC3
+		8,  // BC4
+		16, // BC5
+		16, // BC6H
+		16, // BC7
+		8,  // ETC1
+		8,  // ETC2_R8G8B8
+		8,  // ETC2_R8G8B8A1
+		16, // ETC2_R8G8B8A8
+		8,  // EAC_R11
+		16, // EAC_R11G11
+		16, // ASTC_4x4
+		16, // ASTC_5x4
+		16, // ASTC_5x5
+		16, // ASTC_6x5
+		16, // ASTC_6x6
+		16, // ASTC_8x5
+		16, // ASTC_8x6
+		16, // ASTC_8x8
+		16, // ASTC_10x5
+		16, // ASTC_10x6
+		16, // ASTC_10x8
+		16, // ASTC_10x10
+		16, // ASTC_12x10
+		16, // ASTC_12x12
+		8,  // PVRTC1_RGB_2BPP
+		8,  // PVRTC1_RGBA_2BPP
+		8,  // PVRTC1_RGB_4BPP
+		8,  // PVRTC1_RGBA_4BPP
+		8,  // PVRTC2_RGBA_2BPP
+		8,  // PVRTC2_RGBA_4BPP
+	};
+	static_assert(sizeof(sizes)/sizeof(*sizes) == formatCount, "Enum array mimatch");
+
+	if (static_cast<unsigned int>(format) >= formatCount)
+		return 0;
+
+	return sizes[static_cast<unsigned int>(format)];
+}
+
 unsigned int Texture::minWidth(Format format)
 {
 	static unsigned int sizes[] =
@@ -645,6 +726,7 @@ bool Texture::initialize(Dimension dimension, unsigned int width, unsigned int h
 	if (width == 0 || height == 0 || (dimension == Dimension::Dim3D && depth == 0))
 		return false;
 
+	m_impl = new Impl;
 	m_impl->dimension = dimension;
 	m_impl->width = width;
 	m_impl->height = height;
@@ -824,6 +906,7 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 
 	mipLevels = std::min(std::max(mipLevels, 1U), maxMipmapLevels(dimension(), width(), height(),
 		depth()));
+	m_impl->mipLevels = mipLevels;
 	m_impl->images.resize(mipLevels);
 
 	if (m_impl->dimension == Dimension::Dim3D)
@@ -855,6 +938,7 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 
 				unsigned int w = width(mip);
 				unsigned int h = height(mip);
+				depthImages[d].resize(1);
 				depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
 				for (unsigned int y = 0; y < h; ++y)
 				{

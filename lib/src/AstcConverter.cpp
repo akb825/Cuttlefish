@@ -239,7 +239,7 @@ void AstcConverter::process(unsigned int x, unsigned int y)
 		&errorParams, &astcBlock, &symbolicBlock);
 
 	auto block = reinterpret_cast<physical_compressed_block*>(
-		data().data() + (y*m_jobsX + x)*m_blockSize);
+		data().data() + (y*m_jobsX + x)*blockSize);
 	*block = symbolic_to_physical(m_blockX, m_blockY, 1, &symbolicBlock);
 }
 

@@ -21,8 +21,7 @@ namespace cuttlefish
 
 void R4G4Converter::process(unsigned int x, unsigned int)
 {
-	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() +
-		x*batchSize*sizeof(std::uint8_t));
+	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -30,6 +29,8 @@ void R4G4Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -43,8 +44,7 @@ void R4G4Converter::process(unsigned int x, unsigned int)
 
 void R4G4B4A4Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -52,6 +52,8 @@ void R4G4B4A4Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -67,8 +69,7 @@ void R4G4B4A4Converter::process(unsigned int x, unsigned int)
 
 void B4G4R4A4Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -76,6 +77,8 @@ void B4G4R4A4Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -91,8 +94,7 @@ void B4G4R4A4Converter::process(unsigned int x, unsigned int)
 
 void R5G6B5Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -100,6 +102,8 @@ void R5G6B5Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -114,8 +118,7 @@ void R5G6B5Converter::process(unsigned int x, unsigned int)
 
 void B5G6R5Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -123,6 +126,8 @@ void B5G6R5Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -137,8 +142,7 @@ void B5G6R5Converter::process(unsigned int x, unsigned int)
 
 void R5G5B5A1Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -146,6 +150,8 @@ void R5G5B5A1Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -161,8 +167,7 @@ void R5G5B5A1Converter::process(unsigned int x, unsigned int)
 
 void B5G5R5A1Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -170,6 +175,8 @@ void B5G5R5A1Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -185,8 +192,7 @@ void B5G5R5A1Converter::process(unsigned int x, unsigned int)
 
 void A1R5G5B5Converter::process(unsigned int x, unsigned int)
 {
-	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() +
-		x*batchSize*sizeof(std::uint16_t));
+	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -194,6 +200,8 @@ void A1R5G5B5Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -209,8 +217,7 @@ void A1R5G5B5Converter::process(unsigned int x, unsigned int)
 
 void B8G8R8Converter::process(unsigned int x, unsigned int)
 {
-	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() +
-		x*batchSize*sizeof(std::uint8_t)*3);
+	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() + x*batchSize*3);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -218,6 +225,8 @@ void B8G8R8Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -234,8 +243,7 @@ void B8G8R8Converter::process(unsigned int x, unsigned int)
 
 void B8G8R8A8Converter::process(unsigned int x, unsigned int)
 {
-	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() +
-		x*batchSize*sizeof(std::uint8_t)*4);
+	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() + x*batchSize*4);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -243,6 +251,8 @@ void B8G8R8A8Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -261,8 +271,7 @@ void B8G8R8A8Converter::process(unsigned int x, unsigned int)
 
 void A8B8G8R8Converter::process(unsigned int x, unsigned int)
 {
-	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() +
-		x*batchSize*sizeof(std::uint8_t)*4);
+	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data() + x*batchSize*4);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -270,6 +279,8 @@ void A8B8G8R8Converter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -288,8 +299,7 @@ void A8B8G8R8Converter::process(unsigned int x, unsigned int)
 
 void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -297,6 +307,8 @@ void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -312,8 +324,7 @@ void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int)
 
 void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -321,6 +332,8 @@ void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -336,8 +349,7 @@ void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int)
 
 void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -345,6 +357,8 @@ void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -360,8 +374,7 @@ void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int)
 
 void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -369,6 +382,8 @@ void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -384,8 +399,7 @@ void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int)
 
 void B10R11R11UFloatConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -393,6 +407,8 @@ void B10R11R11UFloatConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}
@@ -404,8 +420,7 @@ void B10R11R11UFloatConverter::process(unsigned int x, unsigned int)
 
 void E5B9G9R9UFloatConverter::process(unsigned int x, unsigned int)
 {
-	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() +
-		x*batchSize*sizeof(std::uint32_t));
+	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data() + x*batchSize);
 	unsigned int row = x*batchSize/image().width();
 	const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 	for (unsigned int i = 0; i < batchSize; ++i)
@@ -413,6 +428,8 @@ void E5B9G9R9UFloatConverter::process(unsigned int x, unsigned int)
 		unsigned int curRow = (x + i)*batchSize/image().width();
 		if (curRow != row)
 		{
+			if (curRow >= image().height())
+				break;
 			row = curRow;
 			scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(row));
 		}

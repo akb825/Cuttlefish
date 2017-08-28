@@ -267,6 +267,13 @@ public:
 	static unsigned int blockHeight(Format format);
 
 	/**
+	 * @brief Gets the size of a format.
+	 * @param format The texture format.
+	 * @return The size.
+	 */
+	static unsigned int blockSize(Format format);
+
+	/**
 	 * @brief Gets the minimum width for a format.
 	 * @param format The texture format.
 	 * @return The minimum width.
