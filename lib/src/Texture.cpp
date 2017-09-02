@@ -18,6 +18,7 @@
 
 #include "Converter.h"
 #include "SaveDds.h"
+#include "SaveKtx.h"
 #include <cuttlefish/Color.h>
 #include <algorithm>
 #include <cmath>
@@ -1140,9 +1141,9 @@ Texture::SaveResult Texture::save(const char* fileName, FileType fileType)
 	switch (fileType)
 	{
 		case FileType::DDS:
-			return saveDds(*this, fileName);;
+			return saveDds(*this, fileName);
 		case FileType::KTX:
-			return SaveResult::UnknownFormat;
+			return saveKtx(*this, fileName);
 		case FileType::PVR:
 			return SaveResult::UnknownFormat;
 		default:

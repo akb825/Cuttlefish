@@ -502,9 +502,47 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 				return DdsDxt10Format_BC7_UNORM;
 			}
 			return DdsDxt10Format_UNKNOWN;
-		default:
+
+		// Unsupported by DirectX (and therefore DDS)
+		case Texture::Format::Unknown:
+		case Texture::Format::R4G4B4A4:
+		case Texture::Format::B5G6R5:
+		case Texture::Format::R5G5B5A1:
+		case Texture::Format::B5G5R5A1:
+		case Texture::Format::R8G8B8:
+		case Texture::Format::B8G8R8:
+		case Texture::Format::A8B8G8R8:
+		case Texture::Format::A2R10G10B10:
+		case Texture::Format::R16G16B16:
+		case Texture::Format::ETC1:
+		case Texture::Format::ETC2_R8G8B8:
+		case Texture::Format::ETC2_R8G8B8A1:
+		case Texture::Format::ETC2_R8G8B8A8:
+		case Texture::Format::EAC_R11:
+		case Texture::Format::EAC_R11G11:
+		case Texture::Format::ASTC_4x4:
+		case Texture::Format::ASTC_5x4:
+		case Texture::Format::ASTC_5x5:
+		case Texture::Format::ASTC_6x5:
+		case Texture::Format::ASTC_6x6:
+		case Texture::Format::ASTC_8x5:
+		case Texture::Format::ASTC_8x6:
+		case Texture::Format::ASTC_8x8:
+		case Texture::Format::ASTC_10x5:
+		case Texture::Format::ASTC_10x6:
+		case Texture::Format::ASTC_10x8:
+		case Texture::Format::ASTC_10x10:
+		case Texture::Format::ASTC_12x10:
+		case Texture::Format::ASTC_12x12:
+		case Texture::Format::PVRTC1_RGB_2BPP:
+		case Texture::Format::PVRTC1_RGBA_2BPP:
+		case Texture::Format::PVRTC1_RGB_4BPP:
+		case Texture::Format::PVRTC1_RGBA_4BPP:
+		case Texture::Format::PVRTC2_RGBA_2BPP:
+		case Texture::Format::PVRTC2_RGBA_4BPP:
 			return DdsDxt10Format_UNKNOWN;
 	}
+	return DdsDxt10Format_UNKNOWN;
 }
 
 static std::uint32_t computePitch(const Texture& texture)
