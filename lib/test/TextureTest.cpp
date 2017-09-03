@@ -18,6 +18,7 @@
 #include <cuttlefish/Image.h>
 #include <cuttlefish/Texture.h>
 #include <gtest/gtest.h>
+#include <vector>
 
 namespace cuttlefish
 {
@@ -209,6 +210,7 @@ INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
 			Texture::Type::UInt, Texture::Type::Int}),
 		TextureConvertTestInfo(Texture::Format::R8G8B8, {Texture::Type::UNorm, Texture::Type::SNorm,
 			Texture::Type::UInt, Texture::Type::Int}),
+		TextureConvertTestInfo(Texture::Format::B8G8R8, {Texture::Type::UNorm}),
 		TextureConvertTestInfo(Texture::Format::R8G8B8A8, {Texture::Type::UNorm,
 			Texture::Type::SNorm, Texture::Type::UInt, Texture::Type::Int}),
 		TextureConvertTestInfo(Texture::Format::B8G8R8A8, {Texture::Type::UNorm}),

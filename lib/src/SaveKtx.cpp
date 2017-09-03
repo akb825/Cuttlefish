@@ -785,7 +785,10 @@ static bool getFormatInfo(FormatInfo& info, const Texture& texture)
 			info.typeSize = 1;
 			info.format = GL_RGB;
 			if (texture.type() == Texture::Type::UNorm)
+			{
 				info.internalFormat = GL_ETC1_RGB8_OES;
+				return true;
+			}
 			return false;
 		case Texture::Format::ETC2_R8G8B8:
 			info.type = 0;

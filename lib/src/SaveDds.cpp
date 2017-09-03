@@ -472,12 +472,26 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 			}
 			return DdsDxt10Format_UNKNOWN;
 		case Texture::Format::BC4:
-			if (type == Texture::Type::UNorm)
-				return DdsDxt10Format_BC4_UNORM;
+			switch (type)
+			{
+				case Texture::Type::UNorm:
+					return DdsDxt10Format_BC4_UNORM;
+				case Texture::Type::SNorm:
+					return DdsDxt10Format_BC4_SNORM;
+				default:
+					return DdsDxt10Format_UNKNOWN;
+			}
 			return DdsDxt10Format_UNKNOWN;
 		case Texture::Format::BC5:
-			if (type == Texture::Type::UNorm)
-				return DdsDxt10Format_BC5_UNORM;
+			switch (type)
+			{
+				case Texture::Type::UNorm:
+					return DdsDxt10Format_BC5_UNORM;
+				case Texture::Type::SNorm:
+					return DdsDxt10Format_BC5_SNORM;
+				default:
+					return DdsDxt10Format_UNKNOWN;
+			}
 			return DdsDxt10Format_UNKNOWN;
 		case Texture::Format::BC6H:
 			switch (type)
@@ -489,8 +503,6 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 				default:
 					return DdsDxt10Format_UNKNOWN;
 			}
-			if (type == Texture::Type::UNorm)
-				return DdsDxt10Format_BC5_UNORM;
 			return DdsDxt10Format_UNKNOWN;
 		case Texture::Format::BC7:
 			if (type == Texture::Type::UNorm)

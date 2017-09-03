@@ -263,140 +263,202 @@ static PvrChannelType getChannelType(const Texture& texture)
 	return PvrChannelType_UByte;
 }
 
-static std::uint64_t getPixelFormat(const Texture& texture)
+static bool getPixelFormat(std::uint64_t& format, const Texture& texture)
 {
 	switch (texture.format())
 	{
 		case Texture::Format::Unknown:
-			return 0;
+			return false;
 		case Texture::Format::R4G4:
-			return PVR_GENERIC_FORMAT('r', 4, 'g', 4, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 4, 'g', 4, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R4G4B4A4:
-			return PVR_GENERIC_FORMAT('r', 4, 'g', 4, 'b', 4, 'a', 4);
+			format = PVR_GENERIC_FORMAT('r', 4, 'g', 4, 'b', 4, 'a', 4);
+			return true;
 		case Texture::Format::B4G4R4A4:
-			return PVR_GENERIC_FORMAT('b', 4, 'g', 4, 'r', 4, 'a', 4);
+			format = PVR_GENERIC_FORMAT('b', 4, 'g', 4, 'r', 4, 'a', 4);
+			return true;
 		case Texture::Format::R5G6B5:
-			return PVR_GENERIC_FORMAT('r', 5, 'g', 6, 'b', 5, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 5, 'g', 6, 'b', 5, 0, 0);
+			return true;
 		case Texture::Format::B5G6R5:
-			return PVR_GENERIC_FORMAT('b', 5, 'g', 6, 'r', 5, 0, 0);
+			format = PVR_GENERIC_FORMAT('b', 5, 'g', 6, 'r', 5, 0, 0);
+			return true;
 		case Texture::Format::R5G5B5A1:
-			return PVR_GENERIC_FORMAT('r', 5, 'g', 5, 'a', 5, 'a', 1);
+			format = PVR_GENERIC_FORMAT('r', 5, 'g', 5, 'a', 5, 'a', 1);
+			return true;
 		case Texture::Format::B5G5R5A1:
-			return PVR_GENERIC_FORMAT('b', 5, 'g', 5, 'r', 5, 'a', 1);
+			format = PVR_GENERIC_FORMAT('b', 5, 'g', 5, 'r', 5, 'a', 1);
+			return true;
 		case Texture::Format::A1R5G5B5:
-			return PVR_GENERIC_FORMAT('a', 1, 'r', 5, 'g', 5, 'b', 5);
+			format = PVR_GENERIC_FORMAT('a', 1, 'r', 5, 'g', 5, 'b', 5);
+			return true;
 		case Texture::Format::R8:
-			return PVR_GENERIC_FORMAT('r', 8, 0, 0, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 8, 0, 0, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R8G8:
-			return PVR_GENERIC_FORMAT('r', 8, 'g', 8, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 8, 'g', 8, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R8G8B8:
-			return PVR_GENERIC_FORMAT('r', 8, 'g', 8, 'b', 8, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 8, 'g', 8, 'b', 8, 0, 0);
+			return true;
 		case Texture::Format::B8G8R8:
-			return PVR_GENERIC_FORMAT('b', 8, 'g', 8, 'r', 8, 0, 0);
+			format = PVR_GENERIC_FORMAT('b', 8, 'g', 8, 'r', 8, 0, 0);
+			return true;
 		case Texture::Format::R8G8B8A8:
-			return PVR_GENERIC_FORMAT('r', 8, 'g', 8, 'b', 8, 'a', 8);
+			format = PVR_GENERIC_FORMAT('r', 8, 'g', 8, 'b', 8, 'a', 8);
+			return true;
 		case Texture::Format::B8G8R8A8:
-			return PVR_GENERIC_FORMAT('b', 8, 'g', 8, 'r', 8, 'a', 8);
+			format = PVR_GENERIC_FORMAT('b', 8, 'g', 8, 'r', 8, 'a', 8);
+			return true;
 		case Texture::Format::A8B8G8R8:
-			return PVR_GENERIC_FORMAT('a', 8, 'r', 8, 'g', 8, 'b', 8);
+			format = PVR_GENERIC_FORMAT('a', 8, 'r', 8, 'g', 8, 'b', 8);
+			return true;
 		case Texture::Format::A2R10G10B10:
-			return PVR_GENERIC_FORMAT('a', 2, 'r', 10, 'g', 10, 'b', 10);
+			format = PVR_GENERIC_FORMAT('a', 2, 'r', 10, 'g', 10, 'b', 10);
+			return true;
 		case Texture::Format::A2B10G10R10:
-			return PVR_GENERIC_FORMAT('a', 2, 'b', 10, 'g', 10, 'r', 10);
+			format = PVR_GENERIC_FORMAT('a', 2, 'b', 10, 'g', 10, 'r', 10);
+			return true;
 		case Texture::Format::R16:
-			return PVR_GENERIC_FORMAT('r', 16, 0, 0, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 16, 0, 0, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R16G16:
-			return PVR_GENERIC_FORMAT('r', 16, 'g', 16, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 16, 'g', 16, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R16G16B16:
-			return PVR_GENERIC_FORMAT('r', 16, 'g', 16, 'b', 16, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 16, 'g', 16, 'b', 16, 0, 0);
+			return true;
 		case Texture::Format::R16G16B16A16:
-			return PVR_GENERIC_FORMAT('r', 16, 'g', 16, 'b', 16, 'a', 16);
+			format = PVR_GENERIC_FORMAT('r', 16, 'g', 16, 'b', 16, 'a', 16);
+			return true;
 		case Texture::Format::R32:
-			return PVR_GENERIC_FORMAT('r', 32, 0, 0, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 32, 0, 0, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R32G32:
-			return PVR_GENERIC_FORMAT('r', 32, 'g', 32, 0, 0, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 32, 'g', 32, 0, 0, 0, 0);
+			return true;
 		case Texture::Format::R32G32B32:
-			return PVR_GENERIC_FORMAT('r', 32, 'g', 32, 'b', 32, 0, 0);
+			format = PVR_GENERIC_FORMAT('r', 32, 'g', 32, 'b', 32, 0, 0);
+			return true;
 		case Texture::Format::R32G32B32A32:
-			return PVR_GENERIC_FORMAT('r', 32, 'g', 32, 'b', 32, 'a', 32);
+			format = PVR_GENERIC_FORMAT('r', 32, 'g', 32, 'b', 32, 'a', 32);
+			return true;
 		case Texture::Format::B10G11R11_UFloat:
-			return PVR_GENERIC_FORMAT('b', 10, 'g', 11, 'r', 11, 0, 0);
+			format = PVR_GENERIC_FORMAT('b', 10, 'g', 11, 'r', 11, 0, 0);
+			return true;
 		case Texture::Format::E5B9G9R9_UFloat:
-			return PvrSpecialFormat_R9G9B9E5_UFloat;
+			format = PvrSpecialFormat_R9G9B9E5_UFloat;
+			return true;
 		case Texture::Format::BC1_RGB:
 		case Texture::Format::BC1_RGBA:
-			return PvrSpecialFormat_BC1;
+			format = PvrSpecialFormat_BC1;
+			return true;
 		case Texture::Format::BC2:
 			if (texture.alphaType() == Texture::Alpha::PreMultiplied)
-				return PvrSpecialFormat_DXT2;
-			return PvrSpecialFormat_BC2;
+				format = PvrSpecialFormat_DXT2;\
+			else
+				format = PvrSpecialFormat_BC2;
+			return true;
 		case Texture::Format::BC3:
 			if (texture.alphaType() == Texture::Alpha::PreMultiplied)
-				return PvrSpecialFormat_DXT4;
-			return PvrSpecialFormat_BC3;
+				format = PvrSpecialFormat_DXT4;
+			else
+				format = PvrSpecialFormat_BC3;
+			return true;
 		case Texture::Format::BC4:
-			return PvrSpecialFormat_BC4;
+			format = PvrSpecialFormat_BC4;
+			return true;
 		case Texture::Format::BC5:
-			return PvrSpecialFormat_BC5;
+			format = PvrSpecialFormat_BC5;
+			return true;
 		case Texture::Format::BC6H:
-			return PvrSpecialFormat_BC6;
+			format = PvrSpecialFormat_BC6;
+			return true;
 		case Texture::Format::BC7:
-			return PvrSpecialFormat_BC7;
+			format = PvrSpecialFormat_BC7;
+			return true;
 		case Texture::Format::ETC1:
-			return PvrSpecialFormat_ETC1;
+			format = PvrSpecialFormat_ETC1;
+			return true;
 		case Texture::Format::ETC2_R8G8B8:
-			return PvrSpecialFormat_ETC2_RGB;
+			format = PvrSpecialFormat_ETC2_RGB;
+			return true;
 		case Texture::Format::ETC2_R8G8B8A1:
-			return PvrSpecialFormat_ETC2_RGB_A1;
+			format = PvrSpecialFormat_ETC2_RGB_A1;
+			return true;
 		case Texture::Format::ETC2_R8G8B8A8:
-			return PvrSpecialFormat_ETC2_RGBA;
+			format = PvrSpecialFormat_ETC2_RGBA;
+			return true;
 		case Texture::Format::EAC_R11:
-			return PvrSpecialFormat_EAC_R11;
+			format = PvrSpecialFormat_EAC_R11;
+			return true;
 		case Texture::Format::EAC_R11G11:
-			return PvrSpecialFormat_EAC_RG11;
+			format = PvrSpecialFormat_EAC_RG11;
+			return true;
 		case Texture::Format::ASTC_4x4:
-			return PvrSpecialFormat_ASTC_4x4;
+			format = PvrSpecialFormat_ASTC_4x4;
+			return true;
 		case Texture::Format::ASTC_5x4:
-			return PvrSpecialFormat_ASTC_5x4;
+			format = PvrSpecialFormat_ASTC_5x4;
+			return true;
 		case Texture::Format::ASTC_5x5:
-			return PvrSpecialFormat_ASTC_5x5;
+			format = PvrSpecialFormat_ASTC_5x5;
+			return true;
 		case Texture::Format::ASTC_6x5:
-			return PvrSpecialFormat_ASTC_6x5;
+			format = PvrSpecialFormat_ASTC_6x5;
+			return true;
 		case Texture::Format::ASTC_6x6:
-			return PvrSpecialFormat_ASTC_6x6;
+			format = PvrSpecialFormat_ASTC_6x6;
+			return true;
 		case Texture::Format::ASTC_8x5:
-			return PvrSpecialFormat_ASTC_8x5;
+			format = PvrSpecialFormat_ASTC_8x5;
+			return true;
 		case Texture::Format::ASTC_8x6:
-			return PvrSpecialFormat_ASTC_8x6;
+			format = PvrSpecialFormat_ASTC_8x6;
+			return true;
 		case Texture::Format::ASTC_8x8:
-			return PvrSpecialFormat_ASTC_8x8;
+			format = PvrSpecialFormat_ASTC_8x8;
+			return true;
 		case Texture::Format::ASTC_10x5:
-			return PvrSpecialFormat_ASTC_10x5;
+			format = PvrSpecialFormat_ASTC_10x5;
+			return true;
 		case Texture::Format::ASTC_10x6:
-			return PvrSpecialFormat_ASTC_10x6;
+			format = PvrSpecialFormat_ASTC_10x6;
+			return true;
 		case Texture::Format::ASTC_10x8:
-			return PvrSpecialFormat_ASTC_10x8;
+			format = PvrSpecialFormat_ASTC_10x8;
+			return true;
 		case Texture::Format::ASTC_10x10:
-			return PvrSpecialFormat_ASTC_10x10;
+			format = PvrSpecialFormat_ASTC_10x10;
+			return true;
 		case Texture::Format::ASTC_12x10:
-			return PvrSpecialFormat_ASTC_12x10;
+			format = PvrSpecialFormat_ASTC_12x10;
+			return true;
 		case Texture::Format::ASTC_12x12:
-			return PvrSpecialFormat_ASTC_12x12;
+			format = PvrSpecialFormat_ASTC_12x12;
+			return true;
 		case Texture::Format::PVRTC1_RGB_2BPP:
-			return PvrSpecialFormat_PVRTC_2bppRGB;
+			format = PvrSpecialFormat_PVRTC_2bppRGB;
+			return true;
 		case Texture::Format::PVRTC1_RGBA_2BPP:
-			return PvrSpecialFormat_PVRTC_2bppRGBA;
+			format = PvrSpecialFormat_PVRTC_2bppRGBA;
+			return true;
 		case Texture::Format::PVRTC1_RGB_4BPP:
-			return PvrSpecialFormat_PVRTC_4bppRGB;
+			format = PvrSpecialFormat_PVRTC_4bppRGB;
+			return true;
 		case Texture::Format::PVRTC1_RGBA_4BPP:
-			return PvrSpecialFormat_PVRTC_4bppRGBA;
+			format = PvrSpecialFormat_PVRTC_4bppRGBA;
+			return true;
 		case Texture::Format::PVRTC2_RGBA_2BPP:
-			return PvrSpecialFormat_PVRTC2_2bpp;
+			format = PvrSpecialFormat_PVRTC2_2bpp;
+			return true;
 		case Texture::Format::PVRTC2_RGBA_4BPP:
-			return PvrSpecialFormat_PVRTC2_4bpp;
+			format = PvrSpecialFormat_PVRTC2_4bpp;
+			return true;
 	}
 	assert(false);
-	return 0;
+	return false;
 }
 
 template <typename T>
@@ -411,8 +473,8 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 	static_assert(sizeof(0U) == sizeof(std::uint32_t), "unexpected integer size");
 	static_assert(sizeof(unsigned int) == sizeof(std::uint32_t), "unexpected integer size");
 
-	std::uint64_t pixelFormat = getPixelFormat(texture);
-	if (!pixelFormat)
+	std::uint64_t pixelFormat;
+	if (!getPixelFormat(pixelFormat, texture))
 		return Texture::SaveResult::Unsupported;
 
 	std::ofstream stream(fileName, std::ofstream::binary);
