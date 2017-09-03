@@ -15,15 +15,13 @@
  */
 
 #include "SaveDds.h"
+#include "Shared.h"
 #include <cassert>
 #include <cstring>
 #include <fstream>
 
 namespace cuttlefish
 {
-
-#define DDS_FOURCC(a, b, c, d) \
-	((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24 ))
 
 static const std::uint32_t magicNumber = 0x20534444;
 
@@ -581,7 +579,7 @@ Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
 
 	header.ddspf.size = sizeof(header.ddspf);
 	header.ddspf.flags = DdsFormatFlags_FourCC;
-	header.ddspf.fourCC = DDS_FOURCC('D', 'X', '1', '0');
+	header.ddspf.fourCC = FOURCC('D', 'X', '1', '0');
 
 	header.caps = DdsCapsFlags_Texture;
 	if (texture.mipLevelCount() > 1)
@@ -626,21 +624,26 @@ Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
 			break;
 	}
 	dxt10Header.arraySize = texture.dimension() == Texture::Dimension::Dim3D ? 1 : texture.depth();
-	switch (texture.alphaType())
+	if (Texture::hasAlpha(texture.format()))
 	{
-		case Texture::Alpha::None:
-			dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeOpaque;
-			break;
-		case Texture::Alpha::Standard:
-			dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeStraight;
-			break;
-		case Texture::Alpha::PreMultiplied:
-			dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModePreMultiplied;
-			break;
-		case Texture::Alpha::Encoded:
-			dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeCustom;
-			break;
+		switch (texture.alphaType())
+		{
+			case Texture::Alpha::None:
+				dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeOpaque;
+				break;
+			case Texture::Alpha::Standard:
+				dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeStraight;
+				break;
+			case Texture::Alpha::PreMultiplied:
+				dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModePreMultiplied;
+				break;
+			case Texture::Alpha::Encoded:
+				dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeCustom;
+				break;
+		}
 	}
+	else
+		dxt10Header.miscFlags2 = DdsDxt10MiscFlags2_AlphaModeOpaque;
 	if (!write(stream, dxt10Header))
 		return Texture::SaveResult::WriteError;
 

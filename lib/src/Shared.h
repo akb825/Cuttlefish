@@ -16,6 +16,11 @@
 
 #pragma once
 
+#include <cstdint>
+
+#define FOURCC(a, b, c, d) ((std::uint32_t)(a) | ((std::uint32_t)(b) << 8) | \
+	((std::uint32_t)(c) << 16) | ((std::uint32_t)(d) << 24 ))
+
 namespace cuttlefish
 {
 

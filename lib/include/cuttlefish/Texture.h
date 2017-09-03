@@ -265,6 +265,13 @@ public:
 	static bool hasNativeSRGB(Format format);
 
 	/**
+	 * @brief Returns whether or not the format has alpha.
+	 * @param format The format to check.
+	 * @return True if the format has alpha.
+	 */
+	static bool hasAlpha(Format format);
+
+	/**
 	 * @brief Gets the maximum number of mipmap levels.
 	 * @param dimension The dimension of the texture.
 	 * @param width The width of the texture.

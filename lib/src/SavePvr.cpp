@@ -15,6 +15,7 @@
  */
 
 #include "SaveDds.h"
+#include "Shared.h"
 #include <cassert>
 #include <cstring>
 #include <fstream>
@@ -107,6 +108,10 @@ static_assert(PvrSpecialFormatCount == 51, "invalid PVR special format enum");
 
 static PvrChannelType getChannelType(const Texture& texture)
 {
+	// Use bytes for compressed formats.
+	if (Texture::blockWidth(texture.format()) > 1)
+		return PvrChannelType_UByteN;
+
 	switch (texture.type())
 	{
 		case Texture::Type::UNorm:
@@ -141,7 +146,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_UIntN;
 				default:
-					return PvrChannelType_UByte;
+					assert(false);
+					return PvrChannelType_UByteN;
 			}
 		case Texture::Type::SNorm:
 			switch (texture.format())
@@ -175,7 +181,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_SIntN;
 				default:
-					return PvrChannelType_SByte;
+					assert(false);
+					return PvrChannelType_UByteN;
 			}
 		case Texture::Type::UInt:
 			switch (texture.format())
@@ -209,7 +216,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_UInt;
 				default:
-					return PvrChannelType_UByte;
+					assert(false);
+					return PvrChannelType_UByteN;
 			}
 		case Texture::Type::Int:
 			switch (texture.format())
@@ -243,7 +251,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_SInt;
 				default:
-					return PvrChannelType_UByte;
+					assert(false);
+					return PvrChannelType_UByteN;
 			}
 		case Texture::Type::UFloat:
 			return PvrChannelType_UFloat;
@@ -410,7 +419,7 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 	if (!stream.is_open())
 		return Texture::SaveResult::WriteError;
 
-	const std::uint32_t version = 0x03525650;
+	const std::uint32_t version = FOURCC('P', 'V', 'R', 3);
 	if (!write(stream, version))
 		return Texture::SaveResult::WriteError;
 
@@ -445,8 +454,35 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 		return Texture::SaveResult::WriteError;
 	if (!write(stream, texture.mipLevelCount()))
 		return Texture::SaveResult::WriteError;
-	if (!write(stream, 0U))
-		return Texture::SaveResult::WriteError;
+
+	// Use metadata to determine if BC1 format has alpha or not.
+	if (texture.format() == Texture::Format::BC1_RGB ||
+		texture.format() == Texture::Format::BC1_RGBA)
+	{
+		if (!write(stream, static_cast<std::uint32_t>(sizeof(std::uint32_t)*3)))
+			return Texture::SaveResult::WriteError;
+		if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
+			return Texture::SaveResult::WriteError;
+
+		std::uint32_t code;
+		if (texture.format() == Texture::Format::BC1_RGBA)
+			code = FOURCC('B', 'C', '1', 'A');
+		else
+		{
+			assert(texture.format() == Texture::Format::BC1_RGB);
+			code = FOURCC('B', 'C', '1', 0);
+		}
+		if (!write(stream, code))
+			return Texture::SaveResult::WriteError;
+
+		if (!write(stream, 0U))
+			return Texture::SaveResult::WriteError;
+	}
+	else
+	{
+		if (!write(stream, 0U))
+			return Texture::SaveResult::WriteError;
+	}
 
 	for (unsigned int level = 0; level < texture.mipLevelCount(); ++level)
 	{
