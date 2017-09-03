@@ -542,6 +542,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::PVRTC2_RGBA_4BPP:
 			return DdsDxt10Format_UNKNOWN;
 	}
+	assert(false);
 	return DdsDxt10Format_UNKNOWN;
 }
 

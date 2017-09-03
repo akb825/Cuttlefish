@@ -1122,6 +1122,7 @@ static bool getFormatInfo(FormatInfo& info, const Texture& texture)
 		case Texture::Format::B8G8R8:
 			return false;
 	}
+	assert(false);
 	return false;
 }
 
@@ -1157,7 +1158,7 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 
 	if (!write(stream, texture.width()))
 		return Texture::SaveResult::WriteError;
-	if (!write(stream, texture.dimension() == Texture::Dimension::Dim1D ? 1U : texture.height()))
+	if (!write(stream, texture.dimension() == Texture::Dimension::Dim1D ? 0U : texture.height()))
 		return Texture::SaveResult::WriteError;
 	if (!write(stream, texture.dimension() == Texture::Dimension::Dim3D ? texture.depth() : 0U))
 		return Texture::SaveResult::WriteError;
