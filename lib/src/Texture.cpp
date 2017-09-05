@@ -212,7 +212,7 @@ bool Texture::isFormatValid(Format format, Type type, FileType fileType)
 	}
 }
 
-bool Texture::hasNativeSRGB(Format format)
+bool Texture::hasNativeSRGB(Format format, Type type)
 {
 	switch (format)
 	{
@@ -229,6 +229,14 @@ bool Texture::hasNativeSRGB(Format format)
 		case Format::ETC2_R8G8B8:
 		case Format::ETC2_R8G8B8A1:
 		case Format::ETC2_R8G8B8A8:
+		case Format::PVRTC1_RGB_2BPP:
+		case Format::PVRTC1_RGBA_2BPP:
+		case Format::PVRTC1_RGB_4BPP:
+		case Format::PVRTC1_RGBA_4BPP:
+		case Format::PVRTC2_RGBA_2BPP:
+		case Format::PVRTC2_RGBA_4BPP:
+			return type == Type::UNorm;
+
 		case Format::ASTC_4x4:
 		case Format::ASTC_5x4:
 		case Format::ASTC_5x5:
@@ -243,13 +251,7 @@ bool Texture::hasNativeSRGB(Format format)
 		case Format::ASTC_10x10:
 		case Format::ASTC_12x10:
 		case Format::ASTC_12x12:
-		case Format::PVRTC1_RGB_2BPP:
-		case Format::PVRTC1_RGBA_2BPP:
-		case Format::PVRTC1_RGB_4BPP:
-		case Format::PVRTC1_RGBA_4BPP:
-		case Format::PVRTC2_RGBA_2BPP:
-		case Format::PVRTC2_RGBA_4BPP:
-			return true;
+			return type == Type::UNorm || type == Type::UFloat;
 
 		default:
 			return false;
@@ -1098,7 +1100,7 @@ bool Texture::convert(Format format, Type type, Quality quality, Color colorSpac
 	if (!imagesComplete() || !isFormatValid(format, type))
 		return false;
 
-	if (colorSpace == Color::sRGB && (!hasNativeSRGB(format) || type != Type::UNorm))
+	if (colorSpace == Color::sRGB && (!hasNativeSRGB(format, type) || type != Type::UNorm))
 		return false;
 
 	m_impl->format = format;

@@ -63,8 +63,13 @@ static bool isSigned(Texture::Type type)
 	return false;
 }
 
-bool loadImages(std::vector<Image>& images, const CommandLine& args)
+bool loadImages(std::vector<Image>& images, CommandLine& args)
 {
+	bool linearize = args.colorSpace == Texture::Color::sRGB && !Texture::hasNativeSRGB(args.format,
+		args.type);
+	if (linearize)
+		args.colorSpace = Texture::Color::Linear;
+
 	images.resize(args.images.size());
 	for (std::size_t i = 0; i < args.images.size(); ++i)
 	{
@@ -162,7 +167,7 @@ bool loadImages(std::vector<Image>& images, const CommandLine& args)
 			images[i] = images[i].createNormalMap(isSigned(args.type), args.height);
 		}
 
-		if (args.colorSpace == Texture::Color::sRGB && !Texture::hasNativeSRGB(args.format))
+		if (linearize)
 		{
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" << std::endl;

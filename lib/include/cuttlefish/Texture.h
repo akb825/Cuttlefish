@@ -269,9 +269,10 @@ public:
 	 * lookup.
 	 *
 	 * @param format The base format for the texture.
+	 * @param type The channel type
 	 * @return True if the format supports native sRGB.
 	 */
-	static bool hasNativeSRGB(Format format);
+	static bool hasNativeSRGB(Format format, Type type);
 
 	/**
 	 * @brief Returns whether or not the format has alpha.
