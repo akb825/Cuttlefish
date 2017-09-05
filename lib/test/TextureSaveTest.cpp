@@ -90,6 +90,8 @@ TEST_P(TextureSaveDdsTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::DDS));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::DDS));
 	}
 }
@@ -115,6 +117,8 @@ TEST_P(TextureSaveSpecialDdsTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::DDS));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::DDS));
 	}
 }
@@ -140,6 +144,8 @@ TEST_P(TextureSaveKtxTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::KTX));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::KTX));
 	}
 }
@@ -165,6 +171,8 @@ TEST_P(TextureSaveSpecialKtxTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::KTX));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::KTX));
 	}
 }
@@ -190,6 +198,8 @@ TEST_P(TextureSavePvrTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::PVR));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::PVR));
 	}
 }
@@ -215,6 +225,8 @@ TEST_P(TextureSaveSpecialPvrTest, Save)
 			Texture::blockHeight(info.format);
 		EXPECT_EQ(blockX*blockY*Texture::blockSize(info.format), texture.dataSize());
 
+		EXPECT_EQ(typeInfo.second == success, Texture::isFormatValid(info.format, typeInfo.first,
+			Texture::FileType::PVR));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::PVR));
 	}
 }

@@ -5,6 +5,7 @@ set(NVTT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools)
 set(ETC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/etc2comp)
 set(ASTC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/astc-encoder)
 set(defines)
+set(privateDefines)
 
 if (NOT CUTTLEFISH_FORCE_INTERNAL_FREEIMAGE)
 	message("finding FreeImage")
@@ -18,6 +19,7 @@ if (NOT FreeImage_FOUND)
 			"'git submodule update' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/FreeImageSources.cmake)
+	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1)
 endif()
 
 if (CUTTLEFISH_BUILD_S3TC)
@@ -82,7 +84,7 @@ target_include_directories(cuttlefish_lib
 			src)
 target_link_libraries(cuttlefish_lib
 	PRIVATE ${FreeImage_LIBRARIES} ${PVRTEXLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-target_compile_definitions(cuttlefish_lib PUBLIC ${defines})
+target_compile_definitions(cuttlefish_lib PUBLIC ${defines} PRIVATE ${privateDefines})
 
 cfs_set_folder(cuttlefish_lib libs)
 cfs_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
