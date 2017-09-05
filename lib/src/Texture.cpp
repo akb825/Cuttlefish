@@ -194,13 +194,33 @@ bool Texture::isFormatValid(Format format, Type type)
 	return valid[static_cast<unsigned int>(format)][static_cast<unsigned int>(type)];
 }
 
+bool Texture::isFormatValid(Format format, Type type, FileType fileType)
+{
+	if (!isFormatValid(format, type))
+		return false;
+
+	switch (fileType)
+	{
+		case FileType::DDS:
+			return isValidForDds(format, type);
+		case FileType::KTX:
+			return isValidForKtx(format, type);
+		case FileType::PVR:
+			return isValidForPvr(format, type);
+		default:
+			return false;
+	}
+}
+
 bool Texture::hasNativeSRGB(Format format)
 {
 	switch (format)
 	{
 		case Format::R8G8B8:
+		case Format::B8G8R8:
 		case Format::R8G8B8A8:
 		case Format::B8G8R8A8:
+		case Format::A8B8G8R8:
 		case Format::BC1_RGB:
 		case Format::BC1_RGBA:
 		case Format::BC2:
@@ -703,6 +723,26 @@ unsigned int Texture::minHeight(Format format)
 	return sizes[static_cast<unsigned int>(format)];
 }
 
+Texture::FileType Texture::fileType(const char* fileName)
+{
+	const char* ddsExt = ".dds";
+	const std::size_t ddsLen = std::strlen(ddsExt);
+	const char* ktxExt = ".ktx";
+	const std::size_t ktxLen = std::strlen(ktxExt);
+	const char* pvrExt = ".pvr";
+	const std::size_t pvrLen = std::strlen(pvrExt);
+
+	std::size_t len = std::strlen(fileName);
+	if (len >= ddsLen && std::strcmp(fileName + len - ddsLen, ddsExt) == 0)
+		return FileType::DDS;
+	else if (len >= ktxLen && std::strcmp(fileName + len - ktxLen, ktxExt) == 0)
+		return FileType::KTX;
+	else if (len >= pvrLen && std::strcmp(fileName + len - pvrLen, pvrExt) == 0)
+		return FileType::PVR;
+
+	return FileType::Auto;
+}
+
 Texture::Texture()
 	: m_impl(nullptr)
 {
@@ -1169,22 +1209,7 @@ Texture::SaveResult Texture::save(const char* fileName, FileType fileType)
 		return SaveResult::Invalid;
 
 	if (fileType == FileType::Auto)
-	{
-		const char* ddsExt = ".dds";
-		const std::size_t ddsLen = std::strlen(ddsExt);
-		const char* ktxExt = ".ktx";
-		const std::size_t ktxLen = std::strlen(ktxExt);
-		const char* pvrExt = ".pvr";
-		const std::size_t pvrLen = std::strlen(pvrExt);
-
-		std::size_t len = std::strlen(fileName);
-		if (len >= ddsLen && std::strcmp(fileName + len - ddsLen, ddsExt) == 0)
-			fileType = FileType::DDS;
-		else if (len >= ktxLen && std::strcmp(fileName + len - ktxLen, ktxExt) == 0)
-			fileType = FileType::KTX;
-		else if (len >= pvrLen && std::strcmp(fileName + len - pvrLen, pvrExt) == 0)
-			fileType = FileType::PVR;
-	}
+		fileType = Texture::fileType(fileName);
 
 	switch (fileType)
 	{

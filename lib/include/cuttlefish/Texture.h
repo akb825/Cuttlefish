@@ -254,6 +254,15 @@ public:
 	static bool isFormatValid(Format format, Type type);
 
 	/**
+	 * @brief Returns whether or not a format is valid for a file type.
+	 * @param format The base format for the texture.
+	 * @param type The type for the texture data.
+	 * @param fileType The file type that will be saved as.
+	 * @return True if the format and type combination is valid.
+	 */
+	static bool isFormatValid(Format format, Type type, FileType fileType);
+
+	/**
 	 * @brief Returns whether or not a format supports native sRGB.
 	 *
 	 * This allows the texture to be stored in sRGB format and converted to linear during texture
@@ -317,6 +326,13 @@ public:
 	 * @return The minimum height.
 	 */
 	static unsigned int minHeight(Format format);
+
+	/**
+	 * @brief Gets the file type for a file name.
+	 * @param fileName The file name to get the type for.
+	 * @return The file type. If the type couldn't be found, Auto is returned.
+	 */
+	static FileType fileType(const char* fileName);
 
 	Texture();
 

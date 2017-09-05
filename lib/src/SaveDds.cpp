@@ -563,6 +563,11 @@ static std::uint32_t computePitch(const Texture& texture)
 	return (texture.width() + blockWidth - 1)/blockWidth*blockSize;
 }
 
+bool isValidForDds(Texture::Format format, Texture::Type type)
+{
+	return getDdsFormat(format, type, Texture::Color::Linear) != DdsDxt10Format_UNKNOWN;
+}
+
 Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
 {
 	DdsDxt10Format ddsFormat = getDdsFormat(texture.format(), texture.type(),

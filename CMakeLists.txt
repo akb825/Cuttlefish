@@ -61,7 +61,7 @@ include(cmake/install.cmake)
 
 add_subdirectory(lib)
 if (CUTTLEFISH_BUILD_TOOL)
-#	add_subdirectory(tool)
+	add_subdirectory(tool)
 endif()
 
 # Documentation. (populated by built libraries)
