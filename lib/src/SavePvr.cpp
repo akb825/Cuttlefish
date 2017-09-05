@@ -108,10 +108,6 @@ static_assert(PvrSpecialFormatCount == 51, "invalid PVR special format enum");
 
 static PvrChannelType getChannelType(const Texture& texture)
 {
-	// Use bytes for compressed formats.
-	if (Texture::blockWidth(texture.format()) > 1)
-		return PvrChannelType_UByteN;
-
 	switch (texture.type())
 	{
 		case Texture::Type::UNorm:
@@ -125,6 +121,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R8G8B8A8:
 				case Texture::Format::B8G8R8A8:
 				case Texture::Format::A8B8G8R8:
+				case Texture::Format::BC4:
+				case Texture::Format::BC5:
 					return PvrChannelType_UByteN;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
@@ -137,6 +135,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R16G16:
 				case Texture::Format::R16G16B16:
 				case Texture::Format::R16G16B16A16:
+				case Texture::Format::EAC_R11:
+				case Texture::Format::EAC_R11G11:
 					return PvrChannelType_UShortN;
 				case Texture::Format::A2R10G10B10:
 				case Texture::Format::A2B10G10R10:
@@ -146,7 +146,6 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_UIntN;
 				default:
-					assert(false);
 					return PvrChannelType_UByteN;
 			}
 		case Texture::Type::SNorm:
@@ -160,6 +159,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R8G8B8A8:
 				case Texture::Format::B8G8R8A8:
 				case Texture::Format::A8B8G8R8:
+				case Texture::Format::BC4:
+				case Texture::Format::BC5:
 					return PvrChannelType_SByteN;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
@@ -172,6 +173,8 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R16G16:
 				case Texture::Format::R16G16B16:
 				case Texture::Format::R16G16B16A16:
+				case Texture::Format::EAC_R11:
+				case Texture::Format::EAC_R11G11:
 					return PvrChannelType_SShortN;
 				case Texture::Format::A2R10G10B10:
 				case Texture::Format::A2B10G10R10:
@@ -181,8 +184,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_SIntN;
 				default:
-					assert(false);
-					return PvrChannelType_UByteN;
+					return PvrChannelType_SByteN;
 			}
 		case Texture::Type::UInt:
 			switch (texture.format())
@@ -216,8 +218,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_UInt;
 				default:
-					assert(false);
-					return PvrChannelType_UByteN;
+					return PvrChannelType_UByte;
 			}
 		case Texture::Type::Int:
 			switch (texture.format())
@@ -251,8 +252,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 				case Texture::Format::R32G32B32A32:
 					return PvrChannelType_SInt;
 				default:
-					assert(false);
-					return PvrChannelType_UByteN;
+					return PvrChannelType_UByte;
 			}
 		case Texture::Type::UFloat:
 			return PvrChannelType_UFloat;
