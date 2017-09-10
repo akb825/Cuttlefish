@@ -90,12 +90,15 @@ if (CUTTLEFISH_BUILD_ASTC)
 endif()
 
 if (CUTTLEFISH_BUILD_PVRTC)
-	add_test(NAME CuttlefishSavePVRTC
-		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f PVRTC1_RGB_4BPP -o ${nullFile} --file-format pvr" 0)
-	add_test(NAME CuttlefishSavePVRTCsRGB
-		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f PVRTC1_RGB_4BPP --srgb -o ${nullFile} --file-format pvr" 0)
+	find_package(PVRTexLib QUIET)
+	if (PVRTEXLIB_FOUND)
+		add_test(NAME CuttlefishSavePVRTC
+			WORKING_DIRECTORY ${testPath}
+			COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f PVRTC1_RGB_4BPP -o ${nullFile} --file-format pvr" 0)
+		add_test(NAME CuttlefishSavePVRTCsRGB
+			WORKING_DIRECTORY ${testPath}
+			COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f PVRTC1_RGB_4BPP --srgb -o ${nullFile} --file-format pvr" 0)
+	endif()
 endif()
 
 add_test(NAME CuttlefishSaveB10G11R11_UFloat

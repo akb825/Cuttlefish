@@ -21,7 +21,16 @@
 
 #if CUTTLEFISH_HAS_ETC
 
+#if CUTTLEFISH_MSC
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#endif
+
 #include <EtcImage.h>
+
+#if CUTTLEFISH_MSC
+#pragma warning(pop)
+#endif
 
 namespace Etc { class Image; }
 

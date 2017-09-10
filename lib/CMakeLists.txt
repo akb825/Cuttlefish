@@ -5,11 +5,10 @@ set(NVTT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools)
 set(ETC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/etc2comp)
 set(ASTC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/astc-encoder)
 set(defines)
-set(privateDefines)
+set(privateDefines _USE_MATH_DEFINES)
 
 if (NOT CUTTLEFISH_FORCE_INTERNAL_FREEIMAGE)
-	message("finding FreeImage")
-	find_package(FreeImage)
+	find_package(FreeImage QUIET)
 endif()
 if (NOT FreeImage_FOUND)
 	message("FreeImage not found")
@@ -53,10 +52,11 @@ if (CUTTLEFISH_BUILD_ASTC)
 endif()
 
 if (CUTTLEFISH_BUILD_PVRTC)
-	find_package(PVRTexLib)
+	find_package(PVRTexLib QUIET)
 	if (PVRTEXLIB_FOUND)
 		list(APPEND defines CUTTLEFISH_HAS_PVRTC=1)
 	else()
+		message("PVRTexLib not found")
 		set(PVRTEXLIB_INCLUDE_DIRS)
 		set(PVRTEXLIB_LIBRARIES)
 	endif()
@@ -85,6 +85,13 @@ target_include_directories(cuttlefish_lib
 target_link_libraries(cuttlefish_lib
 	PRIVATE ${FreeImage_LIBRARIES} ${PVRTEXLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_compile_definitions(cuttlefish_lib PUBLIC ${defines} PRIVATE ${privateDefines})
+
+if (WIN32 AND CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
+	get_filename_component(pvrTexLibDir ${PVRTEXLIB_LIB} DIRECTORY)
+	set(pvrTexLibDll ${pvrTexLibDir}/PVRTexLib.dll)
+	add_custom_command(TARGET cuttlefish_lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${pvrTexLibDll}
+		$<TARGET_FILE_DIR:cuttlefish_lib>)
+endif()
 
 cfs_set_folder(cuttlefish_lib libs)
 cfs_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src

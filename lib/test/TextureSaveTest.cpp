@@ -282,76 +282,96 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 		TextureSaveTestInfo(Texture::Format::R32G32B32A32, {{Texture::Type::UInt, success},
 			{Texture::Type::Int, success}, {Texture::Type::Float, success}})));
 
-INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+#if CUTTLEFISH_HAS_S3TC
+#define S3TC_SAVE_DDS_TESTS \
+	, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
+	{Texture::Type::Float, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
+#else
+#define S3TC_SAVE_DDS_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ETC
+#define ETC_SAVE_DDS_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::SNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::SNorm, unsupported}})
+#else
+#define ETC_SAVE_DDS_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ASTC
+#define ASTC_SAVE_DDS_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, unsupported}, \
+		{Texture::Type::UFloat, unsupported}})
+#else
+#define ASTC_SAVE_DDS_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_PVRTC
+#define PVRTC_SAVE_DDS_TESTS \
+	, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP, \
+		{{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP, \
+		{{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP, \
+		{{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP, \
+		{{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP, \
+		{{Texture::Type::UNorm, unsupported}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP, \
+		{{Texture::Type::UNorm, unsupported}})
+#else
+#define PVRTC_SAVE_DDS_TESTS
+#endif
+
+INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 	TextureSaveSpecialDdsTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),
 		TextureSaveTestInfo(Texture::Format::E5B9G9R9_UFloat, {{Texture::Type::UFloat, success}})
-#if CUTTLEFISH_HAS_S3TC
-		, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success},
-			{Texture::Type::Float, success}}),
-		TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
-#endif // CUTTLEFISH_HAS_S3TC
-#if CUTTLEFISH_HAS_ETC
-		, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::SNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::SNorm, unsupported}})
-#endif // CUTTLEFISH_HAS_ETC
-#if CUTTLEFISH_HAS_ASTC
-		, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, unsupported},
-			{Texture::Type::UFloat, unsupported}})
-#endif // CUTTLEFISH_HAS_ASTC
-#if CUTTLEFISH_HAS_PVRTC
-		, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP,
-			{{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP,
-			{{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP,
-			{{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP,
-			{{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP,
-			{{Texture::Type::UNorm, unsupported}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP,
-			{{Texture::Type::UNorm, unsupported}})
-#endif // CUTTLEFISH_HAS_PVRTC
+		S3TC_SAVE_DDS_TESTS
+		ETC_SAVE_DDS_TESTS
+		ASTC_SAVE_DDS_TESTS
+		PVRTC_SAVE_DDS_TESTS
 		));
 
 INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
@@ -405,70 +425,96 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 		TextureSaveTestInfo(Texture::Format::R32G32B32A32, {{Texture::Type::UInt, success},
 			{Texture::Type::Int, success}, {Texture::Type::Float, success}})));
 
-INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+#if CUTTLEFISH_HAS_S3TC
+#define S3TC_SAVE_KTX_TESTS \
+	, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
+	{Texture::Type::Float, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
+#else
+#define S3TC_SAVE_KTX_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ETC
+#define ETC_SAVE_KTX_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::SNorm, success}})
+#else
+#define ETC_SAVE_KTX_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ASTC
+#define ASTC_SAVE_KTX_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}})
+#else
+#define ASTC_SAVE_KTX_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_PVRTC
+#define PVRTC_SAVE_KTX_TESTS \
+	, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP, \
+		{{Texture::Type::UNorm, success}})
+#else
+#define PVRTC_SAVE_KTX_TESTS
+#endif
+
+INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 	TextureSaveSpecialKtxTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),
 		TextureSaveTestInfo(Texture::Format::E5B9G9R9_UFloat, {{Texture::Type::UFloat, success}})
-#if CUTTLEFISH_HAS_S3TC
-		, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success},
-			{Texture::Type::Float, success}}),
-		TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
-#endif // CUTTLEFISH_HAS_S3TC
-#if CUTTLEFISH_HAS_ETC
-		, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}})
-#endif // CUTTLEFISH_HAS_ETC
-#if CUTTLEFISH_HAS_ASTC
-		, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}})
-#endif // CUTTLEFISH_HAS_ASTC
-#if CUTTLEFISH_HAS_PVRTC
-		, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP, {{Texture::Type::UNorm, success}})
-#endif // CUTTLEFISH_HAS_PVRTC
+		S3TC_SAVE_KTX_TESTS
+		ETC_SAVE_KTX_TESTS
+		ASTC_SAVE_KTX_TESTS
+		PVRTC_SAVE_KTX_TESTS
 		));
 
 INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
@@ -522,70 +568,96 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 		TextureSaveTestInfo(Texture::Format::R32G32B32A32, {{Texture::Type::UInt, success},
 			{Texture::Type::Int, success}, {Texture::Type::Float, success}})));
 
-INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+#if CUTTLEFISH_HAS_S3TC
+#define S3TC_SAVE_PVR_TESTS \
+	, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
+	{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
+	{Texture::Type::Float, success}}), \
+	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
+#else
+#define S3TC_SAVE_PVR_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ETC
+#define ETC_SAVE_PVR_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::SNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::SNorm, success}})
+#else
+#define ETC_SAVE_PVR_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_ASTC
+#define ASTC_SAVE_PVR_TESTS \
+	, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}}), \
+	TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, success}, \
+		{Texture::Type::UFloat, success}})
+#else
+#define ASTC_SAVE_PVR_TESTS
+#endif
+
+#if CUTTLEFISH_HAS_PVRTC
+#define PVRTC_SAVE_PVR_TESTS \
+	, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP, \
+		{{Texture::Type::UNorm, success}}), \
+	TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP, \
+		{{Texture::Type::UNorm, success}})
+#else
+#define PVRTC_SAVE_PVR_TESTS
+#endif
+
+INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 	TextureSaveSpecialPvrTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),
 		TextureSaveTestInfo(Texture::Format::E5B9G9R9_UFloat, {{Texture::Type::UFloat, success}})
-#if CUTTLEFISH_HAS_S3TC
-		, TextureSaveTestInfo(Texture::Format::BC1_RGB, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC1_RGBA, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success},
-			{Texture::Type::Float, success}}),
-		TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
-#endif // CUTTLEFISH_HAS_S3TC
-#if CUTTLEFISH_HAS_ETC
-		, TextureSaveTestInfo(Texture::Format::ETC1, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A1, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::ETC2_R8G8B8A8, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::EAC_R11G11, {{Texture::Type::UNorm, success},
-			{Texture::Type::SNorm, success}})
-#endif // CUTTLEFISH_HAS_ETC
-#if CUTTLEFISH_HAS_ASTC
-		, TextureSaveTestInfo(Texture::Format::ASTC_4x4, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x4, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_5x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_6x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x6, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_8x8, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x5, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x6, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x8, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_10x10, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x10, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}}),
-		TextureSaveTestInfo(Texture::Format::ASTC_12x12, {{Texture::Type::UNorm, success},
-			{Texture::Type::UFloat, success}})
-#endif // CUTTLEFISH_HAS_ASTC
-#if CUTTLEFISH_HAS_PVRTC
-		, TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGB_4BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC1_RGBA_4BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_2BPP, {{Texture::Type::UNorm, success}}),
-		TextureSaveTestInfo(Texture::Format::PVRTC2_RGBA_4BPP, {{Texture::Type::UNorm, success}})
-#endif // CUTTLEFISH_HAS_PVRTC
+		S3TC_SAVE_PVR_TESTS
+		ETC_SAVE_PVR_TESTS
+		ASTC_SAVE_PVR_TESTS
+		PVRTC_SAVE_PVR_TESTS
 		));
 
 } // namespace cuttlefish

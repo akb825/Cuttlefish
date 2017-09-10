@@ -800,6 +800,12 @@ set(FreeImage_INCLUDE_DIRS
 	${FREEIMAGE_DIR}/Source/LibJXR/common/include
 	${FREEIMAGE_DIR}/Source/LibJXR/image/sys
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib
-)
+	CACHE PATH "" FORCE)
 
-add_definitions(-D__ANSI__)
+set(FreeImage_LIBRARIES "" CACHE PATH "" FORCE)
+
+if (WIN32)
+	add_definitions(-DFREEIMAGE_LIB -DOPJ_STATIC -DLIBRAW_NODLL)
+else()
+	add_definitions(-D__ANSI__)
+endif()

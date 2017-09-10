@@ -1191,7 +1191,10 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 		if (compressed)
 		{
 			for (unsigned int depth = 0; depth < texture.depth(level); ++depth)
-				imageSize += texture.dataSize(Texture::CubeFace::PosX, level);
+			{
+				imageSize += static_cast<std::uint32_t>(texture.dataSize(Texture::CubeFace::PosX,
+					level));
+			}
 		}
 		else
 		{
