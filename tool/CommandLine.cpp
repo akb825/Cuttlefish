@@ -201,11 +201,10 @@ static void printHelp(const char* name)
 	          << "                          standard: standard alpha (default)" << std::endl
 	          << "                          pre-multiplied: alpha is pre-multiplied with the color" << std::endl
 	          << "                            (implicit with --pre-multiply option)" << std::endl
-	          << "                          standard: standard alpha (default)" << std::endl
 	          << "                          encoded: alpha is an encoded value rather than " << std::endl
 	          << "                            opacity; this will avoid weighting the colors during" << std::endl
 	          << "                            compression for some formats" << std::endl;
-	std::cout << "  -q, --quaility q      the quality of compression; may be: lowest, low," << std::endl
+	std::cout << "  -Q, --quaility q      the quality of compression; may be: lowest, low," << std::endl
 	          << "                          normal (default), high, highest; lower qualities are" << std::endl
 	          << "                          faster to convert" << std::endl;
 	std::cout << "  -o, --output file (*) the output file for the texture" << std::endl;
@@ -238,19 +237,20 @@ static bool readCubeFace(Texture::CubeFace& face, int& i, int argc, const char**
 	if (i >= argc - 1)
 		return false;
 
+	++i;
 	bool success = true;
 	if (std::strcmp(argv[i], "+x") == 0)
 		face = Texture::CubeFace::PosX;
 	else if (std::strcmp(argv[i], "-x") == 0)
-		face = Texture::CubeFace::PosX;
+		face = Texture::CubeFace::NegX;
 	else if (std::strcmp(argv[i], "+y") == 0)
 		face = Texture::CubeFace::PosY;
 	else if (std::strcmp(argv[i], "-y") == 0)
-		face = Texture::CubeFace::PosY;
+		face = Texture::CubeFace::NegY;
 	else if (std::strcmp(argv[i], "+z") == 0)
 		face = Texture::CubeFace::PosZ;
 	else if (std::strcmp(argv[i], "-z") == 0)
-		face = Texture::CubeFace::PosZ;
+		face = Texture::CubeFace::NegZ;
 	else
 	{
 		std::cerr << "error: unknown cube face " << argv[i];
@@ -370,24 +370,28 @@ static bool readFilter(Image::ResizeFilter& filter, int& i, int argc, const char
 	if (i >= argc - 1)
 		return false;
 
-	if (std::strcmp(argv[i], "box") == 0)
+	if (std::strcmp(argv[i + 1], "box") == 0)
 	{
 		filter = Image::ResizeFilter::Box;
+		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i], "linear") == 0)
+	else if (std::strcmp(argv[i + 1], "linear") == 0)
 	{
 		filter = Image::ResizeFilter::Linear;
+		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i], "cubic") == 0)
+	else if (std::strcmp(argv[i + 1], "cubic") == 0)
 	{
 		filter = Image::ResizeFilter::Cubic;
+		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i], "catmull-rom") == 0)
+	else if (std::strcmp(argv[i + 1], "catmull-rom") == 0)
 	{
 		filter = Image::ResizeFilter::CatmullRom;
+		++i;
 		return true;
 	}
 	else
@@ -455,7 +459,7 @@ static bool validate(CommandLine& args)
 
 	if (args.format == Texture::Format::Unknown)
 	{
-		std::cerr << "error: texture format must be provided" << std::endl;
+		std::cerr << "error: texture file format cannot be determined" << std::endl;
 		return false;
 	}
 
@@ -641,7 +645,7 @@ bool CommandLine::parse(int argc, const char** argv)
 				success = false;
 				break;
 			}
-			images[static_cast<int>(face)] = argv[++i];
+			images[static_cast<int>(face)] = argv[i];
 		}
 		else if (matches(argv[i], "-C", "--cube-array"))
 		{
@@ -654,17 +658,20 @@ bool CommandLine::parse(int argc, const char** argv)
 				break;
 			}
 
-			if (i >= argc - 2)
+			if (i >= argc - 3)
 			{
-				std::cerr << "error: command " << argv[i] << " requires 2 or 3 arguments" <<
-					std::endl;
+				std::cerr << "error: command " << argv[i] << " requires 3 arguments" << std::endl;
 				success = false;
 				break;
 			}
 
-			std::size_t cubeIndex = images.size()/6;
-			if (i < argc - 3)
-				readIndex(cubeIndex, i, argc, argv);
+			std::size_t cubeIndex;
+			if (!readIndex(cubeIndex, i, argc, argv))
+			{
+				std::cerr << "error: invalid index " << argv[i] << std::endl;
+				success = false;
+				break;
+			}
 
 			Texture::CubeFace face;
 			if (!readCubeFace(face, i, argc, argv))
@@ -684,7 +691,7 @@ bool CommandLine::parse(int argc, const char** argv)
 				success = false;
 				break;
 			}
-			images[index] = argv[++i];
+			images[index] = argv[i];
 		}
 		else if (matches(argv[i], "-I", "--input-list"))
 		{
@@ -726,7 +733,7 @@ bool CommandLine::parse(int argc, const char** argv)
 		}
 		else if (matches(argv[i], "-r", "--resize"))
 		{
-			if (argc >= 2)
+			if (i >= argc - 2)
 			{
 				std::cerr << "error: command " << argv[i] << " requires 2 or 3 arguments" <<
 					std::endl;
@@ -866,9 +873,9 @@ bool CommandLine::parse(int argc, const char** argv)
 			if (!alphaSet && !colorMask.a)
 				alpha = Texture::Alpha::None;
 		}
-		else if (std::strcmp(argv[i], "--srgb"))
+		else if (std::strcmp(argv[i], "--srgb") == 0)
 			colorSpace = Texture::Color::sRGB;
-		else if (std::strcmp(argv[i], "--pre-multiply"))
+		else if (std::strcmp(argv[i], "--pre-multiply") == 0)
 		{
 			preMultiply = true;
 			if (!alphaSet && colorMask.a)
@@ -943,17 +950,17 @@ bool CommandLine::parse(int argc, const char** argv)
 			}
 
 			++i;
-			if (std::strcmp(argv[i], "unorm"))
+			if (std::strcmp(argv[i], "unorm") == 0)
 				type = Texture::Type::UNorm;
-			else if (std::strcmp(argv[i], "unorm"))
+			else if (std::strcmp(argv[i], "snorm") == 0)
 				type = Texture::Type::SNorm;
-			else if (std::strcmp(argv[i], "uint"))
+			else if (std::strcmp(argv[i], "uint") == 0)
 				type = Texture::Type::UInt;
-			else if (std::strcmp(argv[i], "int"))
+			else if (std::strcmp(argv[i], "int") == 0)
 				type = Texture::Type::Int;
-			else if (std::strcmp(argv[i], "ufloat"))
+			else if (std::strcmp(argv[i], "ufloat") == 0)
 				type = Texture::Type::UFloat;
-			else if (std::strcmp(argv[i], "float"))
+			else if (std::strcmp(argv[i], "float") == 0)
 				type = Texture::Type::Float;
 			else
 			{
@@ -988,7 +995,7 @@ bool CommandLine::parse(int argc, const char** argv)
 				break;
 			}
 		}
-		else if (matches(argv[i], "-q", "--quality"))
+		else if (matches(argv[i], "-Q", "--quality"))
 		{
 			if (i >= argc - 1)
 			{
@@ -1020,6 +1027,13 @@ bool CommandLine::parse(int argc, const char** argv)
 			if (i >= argc - 1)
 			{
 				std::cerr << "error: command " << argv[i] << " requires 1 argument" << std::endl;
+				success = false;
+				break;
+			}
+
+			if (output)
+			{
+				std::cerr << "error: output path already provided" << std::endl;
 				success = false;
 				break;
 			}

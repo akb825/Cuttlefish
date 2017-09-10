@@ -1,0 +1,6 @@
+negx.png
+posx.png
+negy.png
+posy.png
+negz.png
+posz.png

@@ -74,11 +74,21 @@ namespace cuttlefish
 
 std::mutex AstcConverter::m_mutex;
 
+static bool initialize()
+{
+	prepare_angular_tables();
+	build_quantization_mode_table();
+	return true;
+}
+
 AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
 	unsigned int blockY, Texture::Quality quality)
 	: Converter(image), m_blockX(blockX), m_blockY(blockY),
 	m_jobsX((image.width() + blockX - 1)/blockX), m_jobsY((image.height() + blockY - 1)/blockY)
 {
+	static bool initialized = initialize();
+	(void)initialized;
+
 	data().resize(m_jobsX*m_jobsY*blockSize);
 
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
@@ -158,14 +168,14 @@ void AstcConverter::process(unsigned int x, unsigned int y)
 	imageblock astcBlock;
 	astcBlock.xpos = x*m_blockX;
 	astcBlock.ypos = y*m_blockY;
-	astcBlock.zpos = 1;
+	astcBlock.zpos = 0;
 	for (unsigned int j = 0, index = 0; j < m_blockY; ++j)
 	{
 		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
 			std::min(y*m_blockY + j, image().height() - 1)));
 		for (unsigned int i = 0; i < m_blockX; ++i, ++index)
 		{
-			unsigned int scanlineIdx = std::min(y*m_blockX + i, image().width() - 1);
+			unsigned int scanlineIdx = std::min(x*m_blockX + i, image().width() - 1);
 			astcBlock.orig_data[index*4] = scanline[scanlineIdx].r;
 			astcBlock.orig_data[index*4 + 1] = scanline[scanlineIdx].g;
 			astcBlock.orig_data[index*4 + 2] = scanline[scanlineIdx].b;
@@ -214,9 +224,11 @@ void AstcConverter::process(unsigned int x, unsigned int y)
 	expand_block_artifact_suppression(m_blockX, m_blockY, 1, &errorParams);
 
 	errorParams.partition_search_limit = m_partitionsToTest;
+	errorParams.block_mode_cutoff = m_blockModeCutoff;
+	errorParams.texel_avg_error_limit = m_averageErrorLimit;
 	errorParams.partition_1_to_2_limit = m_oplimit;
 	errorParams.lowest_correlation_cutoff = m_mincorrel;
-	errorParams.texel_avg_error_limit = m_averageErrorLimit;
+	errorParams.max_refinement_iters = m_maxIters;
 
 	symbolic_compressed_block symbolicBlock;
 	compress_symbolic_block(&dummyImage, m_hdr ? DECODE_HDR : DECODE_LDR, m_blockX, m_blockY, 1,

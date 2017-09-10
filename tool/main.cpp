@@ -132,20 +132,6 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 			images[i].resize(width, height, args.resizeFilter);
 		}
 
-		if (args.flipX)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "flipping image '" << args.images[i] << "' along the X axis" << std::endl;
-			images[i].flipHorizontal();
-		}
-
-		if (args.flipY)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "flipping image '" << args.images[i] << "' along the Y axis" << std::endl;
-			images[i].flipVertical();
-		}
-
 		if (args.rotate)
 		{
 			if (args.log == CommandLine::Log::Verbose)
@@ -165,6 +151,20 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "generating normalmap for image '" << args.images[i] << "'" << std::endl;
 			images[i] = images[i].createNormalMap(isSigned(args.type), args.height);
+		}
+
+		if (args.flipX)
+		{
+			if (args.log == CommandLine::Log::Verbose)
+				std::cout << "flipping image '" << args.images[i] << "' along the X axis" << std::endl;
+			images[i].flipHorizontal();
+		}
+
+		if (args.flipY)
+		{
+			if (args.log == CommandLine::Log::Verbose)
+				std::cout << "flipping image '" << args.images[i] << "' along the Y axis" << std::endl;
+			images[i].flipVertical();
 		}
 
 		if (linearize)
@@ -216,18 +216,18 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 			break;
 		case CommandLine::ImageType::Array:
 			for (unsigned int i = 0; i < images.size(); ++i)
-				texture.setImage(std::move(images[0]), 0, i);
+				texture.setImage(std::move(images[i]), 0, i);
 			break;
 		case CommandLine::ImageType::Cube:
 			assert(images.size() == 6);
 			for (unsigned int i = 0; i < images.size(); ++i)
-				texture.setImage(std::move(images[0]), static_cast<Texture::CubeFace>(i));
+				texture.setImage(std::move(images[i]), static_cast<Texture::CubeFace>(i));
 			break;
 		case CommandLine::ImageType::CubeArray:
 			assert(images.size() % 6 == 0);
 			for (unsigned int i = 0; i < images.size(); ++i)
 			{
-				texture.setImage(std::move(images[0]), static_cast<Texture::CubeFace>(i % 6), 0,
+				texture.setImage(std::move(images[i]), static_cast<Texture::CubeFace>(i % 6), 0,
 					i/6);
 			}
 			break;
