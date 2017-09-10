@@ -511,9 +511,9 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 	if (!write(stream, channelType))
 		return Texture::SaveResult::WriteError;
 
-	if (!write(stream, texture.width()))
-		return Texture::SaveResult::WriteError;
 	if (!write(stream, texture.height()))
+		return Texture::SaveResult::WriteError;
+	if (!write(stream, texture.width()))
 		return Texture::SaveResult::WriteError;
 	if (!write(stream, texture.dimension() == Texture::Dimension::Dim3D ? texture.depth() : 1U))
 		return Texture::SaveResult::WriteError;

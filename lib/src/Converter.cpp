@@ -498,7 +498,6 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 bool Converter::convert(const Texture& texture, MipImageList& images, MipTextureList& textureData,
 	Texture::Quality quality, unsigned int threadCount)
 {
-	std::atomic<unsigned int> curJob(0);
 	std::vector<std::pair<unsigned int, unsigned int>> jobs;
 	std::vector<std::thread> threads;
 	if (threadCount > 1)
@@ -540,6 +539,7 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 				}
 				else
 				{
+					std::atomic<unsigned int> curJob(0);
 					for (unsigned int i = 0; i < curThreads; ++i)
 					{
 						threads.emplace_back([&curJob, &jobs, &converter]()

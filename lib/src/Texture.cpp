@@ -490,8 +490,8 @@ unsigned int Texture::blockSize(Format format)
 
 		// Standard formats
 		1,  // R4G4
-		1,  // R4G4B4A4
-		1,  // B4G4R4A4
+		2,  // R4G4B4A4
+		2,  // B4G4R4A4
 		2,  // R5G6B5
 		2,  // B5G6R5
 		2,  // R5G5B5A1

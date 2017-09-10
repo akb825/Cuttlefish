@@ -28,6 +28,8 @@
 #define GL_FLOAT                          0x1406
 #define GL_HALF_FLOAT                     0x140B
 #define GL_RED                            0x1903
+#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE_ALPHA                0x190A
 #define GL_RGB                            0x1907
 #define GL_RGBA                           0x1908
 #define GL_UNSIGNED_INT_8_8_8_8           0x8035
@@ -184,11 +186,12 @@ struct FormatInfo
 	std::uint32_t typeSize;
 	std::uint32_t format;
 	std::uint32_t internalFormat;
+	std::uint32_t baseInternalFormat;
 };
 
 static char header[12] =
 {
-	'\xBA', 'K', 'T', 'X', ' ', '1', '1', '\xBB', '\r', '\n', '\x1A', '\n'
+	'\xAB', 'K', 'T', 'X', ' ', '1', '1', '\xBB', '\r', '\n', '\x1A', '\n'
 };
 
 static const std::uint32_t endianness = 0x04030201;
@@ -201,7 +204,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R4G4B4A4:
 			info.type = GL_UNSIGNED_SHORT_4_4_4_4;
 			info.typeSize = 2;
-			info.format = GL_RGBA;
+			info.format = info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGBA4;
@@ -211,7 +214,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::B4G4R4A4:
 			info.type = GL_UNSIGNED_SHORT_4_4_4_4;
 			info.typeSize = 2;
-			info.format = GL_BGRA;
+			info.format = info.baseInternalFormat = GL_BGRA;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGBA4;
@@ -221,7 +224,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R5G6B5:
 			info.type = GL_UNSIGNED_SHORT_5_6_5;
 			info.typeSize = 2;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGB565;
@@ -231,7 +234,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::B5G6R5:
 			info.type = GL_UNSIGNED_SHORT_5_6_5_REV;
 			info.typeSize = 2;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGB565;
@@ -241,7 +244,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R5G5B5A1:
 			info.type = GL_UNSIGNED_SHORT_5_5_5_1;
 			info.typeSize = 2;
-			info.format = GL_RGBA;
+			info.format = info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGB5_A1;
@@ -251,7 +254,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::B5G5R5A1:
 			info.type = GL_UNSIGNED_SHORT_5_5_5_1;
 			info.typeSize = 2;
-			info.format = GL_BGRA;
+			info.format = info.baseInternalFormat = GL_BGRA;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGB5_A1;
@@ -261,7 +264,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::A1R5G5B5:
 			info.type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
 			info.typeSize = 2;
-			info.format = GL_BGRA;
+			info.format = info.baseInternalFormat = GL_BGRA;
 			if (type == Texture::Type::UNorm)
 			{
 				info.internalFormat = GL_RGB5_A1;
@@ -271,6 +274,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R8:
 			info.typeSize = 1;
 			info.format = GL_RED;
+			info.baseInternalFormat = GL_LUMINANCE;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -296,6 +300,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			info.type = GL_UNSIGNED_BYTE;
 			info.typeSize = 1;
 			info.format = GL_RG;
+			info.baseInternalFormat = GL_LUMINANCE_ALPHA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -315,7 +320,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R8G8B8:
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -342,6 +347,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R8G8B8A8:
 			info.typeSize = 1;
+			info.baseInternalFormat = GL_RGBA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -373,6 +379,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::B8G8R8A8:
 			info.type = GL_UNSIGNED_INT_8_8_8_8;
 			info.typeSize = 4;
+			info.baseInternalFormat = GL_BGRA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -399,6 +406,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::A8B8G8R8:
 			info.type = GL_UNSIGNED_INT_8_8_8_8_REV;
 			info.typeSize = 4;
+			info.baseInternalFormat = GL_RGBA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -426,6 +434,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::A2R10G10B10:
 			info.type = GL_UNSIGNED_INT_2_10_10_10_REV;
 			info.typeSize = 4;
+			info.baseInternalFormat = GL_BGRA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -442,6 +451,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::A2B10G10R10:
 			info.type = GL_UNSIGNED_INT_2_10_10_10_REV;
 			info.typeSize = 4;
+			info.baseInternalFormat = GL_RGBA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -458,6 +468,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R16:
 			info.typeSize = 2;
 			info.format = GL_RED;
+			info.baseInternalFormat = GL_LUMINANCE;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -486,6 +497,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R16G16:
 			info.typeSize = 2;
 			info.format = GL_RG;
+			info.baseInternalFormat = GL_LUMINANCE_ALPHA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -513,7 +525,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R16G16B16:
 			info.typeSize = 2;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -541,7 +553,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R16G16B16A16:
 			info.typeSize = 2;
-			info.format = GL_RGBA;
+			info.format = info.baseInternalFormat = GL_RGBA;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
@@ -570,6 +582,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R32:
 			info.typeSize = 4;
 			info.format = GL_RED;
+			info.baseInternalFormat = GL_LUMINANCE;
 			switch (type)
 			{
 				case Texture::Type::UInt:
@@ -590,6 +603,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::R32G32:
 			info.typeSize = 4;
 			info.format = GL_RG;
+			info.baseInternalFormat = GL_LUMINANCE_ALPHA;
 			switch (type)
 			{
 				case Texture::Type::UInt:
@@ -609,7 +623,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R32G32B32:
 			info.typeSize = 4;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			switch (type)
 			{
 				case Texture::Type::UInt:
@@ -629,7 +643,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			}
 		case Texture::Format::R32G32B32A32:
 			info.typeSize = 4;
-			info.format = GL_RGBA;
+			info.format = info.baseInternalFormat = GL_RGBA;
 			switch (type)
 			{
 				case Texture::Type::UInt:
@@ -652,7 +666,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::B10G11R11_UFloat:
 			info.type = GL_UNSIGNED_INT_10F_11F_11F_REV;
 			info.typeSize = 4;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UFloat)
 			{
 				info.internalFormat = GL_R11F_G11F_B10F;
@@ -662,7 +676,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::E5B9G9R9_UFloat:
 			info.type = GL_UNSIGNED_INT_5_9_9_9_REV;
 			info.typeSize = 4;
-			info.format = GL_RGB;
+			info.format = info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UFloat)
 			{
 				info.internalFormat = GL_RGB9_E5;
@@ -678,9 +692,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_S3TC_DXT1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_S3TC_DXT1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 				return true;
 			}
 			return false;
@@ -691,9 +705,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				return true;
 			}
 			return false;
@@ -704,9 +718,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 				return true;
 			}
 			return false;
@@ -717,9 +731,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 				return true;
 			}
 			return false;
@@ -730,10 +744,10 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = GL_COMPRESSED_RED_RGTC1;
+					info.internalFormat =info.baseInternalFormat =  GL_COMPRESSED_RED_RGTC1;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = GL_COMPRESSED_SIGNED_RED_RGTC1;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RED_RGTC1;
 					return true;
 				default:
 					return false;
@@ -745,10 +759,10 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = GL_COMPRESSED_RG_RGTC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RG_RGTC2;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = GL_COMPRESSED_SIGNED_RG_RGTC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RG_RGTC2;
 					return true;
 				default:
 					return false;
@@ -760,10 +774,10 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			switch (type)
 			{
 				case Texture::Type::UFloat:
-					info.internalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
 					return true;
 				case Texture::Type::Float:
-					info.internalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
 					return true;
 				default:
 					return false;
@@ -775,9 +789,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM;
 				return true;
 			}
 			return false;
@@ -787,7 +801,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			info.format = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
-				info.internalFormat = GL_ETC1_RGB8_OES;
+				info.internalFormat = info.baseInternalFormat = GL_ETC1_RGB8_OES;
 				return true;
 			}
 			return false;
@@ -798,9 +812,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ETC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ETC2;
 				else
-					info.internalFormat = GL_COMPRESSED_RGB8_ETC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB8_ETC2;
 				return true;
 			}
 			return false;
@@ -811,9 +825,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 				else
-					info.internalFormat = GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 				return true;
 			}
 			return false;
@@ -824,9 +838,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC;
 				return true;
 			}
 			return false;
@@ -837,10 +851,10 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = GL_COMPRESSED_R11_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_R11_EAC;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = GL_COMPRESSED_SIGNED_R11_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_R11_EAC;
 					return true;
 				default:
 					return false;
@@ -852,10 +866,10 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = GL_COMPRESSED_RG11_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RG11_EAC;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = GL_COMPRESSED_SIGNED_RG11_EAC;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RG11_EAC;
 					return true;
 				default:
 					return false;
@@ -867,9 +881,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
 				return true;
 			}
 			return false;
@@ -880,9 +894,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
 				return true;
 			}
 			return false;
@@ -893,9 +907,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
 				return true;
 			}
 			return false;
@@ -906,9 +920,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
 				return true;
 			}
 			return false;
@@ -919,9 +933,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
 				return true;
 			}
 			return false;
@@ -932,9 +946,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
 				return true;
 			}
 			return false;
@@ -945,9 +959,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
 				return true;
 			}
 			return false;
@@ -958,9 +972,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
 				return true;
 			}
 			return false;
@@ -971,9 +985,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
 				return true;
 			}
 			return false;
@@ -984,9 +998,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
 				return true;
 			}
 			return false;
@@ -997,9 +1011,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
 				return true;
 			}
 			return false;
@@ -1010,9 +1024,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
 				return true;
 			}
 			return false;
@@ -1023,9 +1037,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
 				return true;
 			}
 			return false;
@@ -1036,9 +1050,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
 				return true;
 			}
 			return false;
@@ -1049,9 +1063,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 				return true;
 			}
 			return false;
@@ -1062,9 +1076,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
 				return true;
 			}
 			return false;
@@ -1075,9 +1089,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
 				return true;
 			}
 			return false;
@@ -1088,9 +1102,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
 				return true;
 			}
 			return false;
@@ -1101,9 +1115,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
 				return true;
 			}
 			return false;
@@ -1114,9 +1128,9 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == Texture::Color::sRGB)
-					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG;
 				else
-					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
+					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
 				return true;
 			}
 			return false;
@@ -1178,8 +1192,7 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 		return Texture::SaveResult::WriteError;
 	if (!write(stream, texture.mipLevelCount()))
 		return Texture::SaveResult::WriteError;
-	// key/value data
-	if (!write(stream, 0U) || !write(stream, 0U))
+	if (!write(stream, 0U))
 		return Texture::SaveResult::WriteError;
 
 	bool compressed = Texture::blockWidth(texture.format()) > 1;
@@ -1207,6 +1220,8 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 		// Compressed formats should be at least 4-byte aligned. We should never have to write
 		// padding bytes for cube faces or mipmaps.
 		assert(imageSize % 4 == 0);
+		if (!write(stream, imageSize))
+			return Texture::SaveResult::WriteError;
 
 		if (compressed)
 		{
@@ -1239,6 +1254,8 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 						stream.write(data, rowSize);
 						for (unsigned int i = 0; i < padding; ++i)
 							stream.put(0);
+						if (!stream.good())
+							return Texture::SaveResult::WriteError;
 					}
 				}
 			}

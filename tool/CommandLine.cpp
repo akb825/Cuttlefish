@@ -540,7 +540,7 @@ bool CommandLine::parse(int argc, const char** argv)
 	const char* invalidInputsError = "error: cannot mix different types of image inputs";
 	for (int i = 1; i < argc; ++i)
 	{
-		if (matches(argv[i], "-h", "--help"))
+		if (matches(argv[i], "-j", "--jobs"))
 		{
 			jobs = cuttlefish::Texture::allCores;
 			if (i + 1 < argc)

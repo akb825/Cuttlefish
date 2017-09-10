@@ -86,7 +86,7 @@ public:
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
 		{
-			unsigned int curRow = (x + i)*batchSize/image().width();
+			unsigned int curRow = (x*batchSize + i)/image().width();
 			if (curRow != row)
 			{
 				if (curRow >= image().height())
@@ -95,7 +95,7 @@ public:
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
 
-			unsigned int col = (x + i)*batchSize % image().width();
+			unsigned int col = (x*batchSize + i) % image().width();
 			for (unsigned int c = 0; c < C; ++c)
 			{
 				curData[i*C + c] = static_cast<T>(
@@ -126,7 +126,7 @@ public:
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
 		{
-			unsigned int curRow = (x + i)*batchSize/image().width();
+			unsigned int curRow = (x*batchSize + i)/image().width();
 			if (curRow != row)
 			{
 				if (curRow >= image().height())
@@ -135,7 +135,7 @@ public:
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
 
-			unsigned int col = (x + i)*batchSize % image().width();
+			unsigned int col = (x*batchSize + i) % image().width();
 			for (unsigned int c = 0; c < C; ++c)
 			{
 				curData[i*C + c] = static_cast<T>(
@@ -168,7 +168,7 @@ public:
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
 		{
-			unsigned int curRow = (x + i)*batchSize/image().width();
+			unsigned int curRow = (x*batchSize + i)/image().width();
 			if (curRow != row)
 			{
 				if (curRow >= image().height())
@@ -177,7 +177,7 @@ public:
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
 
-			unsigned int col = (x + i)*batchSize % image().width();
+			unsigned int col = (x*batchSize + i) % image().width();
 			for (unsigned int c = 0; c < C; ++c)
 			{
 				curData[i*C + c] = static_cast<T>(
@@ -207,7 +207,7 @@ public:
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
 		{
-			unsigned int curRow = (x + i)*batchSize/image().width();
+			unsigned int curRow = (x*batchSize + i)/image().width();
 			if (curRow != row)
 			{
 				if (curRow >= image().height())
@@ -216,7 +216,7 @@ public:
 				scanline = reinterpret_cast<const float*>(image().scanline(row));
 			}
 
-			unsigned int col = (x + i)*batchSize % image().width();
+			unsigned int col = (x*batchSize + i) % image().width();
 			for (unsigned int c = 0; c < C; ++c)
 				curData[i*C + c] = toFloat<T>(scanline[col*4 + c]);
 		}
@@ -234,22 +234,22 @@ public:
 	void process(unsigned int x, unsigned int) override;
 };
 
-class R4G4B4A4Converter : public StandardConverter<std::uint8_t, 1>
+class R4G4B4A4Converter : public StandardConverter<std::uint16_t, 1>
 {
 public:
 	explicit R4G4B4A4Converter(const Image& image)
-		: StandardConverter<std::uint8_t, 1>(image)
+		: StandardConverter<std::uint16_t, 1>(image)
 	{
 	}
 
 	void process(unsigned int x, unsigned int) override;
 };
 
-class B4G4R4A4Converter : public StandardConverter<std::uint8_t, 1>
+class B4G4R4A4Converter : public StandardConverter<std::uint16_t, 1>
 {
 public:
 	explicit B4G4R4A4Converter(const Image& image)
-		: StandardConverter<std::uint8_t, 1>(image)
+		: StandardConverter<std::uint16_t, 1>(image)
 	{
 	}
 
