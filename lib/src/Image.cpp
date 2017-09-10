@@ -205,6 +205,11 @@ static double toLinear(double c)
 	return std::pow((c + 0.055)/1.055, 2.4);
 }
 
+static void* getScanlineImpl(FIBITMAP* image, unsigned int height, unsigned int y)
+{
+	return FreeImage_GetScanLine(image, height - y - 1);
+}
+
 static bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanline,
 	unsigned int x)
 {
@@ -763,7 +768,7 @@ void* Image::scanline(unsigned int y)
 	if (!m_impl || y >= m_impl->height)
 		return nullptr;
 
-	return FreeImage_GetScanLine(m_impl->image, y);
+	return getScanlineImpl(m_impl->image, m_impl->height, y);
 }
 
 const void* Image::scanline(unsigned int y) const
@@ -771,7 +776,7 @@ const void* Image::scanline(unsigned int y) const
 	if (!m_impl || y >= m_impl->height)
 		return nullptr;
 
-	return FreeImage_GetScanLine(m_impl->image, y);
+	return getScanlineImpl(m_impl->image, m_impl->height, y);
 }
 
 bool Image::getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const
@@ -779,7 +784,8 @@ bool Image::getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const
 	if (!m_impl || x >= m_impl->width || y >= m_impl->height)
 		return false;
 
-	return getPixelImpl(outColor, m_impl->format, FreeImage_GetScanLine(m_impl->image, y), x);
+	return getPixelImpl(outColor, m_impl->format, getScanlineImpl(m_impl->image, m_impl->height, y),
+		x);
 }
 
 bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color)
@@ -787,7 +793,8 @@ bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color)
 	if (!m_impl || x >= m_impl->width || y >= m_impl->height)
 		return false;
 
-	return setPixelImpl(m_impl->format, FreeImage_GetScanLine(m_impl->image, y), x, color);
+	return setPixelImpl(m_impl->format, getScanlineImpl(m_impl->image, m_impl->height, y), x,
+		color);
 }
 
 Image Image::convert(Format format) const
@@ -1306,7 +1313,7 @@ Image Image::createNormalMap(bool keepSign, double height, Format format)
 			ColorRGBAd curColor0, curColor1;
 			getPixelImpl(curColor0, m_impl->format, scanline0, x);
 			getPixelImpl(curColor1, m_impl->format, scanline2, x);
-			double dy = (curColor0.r - curColor1.r)*height/distY;
+			double dy = (curColor1.r - curColor0.r)*height/distY;
 
 			double distX = 2.0;
 			if (x == 0)
