@@ -155,7 +155,7 @@ void S3tcConverter::process(unsigned int x, unsigned int y)
 		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
 			std::min(y*blockDim + j, image().height() - 1)));
 		for (unsigned int i = 0; i < blockDim; ++i)
-			blockColors[i][j] = scanline[std::min(x*blockDim + i, image().width() - 1)];
+			blockColors[j][i] = scanline[std::min(x*blockDim + i, image().width() - 1)];
 	}
 
 	compressBlock(block, reinterpret_cast<ColorRGBAf*>(blockColors));
@@ -200,17 +200,17 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 
 	// Same implementation as nv::CompressorDXT1a::compressBlock()
 	std::uint32_t alphaMask = 0;
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        if (colorBlock.color(i).a == 0)
+	for (unsigned int i = 0; i < 16; i++)
+	{
+		if (colorBlock.color(i).a == 0)
 			alphaMask |= (3 << (i * 2)); // Set two bits for each color.
-    }
+	}
 
-    if (colorBlock.isSingleColor())
-    {
-        nv::OptimalCompress::compressDXT1a(colorBlock.color(0), alphaMask, dxtBlock);
+	if (colorBlock.isSingleColor())
+	{
+		nv::OptimalCompress::compressDXT1a(colorBlock.color(0), alphaMask, dxtBlock);
 		return;
-    }
+	}
 
 	nvsquish::WeightedClusterFit fit;
 	setChannelWeights(fit, colorMask());
@@ -242,12 +242,12 @@ void Bc2Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	// Same implementation as nv::CompressorDXT3::compressBlock()
 
 	// Compress explicit alpha.
-    nv::OptimalCompress::compressDXT3A(colorBlock, &dxtBlock->alpha);
+	nv::OptimalCompress::compressDXT3A(colorBlock, &dxtBlock->alpha);
 
-    // Compress color.
-    if (colorBlock.isSingleColor())
+	// Compress color.
+	if (colorBlock.isSingleColor())
 	{
-        nv::OptimalCompress::compressDXT1(colorBlock.color(0), &dxtBlock->color);
+		nv::OptimalCompress::compressDXT1(colorBlock.color(0), &dxtBlock->color);
 		return;
 	}
 
@@ -286,10 +286,10 @@ void Bc3Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	else
 		nv::QuickCompress::compressDXT5A(colorBlock, &dxtBlock->alpha);
 
-    // Compress color.
-    if (colorBlock.isSingleColor())
+	// Compress color.
+	if (colorBlock.isSingleColor())
 	{
-        nv::OptimalCompress::compressDXT1(colorBlock.color(0), &dxtBlock->color);
+		nv::OptimalCompress::compressDXT1(colorBlock.color(0), &dxtBlock->color);
 		return;
 	}
 
@@ -370,19 +370,19 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 	createWeights(weights, blockColors, weightAlpha());
 
 	ZOH::Tile zohTile(4, 4);
-    for (unsigned int y = 0; y < blockDim; ++y)
-    {
-        for (unsigned int x = 0; x < blockDim; ++x)
-        {
+	for (unsigned int y = 0; y < blockDim; ++y)
+	{
+		for (unsigned int x = 0; x < blockDim; ++x)
+		{
 			std::uint16_t rHalf = nv::to_half(blockColors[y*blockDim + x].r);
-            std::uint16_t gHalf = nv::to_half(blockColors[y*blockDim + x].g);
-            std::uint16_t bHalf = nv::to_half(blockColors[y*blockDim + x].b);
-            zohTile.data[y][x].x = ZOH::Tile::half2float(rHalf);
-            zohTile.data[y][x].y = ZOH::Tile::half2float(gHalf);
-            zohTile.data[y][x].z = ZOH::Tile::half2float(bHalf);
-            zohTile.importance_map[y][x] = weights[blockDim*y + x];
-        }
-    }
+			std::uint16_t gHalf = nv::to_half(blockColors[y*blockDim + x].g);
+			std::uint16_t bHalf = nv::to_half(blockColors[y*blockDim + x].b);
+			zohTile.data[y][x].x = ZOH::Tile::half2float(rHalf);
+			zohTile.data[y][x].y = ZOH::Tile::half2float(gHalf);
+			zohTile.data[y][x].z = ZOH::Tile::half2float(bHalf);
+			zohTile.importance_map[y][x] = weights[blockDim*y + x];
+		}
+	}
 
 	ZOH::compress(zohTile, reinterpret_cast<char*>(block));
 }
@@ -399,17 +399,17 @@ void Bc7Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	createWeights(weights, blockColors, weightAlpha());
 
 	AVPCL::Tile avpclTile(4, 4);
-    for (uint y = 0; y < 4; ++y)
+	for (uint y = 0; y < 4; ++y)
 	{
-        for (uint x = 0; x < 4; ++x)
+		for (uint x = 0; x < 4; ++x)
 		{
-            nv::Vector4 color = reinterpret_cast<const nv::Vector4*>(blockColors)[blockDim*y + x];
-            avpclTile.data[y][x] = color*255.0f;
+			nv::Vector4 color = reinterpret_cast<const nv::Vector4*>(blockColors)[blockDim*y + x];
+			avpclTile.data[y][x] = color*255.0f;
 			avpclTile.importance_map[y][x] = weights[blockDim*y + x];
-        }
-    }
+		}
+	}
 
-    AVPCL::compress(avpclTile, reinterpret_cast<char*>(block));
+	AVPCL::compress(avpclTile, reinterpret_cast<char*>(block));
 }
 
 } // namespace cuttlefish

@@ -532,27 +532,46 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 		return Texture::SaveResult::WriteError;
 
 	// Use metadata to determine if BC1 format has alpha or not.
-	if (texture.format() == Texture::Format::BC1_RGB ||
-		texture.format() == Texture::Format::BC1_RGBA)
+	bool bc1 = texture.format() == Texture::Format::BC1_RGB ||
+		texture.format() == Texture::Format::BC1_RGBA;
+	if (bc1 || texture.isArray())
 	{
-		if (!write(stream, static_cast<std::uint32_t>(sizeof(std::uint32_t)*3)))
-			return Texture::SaveResult::WriteError;
-		if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
+		std::uint32_t metadataSize = 0;
+		if (bc1)
+			metadataSize += static_cast<std::uint32_t>(sizeof(std::uint32_t)*4);
+		if (texture.isArray())
+			metadataSize += static_cast<std::uint32_t>(sizeof(std::uint32_t)*4);
+
+		if (!write(stream, metadataSize))
 			return Texture::SaveResult::WriteError;
 
-		std::uint32_t code;
-		if (texture.format() == Texture::Format::BC1_RGBA)
-			code = FOURCC('B', 'C', '1', 'A');
-		else
+		if (bc1)
 		{
-			assert(texture.format() == Texture::Format::BC1_RGB);
-			code = FOURCC('B', 'C', '1', 0);
+			if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
+				return Texture::SaveResult::WriteError;
+			std::uint32_t code;
+			if (texture.format() == Texture::Format::BC1_RGBA)
+				code = FOURCC('B', 'C', '1', 'A');
+			else
+			{
+				assert(texture.format() == Texture::Format::BC1_RGB);
+				code = FOURCC('B', 'C', '1', 0);
+			}
+			if (!write(stream, code))
+				return Texture::SaveResult::WriteError;
+			if (!write(stream, 4U) || !write(stream, 0U))
+				return Texture::SaveResult::WriteError;
 		}
-		if (!write(stream, code))
-			return Texture::SaveResult::WriteError;
 
-		if (!write(stream, 0U))
-			return Texture::SaveResult::WriteError;
+		if (texture.isArray())
+		{
+			if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
+				return Texture::SaveResult::WriteError;
+			if (!write(stream, FOURCC('A', 'R', 'R', 'Y')))
+				return Texture::SaveResult::WriteError;
+			if (!write(stream, 4U) || !write(stream, 0U))
+				return Texture::SaveResult::WriteError;
+		}
 	}
 	else
 	{
