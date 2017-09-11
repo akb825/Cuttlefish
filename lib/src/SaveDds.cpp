@@ -664,11 +664,12 @@ Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
 	if (!write(stream, dxt10Header))
 		return Texture::SaveResult::WriteError;
 
-	unsigned int elements = texture.isArray() ? 1 : texture.depth();
+	unsigned int elements = texture.isArray() ? texture.depth() : 1;
 	for (unsigned int element = 0; element < elements; ++element)
 	{
 		for (unsigned int face = 0; face < texture.faceCount(); ++face)
 		{
+			auto faceEnum = static_cast<Texture::CubeFace>(face);
 			for (unsigned int level = 0; level < texture.mipLevelCount(); ++level)
 			{
 				unsigned int volumes = texture.dimension() == Texture::Dimension::Dim3D ?
@@ -677,9 +678,10 @@ Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
 				{
 					assert(element == 0 || volume == 0);
 					unsigned int index = volume + element;
-					assert(texture.dataSize(level, index) > 0);
-					stream.write(reinterpret_cast<const char*>(texture.data(level, index)),
-						texture.dataSize(level, index));
+					assert(texture.dataSize(faceEnum, level, index) > 0);
+					stream.write(
+						reinterpret_cast<const char*>(texture.data(faceEnum, level, index)),
+						texture.dataSize(faceEnum, level, index));
 					if (!stream.good())
 						return Texture::SaveResult::WriteError;
 				}

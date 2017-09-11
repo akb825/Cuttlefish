@@ -78,11 +78,6 @@ static inline std::uint32_t clz(std::uint32_t x)
 #endif
 }
 
-static float lerp(float t, float a, float b)
-{
-	return a + (b - a)*t;
-}
-
 using FaceImageList = std::vector<Image>;
 using DepthImageList = std::vector<FaceImageList>;
 using MipImageList = std::vector<DepthImageList>;
@@ -1019,34 +1014,92 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 			// Interpolate between the depth levels.
 			DepthImageList& depthImages = m_impl->images[mip];
 			depthImages.resize(depth(mip));
-			for (unsigned int d = 0; d < depthImages.size(); ++d)
+			double invScale = static_cast<double>(tempImages.size())/depthImages.size();
+			double offset = std::max(invScale, 1.0);
+			double filterScale = 1.0/offset;
+			unsigned int w = width(mip);
+			unsigned int h = height(mip);
+			if (filter == Image::ResizeFilter::Box)
 			{
-				float interpD = (static_cast<float>(d) + 0.5f)/
-					static_cast<float>(depthImages.size());
-				unsigned int srcD0 = static_cast<unsigned int>(
-					std::floor(interpD*static_cast<float>(tempImages.size() - 1)));
-				unsigned int srcD1 = static_cast<unsigned int>(
-					std::ceil(interpD*static_cast<float>(tempImages.size() - 1)));
-				float t = interpD*static_cast<float>(tempImages.size()) - srcD0;
-
-				unsigned int w = width(mip);
-				unsigned int h = height(mip);
-				depthImages[d].resize(1);
-				depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
-				for (unsigned int y = 0; y < h; ++y)
+				for (unsigned int d = 0; d < depthImages.size(); ++d)
 				{
-					ColorRGBAf* srcScanline0 = reinterpret_cast<ColorRGBAf*>(
-						tempImages[srcD0].scanline(y));
-					ColorRGBAf* srcScanline1 = reinterpret_cast<ColorRGBAf*>(
-						tempImages[srcD1].scanline(y));
-					ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
-						depthImages[d][0].scanline(y));
-					for (unsigned int x = 0; x < w; ++x)
+					depthImages[d].resize(1);
+					depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
+					double center = (d + 0.5)*invScale;
+					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
+					unsigned int end = std::min(
+						static_cast<unsigned int>(center + offset + 0.5),
+						static_cast<unsigned int>(tempImages.size()));
+					for (unsigned int y = 0; y < h; ++y)
 					{
-						scanline[x].r = lerp(t, srcScanline0[x].r, srcScanline1[x].r);
-						scanline[x].g = lerp(t, srcScanline0[x].g, srcScanline1[x].g);
-						scanline[x].b = lerp(t, srcScanline0[x].b, srcScanline1[x].b);
-						scanline[x].a = lerp(t, srcScanline0[x].a, srcScanline1[x].a);
+						ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
+							depthImages[d][0].scanline(y));
+						for (unsigned int x = 0; x < w; ++x)
+						{
+							ColorRGBAd color = {0, 0, 0, 0};
+							unsigned int totalScale = 0;
+							for (unsigned int i = start; i < end; ++i)
+							{
+								if (std::abs(i + 0.5 - center)*filterScale > 0.5)
+									continue;
+
+								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
+									tempImages[i].scanline(y));
+								color.r += srcScanline[x].r;
+								color.g += srcScanline[x].g;
+								color.b += srcScanline[x].b;
+								color.a += srcScanline[x].a;
+								++totalScale;
+							}
+
+							scanline[x].r = static_cast<float>(color.r/totalScale);
+							scanline[x].g = static_cast<float>(color.g/totalScale);
+							scanline[x].b = static_cast<float>(color.b/totalScale);
+							scanline[x].a = static_cast<float>(color.a/totalScale);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (unsigned int d = 0; d < depthImages.size(); ++d)
+				{
+					depthImages[d].resize(1);
+					depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
+					double center = (d + 0.5)*invScale;
+					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
+					unsigned int end = std::min(
+						static_cast<unsigned int>(center + offset + 0.5),
+						static_cast<unsigned int>(tempImages.size()));
+					for (unsigned int y = 0; y < h; ++y)
+					{
+						ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
+							depthImages[d][0].scanline(y));
+						for (unsigned int x = 0; x < w; ++x)
+						{
+							ColorRGBAd color = {0, 0, 0, 0};
+							double totalScale = 0;
+							for (unsigned int i = start; i < end; ++i)
+							{
+								double scale = std::max(
+									1.0 - std::abs(i + 0.5 - center)*filterScale, 0.0);
+								if (scale == 0.0)
+									continue;
+
+								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
+									tempImages[i].scanline(y));
+								color.r += srcScanline[x].r*scale;
+								color.g += srcScanline[x].g*scale;
+								color.b += srcScanline[x].b*scale;
+								color.a += srcScanline[x].a*scale;
+								totalScale += scale;
+							}
+
+							scanline[x].r = static_cast<float>(color.r/totalScale);
+							scanline[x].g = static_cast<float>(color.g/totalScale);
+							scanline[x].b = static_cast<float>(color.b/totalScale);
+							scanline[x].a = static_cast<float>(color.a/totalScale);
+						}
 					}
 				}
 			}
