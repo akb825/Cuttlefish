@@ -31,6 +31,7 @@ static const std::pair<Texture::Format, const char*> formatMap[] =
 	FORMAT(R4G4),
 	FORMAT(R4G4B4A4),
 	FORMAT(B4G4R4A4),
+	FORMAT(A4R4G4B4),
 	FORMAT(R5G6B5),
 	FORMAT(B5G6R5),
 	FORMAT(R5G5B5A1),
@@ -494,6 +495,7 @@ static bool validate(CommandLine& args)
 			case Texture::Format::R4G4:
 			case Texture::Format::R4G4B4A4:
 			case Texture::Format::B4G4R4A4:
+			case Texture::Format::A4R4G4B4:
 			case Texture::Format::R5G6B5:
 			case Texture::Format::B5G6R5:
 			case Texture::Format::R5G5B5A1:

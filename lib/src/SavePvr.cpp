@@ -126,6 +126,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 					return PvrChannelType_UByteN;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
+				case Texture::Format::A4R4G4B4:
 				case Texture::Format::R5G6B5:
 				case Texture::Format::B5G6R5:
 				case Texture::Format::R5G5B5A1:
@@ -164,6 +165,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 					return PvrChannelType_SByteN;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
+				case Texture::Format::A4R4G4B4:
 				case Texture::Format::R5G6B5:
 				case Texture::Format::B5G6R5:
 				case Texture::Format::R5G5B5A1:
@@ -200,6 +202,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 					return PvrChannelType_UByte;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
+				case Texture::Format::A4R4G4B4:
 				case Texture::Format::R5G6B5:
 				case Texture::Format::B5G6R5:
 				case Texture::Format::R5G5B5A1:
@@ -234,6 +237,7 @@ static PvrChannelType getChannelType(const Texture& texture)
 					return PvrChannelType_SByte;
 				case Texture::Format::R4G4B4A4:
 				case Texture::Format::B4G4R4A4:
+				case Texture::Format::A4R4G4B4:
 				case Texture::Format::R5G6B5:
 				case Texture::Format::B5G6R5:
 				case Texture::Format::R5G5B5A1:
@@ -279,6 +283,9 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 		case Texture::Format::B4G4R4A4:
 			pixelFormat = PVR_GENERIC_FORMAT('b', 4, 'g', 4, 'r', 4, 'a', 4);
 			return true;
+		case Texture::Format::A4R4G4B4:
+			pixelFormat = PVR_GENERIC_FORMAT('a', 4, 'r', 4, 'g', 4, 'b', 4);
+			return true;
 		case Texture::Format::R5G6B5:
 			pixelFormat = PVR_GENERIC_FORMAT('r', 5, 'g', 6, 'b', 5, 0, 0);
 			return true;
@@ -286,7 +293,7 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 			pixelFormat = PVR_GENERIC_FORMAT('b', 5, 'g', 6, 'r', 5, 0, 0);
 			return true;
 		case Texture::Format::R5G5B5A1:
-			pixelFormat = PVR_GENERIC_FORMAT('r', 5, 'g', 5, 'a', 5, 'a', 1);
+			pixelFormat = PVR_GENERIC_FORMAT('r', 5, 'g', 5, 'b', 5, 'a', 1);
 			return true;
 		case Texture::Format::B5G5R5A1:
 			pixelFormat = PVR_GENERIC_FORMAT('b', 5, 'g', 5, 'r', 5, 'a', 1);
@@ -313,7 +320,7 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 			pixelFormat = PVR_GENERIC_FORMAT('b', 8, 'g', 8, 'r', 8, 'a', 8);
 			return true;
 		case Texture::Format::A8B8G8R8:
-			pixelFormat = PVR_GENERIC_FORMAT('a', 8, 'r', 8, 'g', 8, 'b', 8);
+			pixelFormat = PVR_GENERIC_FORMAT('a', 8, 'b', 8, 'g', 8, 'r', 8);
 			return true;
 		case Texture::Format::A2R10G10B10:
 			pixelFormat = PVR_GENERIC_FORMAT('a', 2, 'r', 10, 'g', 10, 'b', 10);

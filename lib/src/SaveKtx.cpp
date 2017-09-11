@@ -1137,6 +1137,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 
 		case Texture::Format::Unknown:
 		case Texture::Format::R4G4:
+		case Texture::Format::A4R4G4B4:
 		case Texture::Format::B8G8R8:
 			return false;
 	}

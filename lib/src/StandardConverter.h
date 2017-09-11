@@ -81,7 +81,7 @@ public:
 	void process(unsigned int x, unsigned int) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
+		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -121,7 +121,7 @@ public:
 	void process(unsigned int x, unsigned int) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
+		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -163,7 +163,7 @@ public:
 		const float minVal = static_cast<float>(std::numeric_limits<T>::min());
 		const float maxVal = static_cast<float>(std::numeric_limits<T>::max());
 
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
+		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -202,7 +202,7 @@ public:
 
 	void process(unsigned int x, unsigned int) override
 	{
-		T* curData = reinterpret_cast<T*>(data().data() + x*batchSize*C);
+		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -249,6 +249,17 @@ class B4G4R4A4Converter : public StandardConverter<std::uint16_t, 1>
 {
 public:
 	explicit B4G4R4A4Converter(const Image& image)
+		: StandardConverter<std::uint16_t, 1>(image)
+	{
+	}
+
+	void process(unsigned int x, unsigned int) override;
+};
+
+class A4R4G4B4Converter : public StandardConverter<std::uint16_t, 1>
+{
+public:
+	explicit A4R4G4B4Converter(const Image& image)
 		: StandardConverter<std::uint16_t, 1>(image)
 	{
 	}

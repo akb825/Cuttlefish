@@ -129,7 +129,7 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 				std::cout << "resizing image '" << args.images[i] << "' to " << width << " x " <<
 					height << std::endl;
 			}
-			images[i].resize(width, height, args.resizeFilter);
+			images[i] = images[i].resize(width, height, args.resizeFilter);
 		}
 
 		if (args.rotate)
@@ -150,7 +150,7 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 		{
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "generating normalmap for image '" << args.images[i] << "'" << std::endl;
-			images[i] = images[i].createNormalMap(isSigned(args.type), args.height);
+			images[i] = images[i].createNormalMap(isSigned(args.type), args.normalHeight);
 		}
 
 		if (args.flipX)

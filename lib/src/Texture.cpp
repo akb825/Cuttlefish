@@ -116,6 +116,7 @@ bool Texture::isFormatValid(Format format, Type type)
 		{true, false, false, false, false, false}, // R4G4
 		{true, false, false, false, false, false}, // R4G4B4A4
 		{true, false, false, false, false, false}, // B4G4R4A4
+		{true, false, false, false, false, false}, // A4R4G4B4
 		{true, false, false, false, false, false}, // R5G6B5
 		{true, false, false, false, false, false}, // B5G6R5
 		{true, false, false, false, false, false}, // R5G5B5A1
@@ -325,6 +326,7 @@ unsigned int Texture::blockWidth(Format format)
 		1, // R4G4
 		1, // R4G4B4A4
 		1, // B4G4R4A4
+		1, // A4R4G4B4
 		1, // R5G6B5
 		1, // B5G6R5
 		1, // R5G5B5A1
@@ -406,6 +408,7 @@ unsigned int Texture::blockHeight(Format format)
 		1, // R4G4
 		1, // R4G4B4A4
 		1, // B4G4R4A4
+		1, // A4R4G4B4
 		1, // R5G6B5
 		1, // B5G6R5
 		1, // R5G5B5A1
@@ -487,6 +490,7 @@ unsigned int Texture::blockSize(Format format)
 		1,  // R4G4
 		2,  // R4G4B4A4
 		2,  // B4G4R4A4
+		2,  // A4R4G4B4
 		2,  // R5G6B5
 		2,  // B5G6R5
 		2,  // R5G5B5A1
@@ -568,6 +572,7 @@ unsigned int Texture::minWidth(Format format)
 		1, // R4G4
 		1, // R4G4B4A4
 		1, // B4G4R4A4
+		1, // A4R4G4B4
 		1, // R5G6B5
 		1, // B5G6R5
 		1, // R5G5B5A1
@@ -649,6 +654,7 @@ unsigned int Texture::minHeight(Format format)
 		1, // R4G4
 		1, // R4G4B4A4
 		1, // B4G4R4A4
+		1, // A4R4G4B4
 		1, // R5G6B5
 		1, // B5G6R5
 		1, // R5G5B5A1

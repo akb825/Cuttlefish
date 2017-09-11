@@ -268,7 +268,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 			if (type == Texture::Type::UNorm)
 				return DdsDxt10Format_IA44;
 			return DdsDxt10Format_UNKNOWN;
-		case Texture::Format::B4G4R4A4:
+		case Texture::Format::A4R4G4B4:
 			if (type == Texture::Type::UNorm)
 				return DdsDxt10Format_B4G4R4A4_UNORM;
 			return DdsDxt10Format_UNKNOWN;
@@ -516,6 +516,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		// Unsupported by DirectX (and therefore DDS)
 		case Texture::Format::Unknown:
 		case Texture::Format::R4G4B4A4:
+		case Texture::Format::B4G4R4A4:
 		case Texture::Format::B5G6R5:
 		case Texture::Format::R5G5B5A1:
 		case Texture::Format::B5G5R5A1:

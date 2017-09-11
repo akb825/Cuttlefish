@@ -59,6 +59,7 @@ public:
 		R4G4,         ///< RG 4 bits each.
 		R4G4B4A4,     ///< RGBA 4 bits each.
 		B4G4R4A4,     ///< BGRA 4 bits each.
+		A4R4G4B4,     ///< ARGB 4 bits each.
 		R5G6B5,       ///< RGB with 5, 6, 5 bits.
 		B5G6R5,       ///< BGR with 5, 6, 5 bits.
 		R5G5B5A1,     ///< RGBA with 5, 5, 5, 1 bits.

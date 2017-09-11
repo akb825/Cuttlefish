@@ -53,6 +53,12 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				return std::unique_ptr<Converter>(new B4G4R4A4Converter(image));
 			return nullptr;
 		}
+		case Texture::Format::A4R4G4B4:
+		{
+			if (texture.type() == Texture::Type::UNorm)
+				return std::unique_ptr<Converter>(new A4R4G4B4Converter(image));
+			return nullptr;
+		}
 		case Texture::Format::R5G6B5:
 		{
 			if (texture.type() == Texture::Type::UNorm)
@@ -162,7 +168,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		case Texture::Format::A8B8G8R8:
 		{
 			if (texture.type() == Texture::Type::UNorm)
-				return std::unique_ptr<Converter>(new B8G8R8A8Converter(image));
+				return std::unique_ptr<Converter>(new A8B8G8R8Converter(image));
 			return nullptr;
 		}
 		case Texture::Format::A2R10G10B10:
