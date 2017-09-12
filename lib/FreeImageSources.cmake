@@ -346,46 +346,30 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dec/dec.vp8l.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dec/dec.webp.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.alpha_processing.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.alpha_processing_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.alpha_processing_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.argb.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.argb_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.argb_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.cost.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.cost_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.cost_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.cost_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.cpu.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec_clip_tables.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.dec_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc_avx2.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.enc_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.filters.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.filters_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.filters_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.lossless.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.lossless_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.lossless_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.lossless_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.lossless_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.rescaler.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.rescaler_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.rescaler_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.upsampling.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.upsampling_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.upsampling_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.upsampling_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.yuv.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.yuv_mips32.c
-	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.yuv_mips_dsp_r2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dsp.yuv_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/enc/enc.alpha.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/enc/enc.analysis.c

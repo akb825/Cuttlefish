@@ -75,7 +75,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 			m_blockSize = 8;
 			m_format = Etc::Image::Format::RGB8A1;
 			if (texture.colorSpace() == Texture::Color::Linear)
-				m_metric = Etc::RGBX;
+				m_metric = Etc::RGBA;
 			else
 				m_metric = Etc::REC709;
 			break;
