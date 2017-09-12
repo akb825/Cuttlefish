@@ -101,7 +101,7 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 				width = nearestPO2(images[0].width());
 				break;
 			default:
-				width = images[0].width();
+				width = args.width;
 				break;
 		}
 
@@ -118,7 +118,7 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 				height = nearestPO2(images[0].height());
 				break;
 			default:
-				height = images[0].height();
+				height = args.height;
 				break;
 		}
 
