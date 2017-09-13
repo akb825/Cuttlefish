@@ -22,8 +22,12 @@ endif()
 
 enable_testing()
 
-set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
-set(MACOSX_RPATH ON)
+if (APPLE)
+	set(CMAKE_INSTALL_RPATH "@executable_path;@executable_path/../lib")
+	set(MACOSX_RPATH ON)
+else()
+	set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
+endif()
 
 function(cfs_set_folder target folderName)
 	if (CUTTLEFISH_ROOT_FOLDER AND folderName)
