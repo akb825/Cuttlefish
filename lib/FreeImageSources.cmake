@@ -223,7 +223,6 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibOpenJPEG/t2.c
 	${FREEIMAGE_DIR}/Source/LibOpenJPEG/tcd.c
 	${FREEIMAGE_DIR}/Source/LibOpenJPEG/tgt.c
-	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/b44ExpLogTable.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfAcesFile.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfAttribute.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfB44Compressor.cpp

@@ -22,6 +22,9 @@ endif()
 
 enable_testing()
 
+set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(MACOSX_RPATH ON)
+
 function(cfs_set_folder target folderName)
 	if (CUTTLEFISH_ROOT_FOLDER AND folderName)
 		set_property(TARGET ${target} PROPERTY FOLDER ${CUTTLEFISH_ROOT_FOLDER}/${folderName})
@@ -60,4 +63,13 @@ function(cfs_setup_filters)
 			source_group(${filterName} FILES ${fileName})
 		endif()
 	endforeach()
+endfunction()
+
+function (cfs_fixup_mac_dep target old new)
+	if (NOT APPLE)
+		return()
+	endif()
+
+	add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
+		"${old}" "${new}" -add_rpath "$<TARGET_FILE_DIR:${target}>" "$<TARGET_FILE:${target}>")
 endfunction()

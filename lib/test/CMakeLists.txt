@@ -10,5 +10,10 @@ target_link_libraries(cuttlefish_test PRIVATE
 	cuttlefish_lib
 	${GTEST_BOTH_LIBRARIES})
 
+if (APPLE AND CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND AND NOT CUTTLEFISH_SHARED)
+	cfs_fixup_mac_dep(cuttlefish_test "@executable_path/../lib/libPVRTexLib.dylib"
+		"@rpath/libPVRTexLib.dylib")
+endif()
+
 cfs_set_folder(cuttlefish_test tests)
 add_test(NAME CuttlefishTest COMMAND cuttlefish_test)

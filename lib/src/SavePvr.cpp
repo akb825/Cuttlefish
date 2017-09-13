@@ -534,13 +534,16 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 	// Use metadata to determine if BC1 format has alpha or not.
 	bool bc1 = texture.format() == Texture::Format::BC1_RGB ||
 		texture.format() == Texture::Format::BC1_RGBA;
-	if (bc1 || texture.isArray())
+	if (bc1 || texture.isArray() || texture.dimension() == Texture::Dimension::Dim1D)
 	{
+		const auto baseSize = static_cast<std::uint32_t>(sizeof(std::uint32_t)*4);
 		std::uint32_t metadataSize = 0;
 		if (bc1)
-			metadataSize += static_cast<std::uint32_t>(sizeof(std::uint32_t)*4);
+			metadataSize += baseSize;
 		if (texture.isArray())
-			metadataSize += static_cast<std::uint32_t>(sizeof(std::uint32_t)*4);
+			metadataSize += baseSize;
+		if (texture.dimension() == Texture::Dimension::Dim1D)
+			metadataSize += baseSize;
 
 		if (!write(stream, metadataSize))
 			return Texture::SaveResult::WriteError;
@@ -568,6 +571,16 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 			if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
 				return Texture::SaveResult::WriteError;
 			if (!write(stream, FOURCC('A', 'R', 'R', 'Y')))
+				return Texture::SaveResult::WriteError;
+			if (!write(stream, 4U) || !write(stream, 0U))
+				return Texture::SaveResult::WriteError;
+		}
+
+		if (texture.dimension() == Texture::Dimension::Dim1D)
+		{
+			if (!write(stream, FOURCC('C', 'T', 'F', 'S')))
+				return Texture::SaveResult::WriteError;
+			if (!write(stream, FOURCC('D', 'I', 'M', '1')))
 				return Texture::SaveResult::WriteError;
 			if (!write(stream, 4U) || !write(stream, 0U))
 				return Texture::SaveResult::WriteError;

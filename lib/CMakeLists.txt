@@ -86,11 +86,20 @@ target_link_libraries(cuttlefish_lib
 	PRIVATE ${FreeImage_LIBRARIES} ${PVRTEXLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_compile_definitions(cuttlefish_lib PUBLIC ${defines} PRIVATE ${privateDefines})
 
-if (WIN32 AND CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
-	get_filename_component(pvrTexLibDir ${PVRTEXLIB_LIB} DIRECTORY)
-	set(pvrTexLibDll ${pvrTexLibDir}/PVRTexLib.dll)
-	add_custom_command(TARGET cuttlefish_lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${pvrTexLibDll}
-		$<TARGET_FILE_DIR:cuttlefish_lib>)
+if (CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
+	if (WIN32)
+		get_filename_component(pvrTexLibDir ${PVRTEXLIB_LIB} DIRECTORY)
+		set(pvrTexLibDll ${pvrTexLibDir}/PVRTexLib.dll)
+		add_custom_command(TARGET cuttlefish_lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
+			${pvrTexLibDll} $<TARGET_FILE_DIR:cuttlefish_lib>)
+	elseif (APPLE)
+		add_custom_command(TARGET cuttlefish_lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
+			${PVRTEXLIB_LIB} $<TARGET_FILE_DIR:cuttlefish_lib>)
+		if (CUTTLEFISH_SHARED)
+			cfs_fixup_mac_dep(cuttlefish_lib "@executable_path/../lib/libPVRTexLib.dylib"
+				"@rpath/libPVRTexLib.dylib")
+		endif()
+	endif()
 endif()
 
 cfs_set_folder(cuttlefish_lib libs)
@@ -101,5 +110,10 @@ cfs_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR} FILES ${externalSources})
 
 cfs_install_library(TARGET cuttlefish_lib)
 set(CUTTLEFISH_DOC_PROJECTS ${CUTTLEFISH_DOC_PROJECTS} lib PARENT_SCOPE)
+
+if (CUTTLEFISH_INSTALL AND CUTTLEFISH_INSTALL_PVRTEXLIB AND CUTTLEFISH_BUILD_PVRTC AND
+	PVRTEXLIB_FOUND)
+	install(FILES ${PVRTEXLIB_LIB} DESTINATION lib)
+endif()
 
 add_subdirectory(test)

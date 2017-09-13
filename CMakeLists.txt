@@ -15,12 +15,15 @@ set(CUTTLEFISH_BUILD_ASTC ON CACHE BOOL "Build support for ASTC texture compress
 set(CUTTLEFISH_BUILD_PVRTC ON CACHE BOOL "Build support for PVRTC texture compression.")
 
 # Misc options.
-set(CUTTLEFISH_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH "Folder for placing the build output.")
+set(CUTTLEFISH_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH
+	"Folder for placing the build output.")
 set(CUTTLEFISH_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 	"Folder for placing the cmake exports while building. Useful when embedding in other projects.")
 set(CUTTLEFISH_ROOT_FOLDER Cuttlefish CACHE STRING
 	"Root folder for the Cuttlefish projects. Usefull when embedding in other projects.")
 set(CUTTLEFISH_INSTALL ON CACHE BOOL "Allow installation for Cuttlefish components.")
+set(CUTTLEFISH_INSTALL_PVRTEXLIB ON CACHE BOOL
+	"Include the PVRTexTool library with the installation.")
 
 if (CUTTLEFISH_BUILD_TESTS)
 	find_package(GTest QUIET)

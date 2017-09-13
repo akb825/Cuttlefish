@@ -21,9 +21,18 @@
 
 #if CUTTLEFISH_HAS_S3TC
 
-#if CUTTLEFISH_CLANG
+#if CUTTLEFISH_CLANG || CUTTLEFISH_GCC
 #pragma GCC diagnostic push
+
+#if CUTTLEFISH_CLANG
+// NOTE: Older versions of clang don't have -Wexpansion-to-defined. This include's Apple's version,
+// which doesn't follow clang's version numbering scheme. Since they may add it later, disable
+// the arning for unknown pragmas.
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wexpansion-to-defined"
+#endif
+
+#pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
 #include "bc6h/zoh.h"
@@ -39,7 +48,7 @@
 #include "nvtt/OptimalCompressDXT.h"
 #include "nvtt/QuickCompressDXT.h"
 
-#if CUTTLEFISH_CLANG
+#if CUTTLEFISH_CLANG || CUTTLEFISH_GCC
 #pragma GCC diagnostic pop
 #endif
 
