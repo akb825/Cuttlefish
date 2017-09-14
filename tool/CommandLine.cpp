@@ -131,7 +131,7 @@ static void printHelp(const char* name)
 
 	std::cout << std::endl << "Input files: at least one required, cannot mix different types" << std::endl;
 	std::cout << "  -i, --input file               the input image for a standard texture" << std::endl;
-	std::cout << "  -a, --array [n] file           the input image for an array or depth texture:" << std::endl
+	std::cout << "  -a, --array [n] file           the input image for an array or 3D texture:" << std::endl
 	          << "                                   n: the index of the image" << std::endl
 	          << "                                   file: the path to the image" << std::endl;
 	std::cout << "  -c, --cube face file           the input image for a cube map: " << std::endl
