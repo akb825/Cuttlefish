@@ -4,7 +4,7 @@ Cuttlefish is a texture conversion library and tool. A command line tool is prov
 
 Features include:
 
-* Load almost any image format. ([all supported by FreeImage](http://freeimage.sourceforge.net/features.html)
+* Load almost any image format. ([all supported by FreeImage](http://freeimage.sourceforge.net/features.html))
 * Perform simple operations on input images such as resizing, flipping and rotating, and generating normalmaps.
 * Create 1D, 2D, 3D, and cube textures, as well as texture arrays.
 * Generate mipmaps.
