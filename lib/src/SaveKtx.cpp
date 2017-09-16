@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "SaveDds.h"
+#include "SaveKtx.h"
 #include <cassert>
 #include <cstring>
 #include <fstream>
