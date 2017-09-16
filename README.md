@@ -20,7 +20,7 @@ Features include:
 
 The following software is required to build Cuttlefish:
 
-* [cmake](https://cmake.org/) 3.0.2 or later
+* [CMake](https://cmake.org/) 3.0.2 or later
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) (required, included as a submodule)
 * [nvidia-texture-tools](https://github.com/castano/nvidia-texture-tools) (optional, included as a submodule)
@@ -43,9 +43,13 @@ Cuttlefish has been built for and tested on the following platforms:
 * Windows (requires Visual Studio 2015 or later)
 * Mac OS X
 
-# Building
+# Building and Installing
 
-Building is done with CMake. To build a release build, execute the following commands:
+[CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
+
+## Linux/Mac OS X
+
+To create a release build, execute the following commands:
 
 	Cuttlefish$ mkdir build
 	Cuttlefish$ cd build
@@ -56,15 +60,33 @@ The tests can be run by running the command:
 
 	Cuttlefish/build$ ctest
 
+The library and tool may then be installed by running the command:
+
+	Cuttlefish/build$ sudo make install
+
+## Windows
+
+Building is generally performed through Visual Studio. This can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
+
+	Cuttlefish$ mkdir build
+	Cuttlefish$ cd build
+	Cuttlefish\build$ cmake .. -G "Visual Studio 15 2017 Win64"
+
+Once generated, the project may be opened through Visual Studio and built as normal. The `RUN_TESTS` project may be built in order to run the tests.
+
+In order to install the libraries and tool, run Visual Studio as administrator, perform a release build, and run the `INSTALL` project. The default installation location is `C:\Program Files\Cuttlefish`. After installation, it's recommended to place the `C:\Program Files\Cutlefish\bin` folder on your `PATH` environment variable to run the `cuttlefish` tool from the command line.
+
+## Options
+
 The following options may be used when running cmake:
 
-## Compile Options:
+### Compile Options:
 
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
-* `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
+* `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running `make install`.
 * `-DCUTTLEFISH_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `ON`.
 
-## Enabled Builds
+### Enabled Builds
 
 * `-DCUTTLEFISH_BUILD_TESTS=ON|OFF`: Set to `ON` to build the unit tests. `gtest` must also be found in order to build the unit tests. Defaults to `ON`.
 * `-DCUTTLEFISH_BUILD_TOOL=ON|OFF`: Set to `ON` to build the tool. Defaults to `ON`.
@@ -74,7 +96,7 @@ The following options may be used when running cmake:
 * `-DCUTTLEFISH_BUILD_ASTC=ON|OFF`: Set to `ON` to build ASTC texture compression support. Defaults to `ON`.
 * `-DCUTTLEFISH_BUILD_PVRTC=ON|OFF`: Set to `ON` to build PVRTC texture compression support. Defaults to `ON`. If the PVRTexTool library isn't found, support will be disabled.
 
-## Miscellaneous Options:
+### Miscellaneous Options:
 
 * `-DCUTTLEFISH_OUTPUT_DIR=directory`: The folder to place the output files. This may be explicitly left empty in order to output to the defaults used by cmake, but this may prevent tests and executables from running properly when `CUTTLEFISH_SHARED` is set to `ON`. Defaults to `${CMAKE_BINARY_DIR}/output`.
 * `-DCUTTLEFISH_EXPORTS_DIR=directory`: The folder to place the cmake exports when building. This directory can be added to the module path when embedding in other projects to be able to use the `library_find()` cmake function. Defaults to `${CMAKE_BINARY_DIR}/cmake`.
@@ -83,11 +105,7 @@ The following options may be used when running cmake:
 * `-DCUTTLEFISH_INSTALL_PVRTEXLIB=ON|OFF`: Include the PVRTextTool library with the installation. This allows the installation to be used for machines that don't have PVRTexTool installed, and can avoid adjusting the `PATH` environment variable on some platforms. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_SET_RPATH=ON|OFF`: Set rpath during install for the library and tool on installation. Set to `OFF` if including in another project that wants to control the rpath. Default is `ON`.
 
-Once you have built and installed Cuttlefish, and have added the `lib/cmake/cuttlefish` directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
-
-    find_package(Cuttlefish)
-
-Libraries and include directories can be found through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
+Once you have built and installed Cuttlefish, and have added the `lib/cmake/cuttlefish` directory to `CMAKE_PREFIX_PATH`, you can find the library by calling `find_package(Cuttlefish)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
 
 # Limitations
 
