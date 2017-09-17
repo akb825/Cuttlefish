@@ -62,6 +62,18 @@ if (CUTTLEFISH_BUILD_S3TC)
 	add_test(NAME CuttlefishSaveBC3sRGB
 		WORKING_DIRECTORY ${testPath}
 		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC3 --srgb -o ${nullFile} --file-format pvr" 0)
+	add_test(NAME CuttlefishSaveBC6H
+		WORKING_DIRECTORY ${testPath}
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC6H -o ${nullFile} --file-format pvr" 0)
+	add_test(NAME CuttlefishSaveBC6HUNorm
+		WORKING_DIRECTORY ${testPath}
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC6H -t UNorm -o ${nullFile} --file-format pvr" 1)
+	add_test(NAME CuttlefishSaveBC6HUFloat
+		WORKING_DIRECTORY ${testPath}
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC6H -t UFloat -o ${nullFile} --file-format pvr" 0)
+	add_test(NAME CuttlefishSaveBC6HFloat
+		WORKING_DIRECTORY ${testPath}
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC6H -t Float -o ${nullFile} --file-format pvr" 0)
 endif()
 
 if (CUTTLEFISH_BUILD_ETC)
