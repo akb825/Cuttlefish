@@ -31,6 +31,13 @@
 #include <intrin.h>
 #endif
 
+#if CUTTLEFISH_WINDOWS
+#include <string.h>
+#define strcasecmp stricmp
+#else
+#include <strings.h>
+#endif
+
 namespace cuttlefish
 {
 
@@ -736,11 +743,11 @@ Texture::FileType Texture::fileType(const char* fileName)
 	const std::size_t pvrLen = std::strlen(pvrExt);
 
 	std::size_t len = std::strlen(fileName);
-	if (len >= ddsLen && std::strcmp(fileName + len - ddsLen, ddsExt) == 0)
+	if (len >= ddsLen && strcasecmp(fileName + len - ddsLen, ddsExt) == 0)
 		return FileType::DDS;
-	else if (len >= ktxLen && std::strcmp(fileName + len - ktxLen, ktxExt) == 0)
+	else if (len >= ktxLen && strcasecmp(fileName + len - ktxLen, ktxExt) == 0)
 		return FileType::KTX;
-	else if (len >= pvrLen && std::strcmp(fileName + len - pvrLen, pvrExt) == 0)
+	else if (len >= pvrLen && strcasecmp(fileName + len - pvrLen, pvrExt) == 0)
 		return FileType::PVR;
 
 	return FileType::Auto;

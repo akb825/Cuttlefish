@@ -22,6 +22,13 @@
 #include <iostream>
 #include <utility>
 
+#if CUTTLEFISH_WINDOWS
+#include <string.h>
+#define strcasecmp stricmp
+#else
+#include <strings.h>
+#endif
+
 using namespace cuttlefish;
 
 #define FORMAT(f) {Texture::Format:: f , #f }
@@ -240,17 +247,17 @@ static bool readCubeFace(Texture::CubeFace& face, int& i, int argc, const char**
 
 	++i;
 	bool success = true;
-	if (std::strcmp(argv[i], "+x") == 0)
+	if (strcasecmp(argv[i], "+x") == 0)
 		face = Texture::CubeFace::PosX;
-	else if (std::strcmp(argv[i], "-x") == 0)
+	else if (strcasecmp(argv[i], "-x") == 0)
 		face = Texture::CubeFace::NegX;
-	else if (std::strcmp(argv[i], "+y") == 0)
+	else if (strcasecmp(argv[i], "+y") == 0)
 		face = Texture::CubeFace::PosY;
-	else if (std::strcmp(argv[i], "-y") == 0)
+	else if (strcasecmp(argv[i], "-y") == 0)
 		face = Texture::CubeFace::NegY;
-	else if (std::strcmp(argv[i], "+z") == 0)
+	else if (strcasecmp(argv[i], "+z") == 0)
 		face = Texture::CubeFace::PosZ;
-	else if (std::strcmp(argv[i], "-z") == 0)
+	else if (strcasecmp(argv[i], "-z") == 0)
 		face = Texture::CubeFace::NegZ;
 	else
 	{
@@ -320,9 +327,9 @@ static bool readSize(int& size, int& i, int argc, const char** argv)
 		return false;
 
 	++i;
-	if (std::strcmp(argv[i], "nextpo2") == 0)
+	if (strcasecmp(argv[i], "nextpo2") == 0)
 		size = CommandLine::NextPO2;
-	else if (std::strcmp(argv[i], "nearestpo2") == 0)
+	else if (strcasecmp(argv[i], "nearestpo2") == 0)
 		size = CommandLine::NearestPO2;
 	else
 	{
@@ -371,25 +378,25 @@ static bool readFilter(Image::ResizeFilter& filter, int& i, int argc, const char
 	if (i >= argc - 1)
 		return false;
 
-	if (std::strcmp(argv[i + 1], "box") == 0)
+	if (strcasecmp(argv[i + 1], "box") == 0)
 	{
 		filter = Image::ResizeFilter::Box;
 		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i + 1], "linear") == 0)
+	else if (strcasecmp(argv[i + 1], "linear") == 0)
 	{
 		filter = Image::ResizeFilter::Linear;
 		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i + 1], "cubic") == 0)
+	else if (strcasecmp(argv[i + 1], "cubic") == 0)
 	{
 		filter = Image::ResizeFilter::Cubic;
 		++i;
 		return true;
 	}
-	else if (std::strcmp(argv[i + 1], "catmull-rom") == 0)
+	else if (strcasecmp(argv[i + 1], "catmull-rom") == 0)
 	{
 		filter = Image::ResizeFilter::CatmullRom;
 		++i;
@@ -712,13 +719,13 @@ bool CommandLine::parse(int argc, const char** argv)
 			}
 
 			++i;
-			if (std::strcmp(argv[i], "image") == 0)
+			if (strcasecmp(argv[i], "image") == 0)
 				imageType = ImageType::Image;
-			else if (std::strcmp(argv[i], "array") == 0)
+			else if (strcasecmp(argv[i], "array") == 0)
 				imageType = ImageType::Array;
-			else if (std::strcmp(argv[i], "cube") == 0)
+			else if (strcasecmp(argv[i], "cube") == 0)
 				imageType = ImageType::Cube;
-			else if (std::strcmp(argv[i], "cube-array") == 0)
+			else if (strcasecmp(argv[i], "cube-array") == 0)
 				imageType = ImageType::CubeArray;
 			else
 			{
@@ -918,7 +925,7 @@ bool CommandLine::parse(int argc, const char** argv)
 			++i;
 			for (const auto& formatInfo : formatMap)
 			{
-				if (std::strcmp(formatInfo.second, argv[i]) == 0)
+				if (strcasecmp(formatInfo.second, argv[i]) == 0)
 				{
 					format = formatInfo.first;
 					break;
@@ -953,17 +960,17 @@ bool CommandLine::parse(int argc, const char** argv)
 			}
 
 			++i;
-			if (std::strcmp(argv[i], "unorm") == 0)
+			if (strcasecmp(argv[i], "unorm") == 0)
 				type = Texture::Type::UNorm;
-			else if (std::strcmp(argv[i], "snorm") == 0)
+			else if (strcasecmp(argv[i], "snorm") == 0)
 				type = Texture::Type::SNorm;
-			else if (std::strcmp(argv[i], "uint") == 0)
+			else if (strcasecmp(argv[i], "uint") == 0)
 				type = Texture::Type::UInt;
-			else if (std::strcmp(argv[i], "int") == 0)
+			else if (strcasecmp(argv[i], "int") == 0)
 				type = Texture::Type::Int;
-			else if (std::strcmp(argv[i], "ufloat") == 0)
+			else if (strcasecmp(argv[i], "ufloat") == 0)
 				type = Texture::Type::UFloat;
-			else if (std::strcmp(argv[i], "float") == 0)
+			else if (strcasecmp(argv[i], "float") == 0)
 				type = Texture::Type::Float;
 			else
 			{
@@ -983,13 +990,13 @@ bool CommandLine::parse(int argc, const char** argv)
 
 			++i;
 			alphaSet = true;
-			if (std::strcmp(argv[i], "none") == 0)
+			if (strcasecmp(argv[i], "none") == 0)
 				alpha = Texture::Alpha::None;
-			else if (std::strcmp(argv[i], "standard") == 0)
+			else if (strcasecmp(argv[i], "standard") == 0)
 				alpha = Texture::Alpha::Standard;
-			else if (std::strcmp(argv[i], "pre-multiplied") == 0)
+			else if (strcasecmp(argv[i], "pre-multiplied") == 0)
 				alpha = Texture::Alpha::PreMultiplied;
-			else if (std::strcmp(argv[i], "encoded") == 0)
+			else if (strcasecmp(argv[i], "encoded") == 0)
 				alpha = Texture::Alpha::Encoded;
 			else
 			{
@@ -1008,15 +1015,15 @@ bool CommandLine::parse(int argc, const char** argv)
 			}
 
 			++i;
-			if (std::strcmp(argv[i], "lowest") == 0)
+			if (strcasecmp(argv[i], "lowest") == 0)
 				quality = Texture::Quality::Lowest;
-			else if (std::strcmp(argv[i], "low") == 0)
+			else if (strcasecmp(argv[i], "low") == 0)
 				quality = Texture::Quality::Low;
-			else if (std::strcmp(argv[i], "normal") == 0)
+			else if (strcasecmp(argv[i], "normal") == 0)
 				quality = Texture::Quality::Normal;
-			else if (std::strcmp(argv[i], "high") == 0)
+			else if (strcasecmp(argv[i], "high") == 0)
 				quality = Texture::Quality::High;
-			else if (std::strcmp(argv[i], "highest") == 0)
+			else if (strcasecmp(argv[i], "highest") == 0)
 				quality = Texture::Quality::Highest;
 			else
 			{
@@ -1053,11 +1060,11 @@ bool CommandLine::parse(int argc, const char** argv)
 			}
 
 			++i;
-			if (std::strcmp(argv[i], "dds") == 0)
+			if (strcasecmp(argv[i], "dds") == 0)
 				fileType = Texture::FileType::DDS;
-			else if (std::strcmp(argv[i], "ktx") == 0)
+			else if (strcasecmp(argv[i], "ktx") == 0)
 				fileType = Texture::FileType::KTX;
-			else if (std::strcmp(argv[i], "pvr") == 0)
+			else if (strcasecmp(argv[i], "pvr") == 0)
 				fileType = Texture::FileType::PVR;
 			else
 			{

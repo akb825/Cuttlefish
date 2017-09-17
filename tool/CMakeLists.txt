@@ -25,6 +25,8 @@ else()
 	set(nullFile /dev/null)
 endif()
 
+# NOTE: There will be some weird capiltalization in these tests. This is intentional to make sure
+# some of the options (ones not prefixed with - or --) are case-insensitive.
 add_test(NAME CuttlefishNoArgs
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "" 1)
@@ -36,7 +38,7 @@ add_test(NAME CuttlefishSaveDds
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -o ${nullFile} --file-format dds" 0)
 add_test(NAME CuttlefishSaveKtx
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -o ${nullFile} --file-format ktx" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f r8g8b8a8 -o ${nullFile} --file-format ktx" 0)
 add_test(NAME CuttlefishSavePvr
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
@@ -56,7 +58,7 @@ add_test(NAME CuttlefishMultipleOutput
 if (CUTTLEFISH_BUILD_S3TC)
 	add_test(NAME CuttlefishSaveBC3
 		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC3 -o ${nullFile} --file-format pvr" 0)
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC3 -o ${nullFile} --file-format PVR" 0)
 	add_test(NAME CuttlefishSaveBC3sRGB
 		WORKING_DIRECTORY ${testPath}
 		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f BC3 --srgb -o ${nullFile} --file-format pvr" 0)
@@ -65,10 +67,10 @@ endif()
 if (CUTTLEFISH_BUILD_ETC)
 	add_test(NAME CuttlefishSaveETC2
 		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ETC2_R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f etc2_R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
 	add_test(NAME CuttlefishSaveETC2sRGB
 		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ETC2_R8G8B8A8 --srgb -o ${nullFile} --file-format pvr" 0)
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ETC2_r8g8b8a8 --srgb -o ${nullFile} --file-format pvr" 0)
 endif()
 
 if (CUTTLEFISH_BUILD_ASTC)
@@ -77,7 +79,7 @@ if (CUTTLEFISH_BUILD_ASTC)
 		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ASTC_5x5 -o ${nullFile} --file-format pvr" 0)
 	add_test(NAME CuttlefishSaveASTCHDR
 		WORKING_DIRECTORY ${testPath}
-		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ASTC_5x5 -t ufloat -o ${nullFile} --file-format pvr" 0)
+		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ASTC_5x5 -t UFLOAT -o ${nullFile} --file-format pvr" 0)
 	add_test(NAME CuttlefishSaveASTCsRGB
 		WORKING_DIRECTORY ${testPath}
 		COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f ASTC_5x5 --srgb -o ${nullFile} --file-format pvr" 0)
@@ -168,7 +170,7 @@ add_test(NAME CuttlefishSave3D
 
 add_test(NAME CuttlefishCube
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-c +x posx.png -c +y posy.png -c +z posz.png -c -x negx.png -c -y negy.png --cube -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-c +X posx.png -c +Y posy.png -c +Z posz.png -c -x negx.png -c -y negy.png --cube -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishCubeMissingFace
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-c +y posy.png -c +z posz.png -c -x negx.png -c -y negy.png --cube -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 1)
@@ -178,7 +180,7 @@ add_test(NAME CuttlefishCubeDuplicateFace
 
 add_test(NAME CuttlefishCubeArray
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-C 0 +x posx.png -C 0 +y posy.png -C 0 +z posz.png -C 0 -x negx.png -C 0 -y negy.png --cube-array 0 -z negz.png -C 1 +x posx.png -C 1 +y posy.png -C 1 +z posz.png -C 1 -x negx.png -C 1 -y negy.png --cube-array 1 -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-C 0 +x posx.png -C 0 +y posy.png -C 0 +z posz.png -C 0 -X negx.png -C 0 -Y negy.png --cube-array 0 -Z negz.png -C 1 +x posx.png -C 1 +y posy.png -C 1 +z posz.png -C 1 -x negx.png -C 1 -y negy.png --cube-array 1 -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishCubeArrayMissingFace
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-C 0 +y posy.png -C 0 +z posz.png -C 0 -x negx.png -C 0 -y negy.png --cube-array 0 -z negz.png -C 1 +x posx.png -C 1 +y posy.png -C 1 +z posz.png -C 1 -x negx.png -C 1 -y negy.png --cube-array 1 -z negz.png -f R8G8B8A8 -o ${nullFile} --file-format pvr" 1)
@@ -223,22 +225,22 @@ add_test(NAME CuttlefishResize
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --resize 31 42 -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizeBox
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 box -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 Box -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizeLinear
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 linear -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 lInear -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizeCubic
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 cubic -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 cuBic -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizeCatmullRom
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 catmull-rom -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r 31 42 catmull-Rom -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizePO2
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r nextpo2 nearestpo2 -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r nextPO2 Nearestpo2 -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishResizeInvalidX
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r asdf nearestpo2 -o ${nullFile} --file-format pvr" 1)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r asdf nearestPO2 -o ${nullFile} --file-format pvr" 1)
 add_test(NAME CuttlefishResizeInvalidY
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -r nextpo2 asdf -o ${nullFile} --file-format pvr" 1)
@@ -251,7 +253,7 @@ add_test(NAME CuttlefishMipmapLevels
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --mipmap 1 -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishMipmapFilter
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -m box -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -m Box -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishMipmapLevelsFilter
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 -m 1 box -o ${nullFile} --file-format pvr" 0)
@@ -265,16 +267,16 @@ add_test(NAME CuttlefishNormalimapHeight
 
 add_test(NAME CuttlefishAlphaNone
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha none -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha nonE -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishAlphaStandard
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha standard -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha Standard -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishAlphaPreMultiplied
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha pre-multiplied -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha pre-muLtiplied -o ${nullFile} --file-format pvr" 0)
 add_test(NAME CuttlefishEncoded
 	WORKING_DIRECTORY ${testPath}
-	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha encoded -o ${nullFile} --file-format pvr" 0)
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --alpha encodeD -o ${nullFile} --file-format pvr" 0)
 
 add_test(NAME CuttlefishSwizzle
 	WORKING_DIRECTORY ${testPath}
