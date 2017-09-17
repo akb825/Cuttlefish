@@ -336,7 +336,10 @@ static bool readSize(int& size, int& i, int argc, const char** argv)
 		char* endPtr;
 		unsigned long value = std::strtol(argv[i], &endPtr, 10);
 		if (endPtr != argv[i] + std::strlen(argv[i]))
+		{
+			std::cerr << "error: invalid size " << argv[i] << std::endl;
 			return false;
+		}
 
 		size = static_cast<int>(value);
 	}
