@@ -936,7 +936,8 @@ bool CommandLine::parse(int argc, const char** argv)
 			if (!typeSet)
 			{
 				if (format == Texture::Format::B10G11R11_UFloat ||
-					format == Texture::Format::E5B9G9R9_UFloat)
+					format == Texture::Format::E5B9G9R9_UFloat ||
+					format == Texture::Format::BC6H)
 				{
 					type = Texture::Type::UFloat;
 				}
