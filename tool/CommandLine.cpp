@@ -145,7 +145,7 @@ static void printHelp(const char* name)
 	          << "                                   face: the face, which is one of:" << std::endl
 	          << "                                     +x, -x, +y, -y, +z, -z" << std::endl
 	          << "                                   file: the path to the image" << std::endl;
-	std::cout << "  -C, --cube-array [n] face file the input image for a cube map: " << std::endl
+	std::cout << "  -C, --cube-array n face file   the input image for a cube map: " << std::endl
 	          << "                                   n: the index of the image" << std::endl
 	          << "                                   face: the face, which is one of:" << std::endl
 	          << "                                     +x, -x, +y, -y, +z, -z" << std::endl
