@@ -105,7 +105,7 @@ The following options may be used when running cmake:
 * `-DCUTTLEFISH_INSTALL_PVRTEXLIB=ON|OFF`: Include the PVRTextTool library with the installation. This allows the installation to be used for machines that don't have PVRTexTool installed, and can avoid adjusting the `PATH` environment variable on some platforms. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_SET_RPATH=ON|OFF`: Set rpath during install for the library and tool on installation. Set to `OFF` if including in another project that wants to control the rpath. Default is `ON`.
 
-Once you have built and installed Cuttlefish, and have added the `lib/cmake/cuttlefish` directory to `CMAKE_PREFIX_PATH`, you can find the library by calling `find_package(Cuttlefish)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
+Once you have built and installed Cuttlefish, you can find the library by calling `find_package(Cuttlefish CONFIG)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
 
 # Limitations
 
