@@ -107,6 +107,8 @@ The following options may be used when running cmake:
 
 Once you have built and installed Cuttlefish, you can find the library by calling `find_package(Cuttlefish CONFIG)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
 
+> **Note:** In order for `find_package()` to succeed, on Windows you will need to add the path to `INSTALL_DIR/lib/cmake` to `CMAKE_PREFIX_PATH`. (e.g. `C:/Program Files/Cuttlefish/lib/cmake`) On other systems, if you don't install to a standard location, you will need to add the base installation path to `CMAKE_PREFIX_PATH`.
+
 # Limitations
 
 ## Threading limitations
