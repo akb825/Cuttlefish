@@ -27,8 +27,9 @@
 #if CUTTLEFISH_CLANG
 // NOTE: Older versions of clang don't have -Wexpansion-to-defined. This include's Apple's version,
 // which doesn't follow clang's version numbering scheme. Since they may add it later, disable
-// the arning for unknown pragmas.
+// the warning for unknown pragmas.
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
 #pragma GCC diagnostic ignored "-Wexpansion-to-defined"
 #endif
 
