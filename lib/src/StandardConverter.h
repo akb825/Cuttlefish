@@ -21,10 +21,20 @@
 #include "Converter.h"
 #include "Shared.h"
 #include <cuttlefish/Color.h>
-#include <glm/gtc/packing.hpp>
 #include <algorithm>
 #include <cmath>
 #include <limits>
+
+#if CUTTLEFISH_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include <glm/gtc/packing.hpp>
+
+#if CUTTLEFISH_GCC
+#pragma GCC diagnostic pop
+#endif
 
 namespace cuttlefish
 {

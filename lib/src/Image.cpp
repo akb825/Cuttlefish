@@ -869,13 +869,13 @@ Image Image::convert(Format format) const
 		if (!image)
 			return image;
 
+		ColorRGBAd color = {0.0, 0.0, 0.0, 0.0};
 		for (unsigned int y = 0; y < m_impl->height; ++y)
 		{
 			const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
 			void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
 			for (unsigned int x = 0; x < m_impl->width; ++x)
 			{
-				ColorRGBAd color;
 				getPixelImpl(color, m_impl->format, srcScanline, x);
 				setPixelImpl(image.m_impl->format, dstScanline, x, color);
 			}
@@ -1202,12 +1202,12 @@ bool Image::linearize()
 	if (!m_impl)
 		return false;
 
+	ColorRGBAd color = {0.0, 0.0, 0.0, 0.0};
 	for (unsigned int y = 0; y < m_impl->height; ++y)
 	{
 		void* scanline = FreeImage_GetScanLine(m_impl->image, y);
 		for (unsigned int x = 0; x < m_impl->width; ++x)
 		{
-			ColorRGBAd color;
 			getPixelImpl(color, m_impl->format, scanline, x);
 			color.r = toLinear(color.r);
 			color.g = toLinear(color.g);
@@ -1224,12 +1224,12 @@ bool Image::grayscale()
 	if (!m_impl)
 		return false;
 
+	ColorRGBAd color = {0.0, 0.0, 0.0, 0.0};
 	for (unsigned int y = 0; y < m_impl->height; ++y)
 	{
 		void* scanline = FreeImage_GetScanLine(m_impl->image, y);
 		for (unsigned int x = 0; x < m_impl->width; ++x)
 		{
-			ColorRGBAd color;
 			getPixelImpl(color, m_impl->format, scanline, x);
 			color.r = color.g = color.b = toGrayscale(color.r, color.g, color.b);
 			setPixelImpl(m_impl->format, scanline, x, color);

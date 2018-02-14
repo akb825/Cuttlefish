@@ -1027,7 +1027,8 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 			// Interpolate between the depth levels.
 			DepthImageList& depthImages = m_impl->images[mip];
 			depthImages.resize(depth(mip));
-			double invScale = static_cast<double>(tempImages.size())/depthImages.size();
+			double invScale = static_cast<double>(tempImages.size())/
+				static_cast<double>(depthImages.size());
 			double offset = std::max(invScale, 1.0);
 			double filterScale = 1.0/offset;
 			unsigned int w = width(mip);
