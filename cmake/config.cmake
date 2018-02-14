@@ -12,26 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (MSVC)
-	set(commonFlags "/W3 /WX /wd4200 /wd4996 /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /MP")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags}")
-else()
-	if (CUTTLEFISH_SHARED AND
-		(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang"))
-		set(otherCFlags "-fvisibility=hidden")
-		set(otherCXXFlags "${otherCFlags} -fvisibility-inlines-hidden")
-	else()
-		set(otherCFlags)
-		set(otherCXXFlags)
-	endif()
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-	set(commonFlags "-fPIC -Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing")
-	if (CMAKE_C_COMPILER_ID MATCHES "GNU")
-		set(commonFlags "${commanFlags} -Wno-comment")
+if (MSVC)
+	add_compile_options(/W3 /WX /wd4200 /MP)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+else()
+	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing)
+	# Behavior for VISIBILITY_PRESET variables are inconsistent between CMake versions.
+	if (CUTTLEFISH_SHARED)
+		add_compile_options(-fvisibility=hidden -fvisibility-inlines-hidden)
 	endif()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags} ${otherCFlags}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags} -std=c++11 ${otherCXXFlags}")
 endif()
 
 enable_testing()
