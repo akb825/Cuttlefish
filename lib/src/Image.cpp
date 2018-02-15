@@ -1203,6 +1203,7 @@ bool Image::preMultiplyAlpha()
 	if (!m_impl)
 		return false;
 
+	ColorRGBAd color = {0.0, 0.0, 0.0, 0.0};
 	switch (m_impl->format)
 	{
 		case Format::RGBA8:
@@ -1213,7 +1214,6 @@ bool Image::preMultiplyAlpha()
 				void* scanline = FreeImage_GetScanLine(m_impl->image, y);
 				for (unsigned int x = 0; x < m_impl->width; ++x)
 				{
-					ColorRGBAd color;
 					getPixelImpl(color, m_impl->format, scanline, x);
 
 					// Pre-multiply in linear space.
