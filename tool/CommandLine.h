@@ -69,7 +69,8 @@ struct CommandLine
 	cuttlefish::Image::Channel blueSwzl = cuttlefish::Image::Channel::Blue;
 	cuttlefish::Image::Channel alphaSwzl = cuttlefish::Image::Channel::Alpha;
 	cuttlefish::Texture::ColorMask colorMask;
-	cuttlefish::Texture::Color colorSpace = cuttlefish::Texture::Color::Linear;
+	cuttlefish::ColorSpace imageColorSpace = cuttlefish::ColorSpace::Linear;
+	cuttlefish::ColorSpace textureColorSpace = cuttlefish::ColorSpace::Linear;
 	bool preMultiply = false;
 	cuttlefish::Texture::Dimension dimension = cuttlefish::Texture::Dimension::Dim2D;
 	cuttlefish::Texture::Format format = cuttlefish::Texture::Format::Unknown;

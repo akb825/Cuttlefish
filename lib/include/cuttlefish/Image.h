@@ -23,6 +23,7 @@
 
 #include <cuttlefish/Config.h>
 #include <cuttlefish/Export.h>
+#include <cuttlefish/Color.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -43,6 +44,7 @@ struct ColorRGBAd;
 class CUTTLEFISH_EXPORT Image
 {
 public:
+
 	/**
 	 * @brief Enum for the pixel format of the image.
 	 */
@@ -108,26 +110,30 @@ public:
 	/**
 	 * @brief Loads an image from file.
 	 * @param fileName The name of the file to load.
+	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(const char* fileName);
+	Image(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from data.
 	 * @param data The data to load from.
 	 * @param size The size of the data.
+	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(const std::uint8_t* data, std::size_t size);
+	Image(const std::uint8_t* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Initializes an empty image.
 	 * @param format The pixel format.
 	 * @param width The width of the image.
 	 * @param height The height of the image.
+	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to initialize.
 	 */
-	Image(Format format, unsigned int width, unsigned int height);
+	Image(Format format, unsigned int width, unsigned int height,
+		ColorSpace colorSpace = ColorSpace::Linear);
 
 	~Image();
 
@@ -151,26 +157,31 @@ public:
 	/**
 	 * @brief Loads an image from file.
 	 * @param fileName The name of the file to load.
+	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(const char* fileName);
+	bool load(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from data.
 	 * @param data The data to load from.
 	 * @param size The size of the data.
+	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(const std::uint8_t* data, std::size_t size);
+	bool load(const std::uint8_t* data, std::size_t size,
+		ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Initializes an empty image.
 	 * @param format The pixel format.
 	 * @param width The width of the image.
 	 * @param height The height of the image.
+	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be initialized.
 	 */
-	bool initialize(Format format, unsigned int width, unsigned int height);
+	bool initialize(Format format, unsigned int width, unsigned int height,
+		ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Resets the image to an unitialized state.
@@ -182,6 +193,12 @@ public:
 	 * @return The pixel format.
 	 */
 	Format format() const;
+
+	/**
+	 * @brief Gets the color space of the image.
+	 * @return The color space.
+	 */
+	ColorSpace colorSpace() const;
 
 	/**
 	 * @brief Gets the number of bits per pixel in the image.
@@ -325,15 +342,15 @@ public:
 	bool preMultiplyAlpha();
 
 	/**
-	 * @brief Converts from sRGB color space to linear color space.
+	 * @brief Converts the image to a different color space.
 	 *
 	 * This will affect every channel except the alpha channel.
 	 *
-	 * @remark This will reduce the precision for percieved color values, so it's not recommended
-	 * for 8 bits per channel or less.
+	 * @remark Converting from sRGB to linear will reduce the precision for percieved color values,
+	 *     so it's not recommended for 8 bits per channel or less.
 	 * @return False if the image was invalid.
 	 */
-	bool linearize();
+	bool changeColorSpace(ColorSpace colorSpace);
 
 	/**
 	 * @brief Converts to grayscale.

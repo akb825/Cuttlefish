@@ -28,10 +28,20 @@
  */
 
 #include <cuttlefish/Config.h>
+#include <cmath>
 #include <cstdint>
 
 namespace cuttlefish
 {
+
+/**
+* @brief Enum for the color space.
+*/
+enum class ColorSpace
+{
+	Linear, ///< Linear color space.
+	sRGB    ///< sRGB color space.
+};
 
 /**
  * @brief Structure containing a 3 channel color with 16 bits per channel.
@@ -106,6 +116,31 @@ inline double toGrayscale(double r, double g, double b)
 {
 	// Rec. 709
 	return r*0.2126 + g*0.7152 + b*0.0722;
+}
+
+/**
+ * @brief Converts a color channel from sRGB to linear color space.
+ * @param c The color channel in sRGB space.
+ * @return The color channel in linear space.
+ */
+inline double sRGBToLinear(double c)
+{
+	if (c <= 0.04045)
+		return c/12.92;
+	return std::pow((c + 0.055)/1.055, 2.4);
+}
+
+/**
+ * @brief Converts a color channel from linear to sRGB color space.
+ * @param c The color channel in linear space.
+ * @return The color channel in sRGB space.
+ */
+inline double linearToSRGB(double c)
+{
+	// linear to sRGB
+	if (c <= 0.0031308)
+		return c*12.92;
+	return 1.055*std::pow(c, 1.0/2.4) - 0.055;
 }
 
 } // namespace cuttlefish

@@ -509,7 +509,7 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 		return Texture::SaveResult::WriteError;
 
 	std::uint32_t colorSpace = 0;
-	if (texture.colorSpace() == Texture::Color::sRGB)
+	if (texture.colorSpace() == ColorSpace::sRGB)
 		colorSpace = 1;
 	if (!write(stream, colorSpace))
 		return Texture::SaveResult::WriteError;

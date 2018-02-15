@@ -498,7 +498,13 @@ static bool validate(CommandLine& args)
 		return false;
 	}
 
-	if (args.colorSpace == Texture::Color::sRGB && args.log != CommandLine::Log::Quiet)
+	if (args.textureColorSpace == ColorSpace::sRGB &&
+		!Texture::hasNativeSRGB(args.format, args.type))
+	{
+		args.textureColorSpace = ColorSpace::Linear;
+	}
+
+	if (args.imageColorSpace == ColorSpace::sRGB && args.log != CommandLine::Log::Quiet)
 	{
 		switch (args.format)
 		{
@@ -886,7 +892,7 @@ bool CommandLine::parse(int argc, const char** argv)
 				alpha = Texture::Alpha::None;
 		}
 		else if (std::strcmp(argv[i], "--srgb") == 0)
-			colorSpace = Texture::Color::sRGB;
+			imageColorSpace = textureColorSpace = ColorSpace::sRGB;
 		else if (std::strcmp(argv[i], "--pre-multiply") == 0)
 		{
 			preMultiply = true;

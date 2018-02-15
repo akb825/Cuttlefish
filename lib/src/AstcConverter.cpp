@@ -144,9 +144,6 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 			break;
 	}
 
-	if (texture.colorSpace() == Texture::Color::sRGB)
-		m_averageErrorLimit = 60.0f;
-
 	if (m_hdr)
 		m_averageErrorLimit = 0.0f;
 	else

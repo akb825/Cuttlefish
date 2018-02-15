@@ -44,6 +44,10 @@ class ImageColorTest : public testing::TestWithParam<ImageTestInfo>
 {
 };
 
+class ImageSRGBColorTest : public testing::TestWithParam<ImageTestInfo>
+{
+};
+
 static ColorRGBAd getTestColor(const Image& image, unsigned int x, unsigned int y, bool divide)
 {
 	ColorRGBAd color;
@@ -522,6 +526,195 @@ TEST_P(ImageColorTest, Swizzle)
 	}
 }
 
+TEST_P(ImageSRGBColorTest, LinearToSRGB)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15, ColorSpace::Linear));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.changeColorSpace(ColorSpace::sRGB));
+	EXPECT_EQ(ColorSpace::sRGB, image.colorSpace());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r = linearToSRGB(testColor.r);
+			testColor.g = linearToSRGB(testColor.g);
+			testColor.b = linearToSRGB(testColor.b);
+			testColor.a = color.a;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageSRGBColorTest, sRGBToLinear)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15, ColorSpace::sRGB));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.changeColorSpace(ColorSpace::Linear));
+	EXPECT_EQ(ColorSpace::Linear, image.colorSpace());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r = sRGBToLinear(testColor.r);
+			testColor.g = sRGBToLinear(testColor.g);
+			testColor.b = sRGBToLinear(testColor.b);
+			testColor.a = color.a;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageSRGBColorTest, Resize)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	Image resizedImage = image.resize(19, 23, Image::ResizeFilter::CatmullRom);
+
+	Image otherImage = image;
+	EXPECT_TRUE(otherImage.changeColorSpace(ColorSpace::Linear));
+	Image otherResizedImage = otherImage.resize(19, 23, Image::ResizeFilter::CatmullRom);
+	EXPECT_TRUE(otherResizedImage.changeColorSpace(ColorSpace::sRGB));
+
+	ASSERT_EQ(resizedImage.width(), otherResizedImage.width());
+	ASSERT_EQ(resizedImage.height(), otherResizedImage.height());
+	EXPECT_EQ(ColorSpace::sRGB, resizedImage.colorSpace());
+	EXPECT_EQ(ColorSpace::sRGB, otherResizedImage.colorSpace());
+
+	for (unsigned int y = 0; y < resizedImage.height(); ++y)
+	{
+		for (unsigned int x = 0; x < resizedImage.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(resizedImage.getPixel(color, x, y));
+			ColorRGBAd otherColor;
+			EXPECT_TRUE(otherResizedImage.getPixel(otherColor, x, y));
+			EXPECT_TRUE(colorsEqual(otherColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageSRGBColorTest, PreMultiplyAlpha)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.preMultiplyAlpha());
+	EXPECT_EQ(ColorSpace::sRGB, image.colorSpace());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r = linearToSRGB(sRGBToLinear(testColor.r)*color.a);
+			testColor.g = linearToSRGB(sRGBToLinear(testColor.g)*color.a);
+			testColor.b = linearToSRGB(sRGBToLinear(testColor.b)*color.a);
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
+TEST_P(ImageSRGBColorTest, Grayscale)
+{
+	const ImageTestInfo& imageInfo = GetParam();
+	Image image;
+	EXPECT_FALSE(image);
+	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
+
+	bool divide = shouldDivide(imageInfo.format);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			color = getTestColor(image, x, y, divide);
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	EXPECT_TRUE(image.grayscale());
+	EXPECT_EQ(ColorSpace::sRGB, image.colorSpace());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			ColorRGBAd color;
+			EXPECT_TRUE(image.getPixel(color, x, y));
+			ColorRGBAd testColor = getTestColor(image, x, y, divide);
+			testColor.r = sRGBToLinear(testColor.r);
+			testColor.g = sRGBToLinear(testColor.g);
+			testColor.b = sRGBToLinear(testColor.b);
+			double grayscale = linearToSRGB(toGrayscale(testColor.r, testColor.g, testColor.b));
+			testColor.r = testColor.g = testColor.b = grayscale;
+			EXPECT_TRUE(colorsEqual(testColor, color, imageInfo));
+		}
+	}
+}
+
 static double getHeight(const Image& image, unsigned int x, unsigned int y)
 {
 	return (x - image.width()/2.0)/(image.width()/2.0)*
@@ -637,6 +830,14 @@ INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
 		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
 		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
+		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4)));
+
+INSTANTIATE_TEST_CASE_P(ImageTestTypes,
+	ImageSRGBColorTest,
+	testing::Values(
+		ImageTestInfo(Image::Format::RGB16, 2/65535.0, 3),
+		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
+		ImageTestInfo(Image::Format::RGBA16, 2/65535.0, 4),
 		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4)));
 
 } // cuttlefish

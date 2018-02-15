@@ -97,6 +97,7 @@ using MipTextureList = std::vector<DepthTextureList>;
 struct Texture::Impl
 {
 	Dimension dimension;
+	ColorSpace colorSpace;
 	unsigned int width;
 	unsigned int height;
 	unsigned int depth;
@@ -106,7 +107,6 @@ struct Texture::Impl
 
 	Format format = Format::Unknown;
 	Type type = Type::UNorm;
-	Color colorSpace = Color::Linear;
 	Alpha alphaType = Alpha::Standard;
 	ColorMask colorMask;
 	MipTextureList textures;
@@ -764,10 +764,10 @@ Texture::~Texture()
 }
 
 Texture::Texture(Dimension dimension, unsigned int width, unsigned int height, unsigned int depth,
-	unsigned int mipLevels)
+	unsigned int mipLevels, ColorSpace colorSpace)
 	: m_impl(nullptr)
 {
-	initialize(dimension, width, height, depth, mipLevels);
+	initialize(dimension, width, height, depth, mipLevels, colorSpace);
 }
 
 Texture::Texture(const Texture& other)
@@ -820,7 +820,7 @@ Texture::operator bool() const
 }
 
 bool Texture::initialize(Dimension dimension, unsigned int width, unsigned int height,
-	unsigned int depth, unsigned int mipLevels)
+	unsigned int depth, unsigned int mipLevels, ColorSpace colorSpace)
 {
 	reset();
 
@@ -829,6 +829,7 @@ bool Texture::initialize(Dimension dimension, unsigned int width, unsigned int h
 
 	m_impl = new Impl;
 	m_impl->dimension = dimension;
+	m_impl->colorSpace = colorSpace;
 	m_impl->width = width;
 	m_impl->height = height;
 	m_impl->depth = depth;
@@ -859,6 +860,14 @@ Texture::Dimension Texture::dimension() const
 		return Dimension::Dim2D;
 
 	return m_impl->dimension;
+}
+
+ColorSpace Texture::colorSpace() const
+{
+	if (!m_impl)
+		return ColorSpace::Linear;
+
+	return m_impl->colorSpace;
 }
 
 bool Texture::isArray() const
@@ -937,6 +946,7 @@ bool Texture::setImage(const Image& image, unsigned int mipLevel, unsigned int d
 	}
 
 	m_impl->images[mipLevel][depth][0] = image.convert(Image::Format::RGBAF);
+	m_impl->images[mipLevel][depth][0].changeColorSpace(m_impl->colorSpace);
 	return m_impl->images[mipLevel][depth][0].isValid();
 }
 
@@ -953,7 +963,7 @@ bool Texture::setImage(Image&& image, unsigned int mipLevel, unsigned int depth)
 		m_impl->images[mipLevel][depth][0] = std::move(image);
 	else
 		m_impl->images[mipLevel][depth][0] = image.convert(Image::Format::RGBAF);
-
+	m_impl->images[mipLevel][depth][0].changeColorSpace(m_impl->colorSpace);
 	return m_impl->images[mipLevel][depth][0].isValid();
 }
 
@@ -968,6 +978,8 @@ bool Texture::setImage(const Image& image, CubeFace face, unsigned int mipLevel,
 
 	m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)] =
 		image.convert(Image::Format::RGBAF);
+	m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)].changeColorSpace(
+		m_impl->colorSpace);
 	return m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)].isValid();
 }
 
@@ -987,7 +999,8 @@ bool Texture::setImage(Image&& image, CubeFace face, unsigned int mipLevel, unsi
 		m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)] =
 			image.convert(Image::Format::RGBAF);
 	}
-
+	m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)].changeColorSpace(
+		m_impl->colorSpace);
 	return m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)].isValid();
 }
 
@@ -1038,7 +1051,7 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 				for (unsigned int d = 0; d < depthImages.size(); ++d)
 				{
 					depthImages[d].resize(1);
-					depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
+					depthImages[d][0].initialize(Image::Format::RGBAF, w, h, m_impl->colorSpace);
 					double center = (d + 0.5)*invScale;
 					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
 					unsigned int end = std::min(
@@ -1059,10 +1072,20 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 
 								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
 									tempImages[i].scanline(y));
-								color.r += srcScanline[x].r;
-								color.g += srcScanline[x].g;
-								color.b += srcScanline[x].b;
-								color.a += srcScanline[x].a;
+
+								// Average in linear space.
+								ColorRGBAf srcColor = srcScanline[x];
+								if (m_impl->colorSpace == ColorSpace::sRGB)
+								{
+									srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
+									srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
+									srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
+								}
+
+								color.r += srcColor.r;
+								color.g += srcColor.g;
+								color.b += srcColor.b;
+								color.a += srcColor.a;
 								++totalScale;
 							}
 
@@ -1070,6 +1093,13 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 							scanline[x].g = static_cast<float>(color.g/totalScale);
 							scanline[x].b = static_cast<float>(color.b/totalScale);
 							scanline[x].a = static_cast<float>(color.a/totalScale);
+
+							if (m_impl->colorSpace == ColorSpace::sRGB)
+							{
+								scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
+								scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
+								scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
+							}
 						}
 					}
 				}
@@ -1079,7 +1109,7 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 				for (unsigned int d = 0; d < depthImages.size(); ++d)
 				{
 					depthImages[d].resize(1);
-					depthImages[d][0].initialize(Image::Format::RGBAF, w, h);
+					depthImages[d][0].initialize(Image::Format::RGBAF, w, h, m_impl->colorSpace);
 					double center = (d + 0.5)*invScale;
 					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
 					unsigned int end = std::min(
@@ -1102,10 +1132,20 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 
 								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
 									tempImages[i].scanline(y));
-								color.r += srcScanline[x].r*scale;
-								color.g += srcScanline[x].g*scale;
-								color.b += srcScanline[x].b*scale;
-								color.a += srcScanline[x].a*scale;
+
+								// Average in linear space.
+								ColorRGBAf srcColor = srcScanline[x];
+								if (m_impl->colorSpace == ColorSpace::sRGB)
+								{
+									srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
+									srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
+									srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
+								}
+
+								color.r += srcColor.r*scale;
+								color.g += srcColor.g*scale;
+								color.b += srcColor.b*scale;
+								color.a += srcColor.a*scale;
 								totalScale += scale;
 							}
 
@@ -1113,6 +1153,13 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 							scanline[x].g = static_cast<float>(color.g/totalScale);
 							scanline[x].b = static_cast<float>(color.b/totalScale);
 							scanline[x].a = static_cast<float>(color.a/totalScale);
+
+							if (m_impl->colorSpace == ColorSpace::sRGB)
+							{
+								scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
+								scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
+								scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
+							}
 						}
 					}
 				}
@@ -1161,18 +1208,20 @@ bool Texture::imagesComplete() const
 	return true;
 }
 
-bool Texture::convert(Format format, Type type, Quality quality, Color colorSpace, Alpha alphaType,
+bool Texture::convert(Format format, Type type, Quality quality, Alpha alphaType,
 	ColorMask colorMask, unsigned int threads)
 {
 	if (!imagesComplete() || !isFormatValid(format, type))
 		return false;
 
-	if (colorSpace == Color::sRGB && (!hasNativeSRGB(format, type) || type != Type::UNorm))
+	if (m_impl->colorSpace == ColorSpace::sRGB && (!hasNativeSRGB(format, type) ||
+		type != Type::UNorm))
+	{
 		return false;
+	}
 
 	m_impl->format = format;
 	m_impl->type = type;
-	m_impl->colorSpace = colorSpace;
 	m_impl->alphaType = alphaType;
 	m_impl->colorMask = colorMask;
 
@@ -1208,14 +1257,6 @@ Texture::Type Texture::type() const
 		return Type::UNorm;
 
 	return m_impl->type;
-}
-
-Texture::Color Texture::colorSpace() const
-{
-	if (!m_impl)
-		return Color::Linear;
-
-	return m_impl->colorSpace;
 }
 
 Texture::Alpha Texture::alphaType() const

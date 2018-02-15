@@ -65,6 +65,21 @@ TEST(TextureTest, Create)
 
 TEST(TextureTest, SetImages)
 {
+	Texture texture(Texture::Dimension::Dim2D, 15, 10, 5);
+
+	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15)));
+
+	for (unsigned int i = 0; i < 5; ++i)
+	{
+		EXPECT_FALSE(texture.imagesComplete());
+		EXPECT_TRUE(texture.setImage(Image(Image::Format::RGBAF, 15, 10), 0, i));
+	}
+
+	EXPECT_TRUE(texture.imagesComplete());
+}
+
+TEST(TextureTest, SetImagesCube)
+{
 	Texture texture(Texture::Dimension::Cube, 15, 10, 5);
 
 	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15), Texture::CubeFace::PosX));
@@ -82,11 +97,47 @@ TEST(TextureTest, SetImages)
 	EXPECT_TRUE(texture.imagesComplete());
 }
 
+TEST(TextureTest, SetImagesConvert)
+{
+	Texture texture(Texture::Dimension::Dim2D, 15, 10, 5, 1, ColorSpace::sRGB);
+	EXPECT_EQ(ColorSpace::sRGB, texture.colorSpace());
+
+	for (unsigned int i = 0; i < 5; ++i)
+	{
+		EXPECT_FALSE(texture.imagesComplete());
+		EXPECT_TRUE(texture.setImage(Image(Image::Format::RGBA8, 15, 10), 0, i));
+		EXPECT_EQ(Image::Format::RGBAF, texture.getImage(0, i).format());
+		EXPECT_EQ(ColorSpace::sRGB, texture.getImage(0, i).colorSpace());
+	}
+
+	EXPECT_TRUE(texture.imagesComplete());
+}
+
+TEST(TextureTest, SetImagesCubeConvert)
+{
+	Texture texture(Texture::Dimension::Cube, 15, 10, 5, 1, ColorSpace::sRGB);
+	EXPECT_EQ(ColorSpace::sRGB, texture.colorSpace());
+
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		auto face = static_cast<Texture::CubeFace>(i);
+		for (unsigned int j = 0; j < 5; ++j)
+		{
+			EXPECT_FALSE(texture.imagesComplete());
+			EXPECT_TRUE(texture.setImage(Image(Image::Format::RGBA8, 15, 10), face, 0, j));
+			EXPECT_EQ(Image::Format::RGBAF, texture.getImage(face, 0, j).format());
+			EXPECT_EQ(ColorSpace::sRGB, texture.getImage(face, 0, j).colorSpace());
+		}
+	}
+
+	EXPECT_TRUE(texture.imagesComplete());
+}
+
 TEST(TextureTest, GenerateMipmaps)
 {
 	Texture texture(Texture::Dimension::Cube, 15, 10, 5);
 
-	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15), Texture::CubeFace::PosX));
+	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15)));
 
 	for (unsigned int i = 0; i < 6; ++i)
 	{
@@ -117,7 +168,7 @@ TEST(TextureTest, Generate3DMipmaps)
 {
 	Texture texture(Texture::Dimension::Dim3D, 15, 10, 5);
 
-	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15), Texture::CubeFace::PosX));
+	EXPECT_FALSE(texture.setImage(Image(Image::Format::RGBAF, 10, 15)));
 
 	for (unsigned int j = 0; j < 5; ++j)
 	{
@@ -145,6 +196,23 @@ TEST(TextureTest, Generate3DMipmaps)
 	EXPECT_TRUE(texture.getImage(2, 0));
 	EXPECT_FALSE(texture.getImage(3, 1));
 	EXPECT_TRUE(texture.getImage(3, 0));
+}
+
+TEST(TextureTest, ConvertSRGB)
+{
+	{
+		Texture texture(Texture::Dimension::Dim2D, 15, 10, 0, 1, ColorSpace::sRGB);
+		EXPECT_TRUE(texture.setImage(Image(Image::Format::RGBAF, 15, 10, ColorSpace::sRGB)));
+		EXPECT_TRUE(texture.imagesComplete());
+		EXPECT_TRUE(texture.convert(Texture::Format::R8G8B8A8, Texture::Type::UNorm));
+	}
+
+	{
+		Texture texture(Texture::Dimension::Dim2D, 15, 10, 0, 1, ColorSpace::sRGB);
+		EXPECT_TRUE(texture.setImage(Image(Image::Format::RGBAF, 15, 10, ColorSpace::sRGB)));
+		EXPECT_TRUE(texture.imagesComplete());
+		EXPECT_FALSE(texture.convert(Texture::Format::R5G6B5, Texture::Type::UNorm));
+	}
 }
 
 TEST_P(TextureConvertTest, Convert)

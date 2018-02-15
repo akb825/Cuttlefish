@@ -58,7 +58,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 		case Texture::Format::ETC1:
 			m_blockSize = 8;
 			m_format = Etc::Image::Format::ETC1;
-			if (texture.colorSpace() == Texture::Color::Linear)
+			if (texture.colorSpace() == ColorSpace::Linear)
 				m_metric = Etc::RGBX;
 			else
 				m_metric = Etc::REC709;
@@ -66,7 +66,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 		case Texture::Format::ETC2_R8G8B8:
 			m_blockSize = 8;
 			m_format = Etc::Image::Format::RGB8;
-			if (texture.colorSpace() == Texture::Color::Linear)
+			if (texture.colorSpace() == ColorSpace::Linear)
 				m_metric = Etc::RGBX;
 			else
 				m_metric = Etc::REC709;
@@ -74,7 +74,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 		case Texture::Format::ETC2_R8G8B8A1:
 			m_blockSize = 8;
 			m_format = Etc::Image::Format::RGB8A1;
-			if (texture.colorSpace() == Texture::Color::Linear)
+			if (texture.colorSpace() == ColorSpace::Linear)
 				m_metric = Etc::RGBA;
 			else
 				m_metric = Etc::REC709;
@@ -82,7 +82,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 		case Texture::Format::ETC2_R8G8B8A8:
 			m_blockSize = 16;
 			m_format = Etc::Image::Format::RGBA8;
-			if (texture.colorSpace() == Texture::Color::Linear)
+			if (texture.colorSpace() == ColorSpace::Linear)
 				m_metric = Etc::RGBA;
 			else
 				m_metric = Etc::REC709;

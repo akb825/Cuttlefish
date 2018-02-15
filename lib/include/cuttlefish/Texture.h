@@ -138,15 +138,6 @@ public:
 	};
 
 	/**
-	 * @brief Enum for the color space.
-	 */
-	enum class Color
-	{
-		Linear, ///< Linear color space.
-		sRGB    ///< sRGB color space.
-	};
-
-	/**
 	 * @brief Enum for the face of a cube map.
 	 */
 	enum class CubeFace
@@ -345,10 +336,11 @@ public:
 	 * @param height The height of the txture.
 	 * @param depth If the dimension is Dim3D, the depth of the texture. Otherwise, it is th enumber
 	 *     of array levels. If 0, the texture is not a texture array.
+	 * @param colorSpace The color space of the texture.
 	 * @param mipLevels The number of mipmap levels.
 	 */
 	Texture(Dimension dimension, unsigned int width, unsigned int height, unsigned int depth = 0,
-		unsigned int mipLevels = 1);
+		unsigned int mipLevels = 1, ColorSpace colorSpace = ColorSpace::Linear);
 
 	~Texture();
 
@@ -377,10 +369,12 @@ public:
 	 * @param depth If the dimension is Dim3D, the depth of the texture. Otherwise, it is th enumber
 	 *     of array levels. If 0, the texture is not a texture array.
 	 * @param mipLevels The number of mipmap levels.
+	 * @param colorSpace The color space of the texture.
 	 * @return False if the dimensions are invalid.
 	 */
 	bool initialize(Dimension dimension, unsigned int width, unsigned int height,
-		unsigned int depth = 0, unsigned int mipLevels = 1);
+		unsigned int depth = 0, unsigned int mipLevels = 1,
+		ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Resets the texture to an unitialized state.
@@ -392,6 +386,12 @@ public:
 	 * @return The dimension.
 	 */
 	Dimension dimension() const;
+
+	/**
+	 * @brief Gets the color space of the texture.
+	 * @return The color space.
+	 */
+	ColorSpace colorSpace() const;
 
 	/**
 	 * @brief Returns whether or not this is a texture array.
@@ -455,34 +455,33 @@ public:
 	/**
 	 * @brief Sets the image for a portion of a non-cube map texture.
 	 * @param image The image to set. This will be converted to PixelFormat::RGBAF if not already in
-	 *     that format.
+	 *     that format, and it will also be converted to the texture's color space.
 	 * @param mipLevel The mipmap level.
 	 * @param depth The depth level.
 	 * @return False if the parameters are invalid, the image is an incorrect size, or the texture
-	 *    is a cube map.
+	 *     is a cube map.
 	 */
 	bool setImage(const Image& image, unsigned int mipLevel = 0, unsigned int depth = 0);
 
 	/**
 	 * @brief Sets the image for a portion of a non-cube map texture.
-	 * @param image The image to set. This will be converted to PixelFormat::RGBAF if not already in
-	 *     that format.
+	 * @param image The image to set.
 	 * @param mipLevel The mipmap level.
 	 * @param depth The depth level.
 	 * @return False if the parameters are invalid, the image is an incorrect size, or the texture
-	 *    is a cube map.
+	 *     is a cube map.
 	 */
 	bool setImage(Image&& image, unsigned int mipLevel = 0, unsigned int depth = 0);
 
 	/**
 	 * @brief Sets the image for a portion of a cube map texture.
 	 * @param image The image to set. This will be converted to PixelFormat::RGBAF if not already in
-	 *     that format.
+	 *     that format, and it will also be converted to the texture's color space.
 	 * @param face The face to set the image for.
 	 * @param mipLevel The mipmap level.
 	 * @param depth The depth level.
 	 * @return False if the parameters are invalid, the image is an incorrect size, or the texture
-	 *    isn't a cube map and face isn't PosX.
+	 *     isn't a cube map and face isn't PosX.
 	 */
 	bool setImage(const Image& image, CubeFace face, unsigned int mipLevel = 0,
 		unsigned int depth = 0);
@@ -490,12 +489,12 @@ public:
 	/**
 	 * @brief Sets the image for a portion of a cube map texture.
 	 * @param image The image to set. This will be converted to PixelFormat::RGBAF if not already in
-	 *     that format.
+	 *     that format, and it will also be converted to the texture's color space.
 	 * @param face The face to set the image for.
 	 * @param mipLevel The mipmap level.
 	 * @param depth The depth level.
-	 * @return False if the parameters are invalid, the image is an incorrect size, or the texture
-	 *    isn't a cube map and face isn't PosX.
+	 * @return False if the parameters are invalid, the image is an incorrect size or color space,
+	 *     or the texture isn't a cube map and face isn't PosX.
 	 */
 	bool setImage(Image&& image, CubeFace face, unsigned int mipLevel = 0, unsigned int depth = 0);
 
@@ -528,17 +527,16 @@ public:
 	 * @param format The texture format to use.
 	 * @param type The type of the data within the texture.
 	 * @param quality The quality of compression.
-	 * @param colorSpace The color space the images are represented in.
 	 * @param alphaType The type of the alpha.
 	 * @param colorMask The color mask for the channels that are used. This may be used to avoid
 	 *     those channels from impacting block compression.
 	 * @param threads The number of threads to use during conversion.
-	 * @return False if the format and type combination is invalid, the color space cannot be used
-	 *     with the format, or the size is invalid for the type.
+	 * @return False if the images aren't complete, the format and type combination is invalid, the
+	 *     color space cannot be used with the format, or the size is invalid for the type.
 	 */
 	bool convert(Format format, Type type, Quality quality = Quality::Normal,
-		Color colorSpace = Color::Linear, Alpha alphaType = Alpha::Standard,
-		ColorMask colorMask = ColorMask(), unsigned int threads = allCores);
+		Alpha alphaType = Alpha::Standard, ColorMask colorMask = ColorMask(),
+		unsigned int threads = allCores);
 
 	/**
 	 * @brief Returns whether or not the images have been converted into a texture.
@@ -557,12 +555,6 @@ public:
 	 * @return The type.
 	 */
 	Type type() const;
-
-	/**
-	 * @brief Gets the color space of the texture.
-	 * @return The color space.
-	 */
-	Color colorSpace() const;
 
 	/**
 	 * @brief Gets the type of the alpha.

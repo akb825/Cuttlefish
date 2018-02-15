@@ -65,17 +65,12 @@ static bool isSigned(Texture::Type type)
 
 bool loadImages(std::vector<Image>& images, CommandLine& args)
 {
-	bool linearize = args.colorSpace == Texture::Color::sRGB && !Texture::hasNativeSRGB(args.format,
-		args.type);
-	if (linearize)
-		args.colorSpace = Texture::Color::Linear;
-
 	images.resize(args.images.size());
 	for (std::size_t i = 0; i < args.images.size(); ++i)
 	{
 		if (args.log == CommandLine::Log::Verbose)
 			std::cout << "loading image '" << args.images[i] << "'" << std::endl;
-		if (!images[i].load(args.images[i].c_str()))
+		if (!images[i].load(args.images[i].c_str(), args.imageColorSpace))
 		{
 			std::cerr << "error: couldn't load image '" << args.images[i] << "'" << std::endl;
 			return false;
@@ -86,6 +81,13 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "converting image '" << args.images[i] << "' to RGBAF" << std::endl;
 			images[i] = images[i].convert(Image::Format::RGBAF);
+		}
+
+		if (args.textureColorSpace != args.imageColorSpace)
+		{
+			if (args.log == CommandLine::Log::Verbose)
+				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" << std::endl;
+			images[i].changeColorSpace(args.textureColorSpace);
 		}
 
 		unsigned int width;
@@ -167,13 +169,6 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 			images[i].flipVertical();
 		}
 
-		if (linearize)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" << std::endl;
-			images[i].linearize();
-		}
-
 		if (args.swizzle)
 		{
 			if (args.log == CommandLine::Log::Verbose)
@@ -207,7 +202,8 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 			break;
 	}
 
-	Texture texture(args.dimension, images[0].width(), images[0].height(), depth, 1);
+	Texture texture(args.dimension, images[0].width(), images[0].height(), depth, 1,
+		args.textureColorSpace);
 	switch (args.imageType)
 	{
 		case CommandLine::ImageType::Image:
@@ -244,8 +240,8 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 
 	if (args.log == CommandLine::Log::Verbose)
 		std::cout << "converting texture" << std::endl;
-	if (!texture.convert(args.format, args.type, args.quality, args.colorSpace, args.alpha,
-		args.colorMask, args.jobs))
+	if (!texture.convert(args.format, args.type, args.quality, args.alpha, args.colorMask,
+		args.jobs))
 	{
 		std::cerr << "error: failed to convert texture" << std::endl;
 		return false;

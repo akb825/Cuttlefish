@@ -260,7 +260,7 @@ static bool write(std::ofstream& stream, const T& value)
 }
 
 static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
-	Texture::Color colorSpace)
+	ColorSpace colorSpace)
 {
 	switch (format)
 	{
@@ -312,7 +312,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					if (colorSpace == Texture::Color::sRGB)
+					if (colorSpace == ColorSpace::sRGB)
 						return DdsDxt10Format_R8G8B8A8_UNORM_SRGB;
 					return DdsDxt10Format_R8G8B8A8_UNORM;
 				case Texture::Type::SNorm:
@@ -327,7 +327,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::B8G8R8A8:
 			if (type == Texture::Type::UNorm)
 			{
-				if (colorSpace == Texture::Color::sRGB)
+				if (colorSpace == ColorSpace::sRGB)
 					return DdsDxt10Format_B8G8R8A8_UNORM_SRGB;
 				return DdsDxt10Format_B8G8R8A8_UNORM;
 			}
@@ -450,7 +450,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::BC1_RGBA:
 			if (type == Texture::Type::UNorm)
 			{
-				if (colorSpace == Texture::Color::sRGB)
+				if (colorSpace == ColorSpace::sRGB)
 					return DdsDxt10Format_BC1_UNORM_SRGB;
 				return DdsDxt10Format_BC1_UNORM;
 			}
@@ -458,7 +458,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::BC2:
 			if (type == Texture::Type::UNorm)
 			{
-				if (colorSpace == Texture::Color::sRGB)
+				if (colorSpace == ColorSpace::sRGB)
 					return DdsDxt10Format_BC2_UNORM_SRGB;
 				return DdsDxt10Format_BC2_UNORM;
 			}
@@ -466,7 +466,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::BC3:
 			if (type == Texture::Type::UNorm)
 			{
-				if (colorSpace == Texture::Color::sRGB)
+				if (colorSpace == ColorSpace::sRGB)
 					return DdsDxt10Format_BC3_UNORM_SRGB;
 				return DdsDxt10Format_BC3_UNORM;
 			}
@@ -507,7 +507,7 @@ static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 		case Texture::Format::BC7:
 			if (type == Texture::Type::UNorm)
 			{
-				if (colorSpace == Texture::Color::sRGB)
+				if (colorSpace == ColorSpace::sRGB)
 					return DdsDxt10Format_BC7_UNORM_SRGB;
 				return DdsDxt10Format_BC7_UNORM;
 			}
@@ -566,7 +566,7 @@ static std::uint32_t computePitch(const Texture& texture)
 
 bool isValidForDds(Texture::Format format, Texture::Type type)
 {
-	return getDdsFormat(format, type, Texture::Color::Linear) != DdsDxt10Format_UNKNOWN;
+	return getDdsFormat(format, type, ColorSpace::Linear) != DdsDxt10Format_UNKNOWN;
 }
 
 Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
