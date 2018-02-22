@@ -184,7 +184,7 @@ static void printHelp(const char* name)
 	          << "                                   g: the green channel" << std::endl
 	          << "                                   b: the blue channel" << std::endl
 	          << "                                   a: the alpha channel" << std::endl
-	          << "                                   x: the red channel" << std::endl;
+	          << "                                   x: unused channel (0 for color, 1 for alpha)" << std::endl;
 	std::cout << "      --srgb                     convert from sRGB to linear space; where" << std::endl
 	          << "                                 possible this will use the texture format to do" << std::endl
 	          << "                                 the conversion on texture read to avoid" << std::endl
