@@ -122,6 +122,21 @@ static bool shouldDivide(Image::Format format)
 	}
 }
 
+TEST(ColorTest, SRGBConversion)
+{
+	EXPECT_DOUBLE_EQ(0.0, linearToSRGB(0.0));
+	EXPECT_DOUBLE_EQ(0.0998528227341283, linearToSRGB(0.01));
+	EXPECT_DOUBLE_EQ(0.537098730483194, linearToSRGB(0.25));
+	EXPECT_DOUBLE_EQ(0.8808250210903, linearToSRGB(0.75));
+	EXPECT_DOUBLE_EQ(1.0, linearToSRGB(1.0));
+
+	EXPECT_DOUBLE_EQ(0.0, sRGBToLinear(0.0));
+	EXPECT_DOUBLE_EQ(0.000773993808049536, sRGBToLinear(0.01));
+	EXPECT_DOUBLE_EQ(0.0508760881715568, sRGBToLinear(0.25));
+	EXPECT_DOUBLE_EQ(0.522521553968392, sRGBToLinear(0.75));
+	EXPECT_DOUBLE_EQ(1.0, sRGBToLinear(1.0));
+}
+
 TEST_P(ImageTest, Initialize)
 {
 	const ImageTestInfo& imageInfo = GetParam();
