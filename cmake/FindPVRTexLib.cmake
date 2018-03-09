@@ -22,7 +22,8 @@
 #  PVRTEXLIB_LIBRARIES - The libraries needed to use PVRTexLib
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET( PVRTEXLIB_ROOT "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library" )
+  SET( PVRTEXLIB_ROOT "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
+      CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
   find_path(
     PVRTEXLIB_INCLUDE_DIR PVRTexture.h
     PATHS ${PVRTEXLIB_ROOT}/Include
@@ -35,7 +36,8 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   SET( USE_PTHREAD TRUE )
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  SET( PVRTEXLIB_ROOT "/opt/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library" )
+  SET( PVRTEXLIB_ROOT "/opt/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
+       CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
   find_path(
     PVRTEXLIB_INCLUDE_DIR PVRTexture.h
     PATHS ${PVRTEXLIB_ROOT}/Include
@@ -54,7 +56,8 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   SET( USE_PTHREAD TRUE )
 
 ELSEIF(MSVC)
-  SET( PVRTEXLIB_ROOT "C:/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library" )
+  SET( PVRTEXLIB_ROOT "C:/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
+       CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
   find_path(
     PVRTEXLIB_INCLUDE_DIR PVRTexture.h
     PATHS ${PVRTEXLIB_ROOT}/Include
