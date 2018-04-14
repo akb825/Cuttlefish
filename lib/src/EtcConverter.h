@@ -46,7 +46,7 @@ public:
 
 	unsigned int jobsX() const override {return m_jobsX;}
 	unsigned int jobsY() const override {return m_jobsY;}
-	void process(unsigned int x, unsigned int y) override;
+	void process(unsigned int x, unsigned int y, ThreadData* threadData) override;
 
 private:
 	unsigned int m_blockSize;

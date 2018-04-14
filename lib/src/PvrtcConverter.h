@@ -35,7 +35,7 @@ public:
 
 	unsigned int jobsX() const override {return 1;}
 	unsigned int jobsY() const override {return 1;}
-	void process(unsigned int x, unsigned int y) override;
+	void process(unsigned int x, unsigned int y, ThreadData* threadData) override;
 
 private:
 	Texture::Format m_format;

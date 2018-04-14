@@ -117,7 +117,7 @@ EtcConverter::EtcConverter(const Texture& texture, const Image& image, Texture::
 	data().resize(m_jobsX*m_jobsY*m_blockSize);
 }
 
-void EtcConverter::process(unsigned int x, unsigned int y)
+void EtcConverter::process(unsigned int x, unsigned int y, ThreadData*)
 {
 	ColorRGBAf pixels[blockDim*blockDim];
 	unsigned int limitX = std::min((x + 1)*blockDim, image().width());

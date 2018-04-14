@@ -40,6 +40,12 @@ public:
 	using DepthTextureList = std::vector<FaceTextureList>;
 	using MipTextureList = std::vector<DepthTextureList>;
 
+	class ThreadData
+	{
+	public:
+		virtual ~ThreadData() = default;
+	};
+
 	static bool convert(const Texture& texture, MipImageList& images, MipTextureList& textureData,
 		Texture::Quality quality, unsigned int threadCount);
 
@@ -58,7 +64,8 @@ public:
 
 	virtual unsigned int jobsX() const = 0;
 	virtual unsigned int jobsY() const = 0;
-	virtual void process(unsigned int x, unsigned int y) = 0;
+	virtual void process(unsigned int x, unsigned int y, ThreadData* threadData) = 0;
+	virtual std::unique_ptr<ThreadData> createThreadData();
 
 private:
 	const Image* m_image;

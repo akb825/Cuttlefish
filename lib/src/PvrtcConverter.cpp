@@ -45,7 +45,7 @@ PvrtcConverter::PvrtcConverter(const Texture& texture, const Image& image, Textu
 {
 }
 
-void PvrtcConverter::process(unsigned int, unsigned int)
+void PvrtcConverter::process(unsigned int, unsigned int, ThreadData*)
 {
 	pvrtexture::CPVRTexture pvrTexture(pvrtexture::CPVRTextureHeader(
 		pvrtexture::PVRStandard8PixelType.PixelTypeID, image().width(), image().height(), 1,

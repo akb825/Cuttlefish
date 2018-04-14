@@ -156,7 +156,7 @@ S3tcConverter::S3tcConverter(const Texture& texture, const Image& image, unsigne
 	data().resize(m_jobsX*m_jobsY*m_blockSize);
 }
 
-void S3tcConverter::process(unsigned int x, unsigned int y)
+void S3tcConverter::process(unsigned int x, unsigned int y, ThreadData*)
 {
 	void* block = data().data() + (y*m_jobsX + x)*m_blockSize;
 	ColorRGBAf blockColors[blockDim][blockDim];

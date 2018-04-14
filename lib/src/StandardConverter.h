@@ -80,6 +80,7 @@ class UNormConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
+	using Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -88,7 +89,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override
+	void process(unsigned int x, unsigned int, ThreadData*) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
 		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
@@ -120,6 +121,7 @@ class SNormConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
+	using Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -128,7 +130,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override
+	void process(unsigned int x, unsigned int, ThreadData*) override
 	{
 		const T maxVal = std::numeric_limits<T>::max();
 		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
@@ -160,6 +162,7 @@ class IntConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
+	using Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -168,7 +171,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override
+	void process(unsigned int x, unsigned int, ThreadData*) override
 	{
 		const float minVal = static_cast<float>(std::numeric_limits<T>::min());
 		const float maxVal = static_cast<float>(std::numeric_limits<T>::max());
@@ -202,6 +205,7 @@ class FloatConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
+	using Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -210,7 +214,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override
+	void process(unsigned int x, unsigned int, ThreadData*) override
 	{
 		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
@@ -241,7 +245,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class R4G4B4A4Converter : public StandardConverter<std::uint16_t, 1>
@@ -252,7 +256,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B4G4R4A4Converter : public StandardConverter<std::uint16_t, 1>
@@ -263,7 +267,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A4R4G4B4Converter : public StandardConverter<std::uint16_t, 1>
@@ -274,7 +278,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class R5G6B5Converter : public StandardConverter<std::uint16_t, 1>
@@ -285,7 +289,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B5G6R5Converter : public StandardConverter<std::uint16_t, 1>
@@ -296,7 +300,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class R5G5B5A1Converter : public StandardConverter<std::uint16_t, 1>
@@ -307,7 +311,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B5G5R5A1Converter : public StandardConverter<std::uint16_t, 1>
@@ -318,7 +322,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A1R5G5B5Converter : public StandardConverter<std::uint16_t, 1>
@@ -329,7 +333,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B8G8R8Converter : public StandardConverter<std::uint8_t, 3>
@@ -340,7 +344,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B8G8R8A8Converter : public StandardConverter<std::uint8_t, 4>
@@ -351,7 +355,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A8B8G8R8Converter : public StandardConverter<std::uint8_t, 4>
@@ -362,7 +366,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A2R10G10B10UNormConverter : public StandardConverter<std::uint32_t, 1>
@@ -373,7 +377,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A2R10G10B10UIntConverter : public StandardConverter<std::uint32_t, 1>
@@ -384,7 +388,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A2B10G10R10UNormConverter : public StandardConverter<std::uint32_t, 1>
@@ -395,7 +399,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class A2B10G10R10UIntConverter : public StandardConverter<std::uint32_t, 1>
@@ -406,7 +410,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class B10R11R11UFloatConverter : public StandardConverter<std::uint32_t, 1>
@@ -417,7 +421,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 class E5B9G9R9UFloatConverter : public StandardConverter<std::uint32_t, 1>
@@ -428,7 +432,7 @@ public:
 	{
 	}
 
-	void process(unsigned int x, unsigned int) override;
+	void process(unsigned int x, unsigned int, ThreadData*) override;
 };
 
 } // namespace cuttlefish

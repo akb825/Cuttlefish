@@ -37,7 +37,7 @@ public:
 
 	unsigned int jobsX() const override {return m_jobsX;}
 	unsigned int jobsY() const override {return m_jobsY;}
-	void process(unsigned int x, unsigned int y) override;
+	void process(unsigned int x, unsigned int y, ThreadData* threadData) override;
 
 	Texture::Quality quality() const {return m_quality;}
 	Texture::ColorMask colorMask() const {return m_colorMask;}

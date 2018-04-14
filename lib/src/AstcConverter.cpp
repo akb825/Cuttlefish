@@ -72,6 +72,50 @@ void astc_codec_internal_error(const char *filename, int linenum)
 namespace cuttlefish
 {
 
+class AstcConverter::AstcThreadData : public Converter::ThreadData
+{
+public:
+	AstcThreadData()
+	{
+		m_planes.ei1 = &m_ei1;
+		m_planes.ei2 = &m_ei2;
+		m_planes.eix1 = m_eix1;
+		m_planes.eix2 = m_eix2;
+		m_planes.decimated_quantized_weights = m_decimated_quantized_weights;
+		m_planes.decimated_weights = m_decimated_weights;
+		m_planes.flt_quantized_decimated_quantized_weights =
+			m_flt_quantized_decimated_quantized_weights;
+		m_planes.u8_quantized_decimated_quantized_weights =
+			m_u8_quantized_decimated_quantized_weights;
+
+		tempBuffers.ewb = &m_ewb;
+		tempBuffers.ewbo = &m_ewbo;
+		tempBuffers.tempblocks = m_tempblocks;
+		tempBuffers.temp = &m_temp;
+		// Buffers for plane1 is smaller than planes2, so can re-use between them.
+		tempBuffers.plane1 = &m_planes;
+		tempBuffers.planes2 = &m_planes;
+	}
+
+	compress_symbolic_block_buffers tempBuffers;
+
+private:
+	endpoints_and_weights m_ei1;
+	endpoints_and_weights m_ei2;
+	endpoints_and_weights m_eix1[MAX_DECIMATION_MODES];
+	endpoints_and_weights m_eix2[MAX_DECIMATION_MODES];
+	float m_decimated_quantized_weights[2*MAX_DECIMATION_MODES*MAX_WEIGHTS_PER_BLOCK];
+	float m_decimated_weights[2*MAX_DECIMATION_MODES*MAX_WEIGHTS_PER_BLOCK];
+	float m_flt_quantized_decimated_quantized_weights[2*MAX_WEIGHT_MODES*MAX_WEIGHTS_PER_BLOCK];
+	uint8_t m_u8_quantized_decimated_quantized_weights[2*MAX_WEIGHT_MODES*MAX_WEIGHTS_PER_BLOCK];
+	compress_fixed_partition_buffers m_planes;
+
+	error_weight_block m_ewb;
+	error_weight_block_orig m_ewbo;
+	symbolic_compressed_block m_tempblocks[4];
+	imageblock m_temp;
+};
+
 std::mutex AstcConverter::m_mutex;
 
 static bool initialize()
@@ -160,7 +204,7 @@ AstcConverter::~AstcConverter()
 	m_mutex.unlock();
 }
 
-void AstcConverter::process(unsigned int x, unsigned int y)
+void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadData)
 {
 	imageblock astcBlock;
 	astcBlock.xpos = x*m_blockX;
@@ -229,11 +273,17 @@ void AstcConverter::process(unsigned int x, unsigned int y)
 
 	symbolic_compressed_block symbolicBlock;
 	compress_symbolic_block(&dummyImage, m_hdr ? DECODE_HDR : DECODE_LDR, m_blockX, m_blockY, 1,
-		&errorParams, &astcBlock, &symbolicBlock);
+		&errorParams, &astcBlock, &symbolicBlock,
+		&reinterpret_cast<AstcThreadData*>(threadData)->tempBuffers);
 
 	auto block = reinterpret_cast<physical_compressed_block*>(
 		data().data() + (y*m_jobsX + x)*blockSize);
 	*block = symbolic_to_physical(m_blockX, m_blockY, 1, &symbolicBlock);
+}
+
+std::unique_ptr<Converter::ThreadData> AstcConverter::createThreadData()
+{
+	return std::unique_ptr<ThreadData>(new AstcThreadData);
 }
 
 } // namespace cuttlefish

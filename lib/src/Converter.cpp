@@ -540,8 +540,9 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 				unsigned int curThreads = std::min(jobsX*jobsY, threadCount);
 				if (curThreads <= 1)
 				{
+					std::unique_ptr<ThreadData> threadData = converter->createThreadData();
 					for (const std::pair<unsigned int, unsigned int>& job : jobs)
-						converter->process(job.first, job.second);
+						converter->process(job.first, job.second, threadData.get());
 				}
 				else
 				{
@@ -550,13 +551,16 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 					{
 						threads.emplace_back([&curJob, &jobs, &converter]()
 							{
+								std::unique_ptr<ThreadData> threadData =
+									converter->createThreadData();
 								do
 								{
 									unsigned int thisJob = curJob++;
 									if (thisJob >= jobs.size())
 										return;
 
-									converter->process(jobs[thisJob].first, jobs[thisJob].second);
+									converter->process(jobs[thisJob].first, jobs[thisJob].second,
+										threadData.get());
 								} while (true);
 							});
 					}
@@ -573,6 +577,11 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 	}
 
 	return true;
+}
+
+std::unique_ptr<Converter::ThreadData> Converter::createThreadData()
+{
+	return nullptr;
 }
 
 } // namespace cuttlefish

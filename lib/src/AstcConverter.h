@@ -36,9 +36,12 @@ public:
 
 	unsigned int jobsX() const override {return m_jobsX;}
 	unsigned int jobsY() const override {return m_jobsY;}
-	void process(unsigned int x, unsigned int y) override;
+	void process(unsigned int x, unsigned int y, ThreadData* threadData) override;
+	std::unique_ptr<ThreadData> createThreadData() override;
 
 private:
+	class AstcThreadData;
+
 	unsigned int m_blockX;
 	unsigned int m_blockY;
 	unsigned int m_jobsX;

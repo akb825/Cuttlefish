@@ -19,7 +19,7 @@
 namespace cuttlefish
 {
 
-void R4G4Converter::process(unsigned int x, unsigned int)
+void R4G4Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -42,7 +42,7 @@ void R4G4Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void R4G4B4A4Converter::process(unsigned int x, unsigned int)
+void R4G4B4A4Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -67,7 +67,7 @@ void R4G4B4A4Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B4G4R4A4Converter::process(unsigned int x, unsigned int)
+void B4G4R4A4Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -92,7 +92,7 @@ void B4G4R4A4Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A4R4G4B4Converter::process(unsigned int x, unsigned int)
+void A4R4G4B4Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -117,7 +117,7 @@ void A4R4G4B4Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void R5G6B5Converter::process(unsigned int x, unsigned int)
+void R5G6B5Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -141,7 +141,7 @@ void R5G6B5Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B5G6R5Converter::process(unsigned int x, unsigned int)
+void B5G6R5Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -165,7 +165,7 @@ void B5G6R5Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void R5G5B5A1Converter::process(unsigned int x, unsigned int)
+void R5G5B5A1Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -190,7 +190,7 @@ void R5G5B5A1Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B5G5R5A1Converter::process(unsigned int x, unsigned int)
+void B5G5R5A1Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -215,7 +215,7 @@ void B5G5R5A1Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A1R5G5B5Converter::process(unsigned int x, unsigned int)
+void A1R5G5B5Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -240,7 +240,7 @@ void A1R5G5B5Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B8G8R8Converter::process(unsigned int x, unsigned int)
+void B8G8R8Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data()) + x*batchSize*3;
 	unsigned int row = x*batchSize/image().width();
@@ -266,7 +266,7 @@ void B8G8R8Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B8G8R8A8Converter::process(unsigned int x, unsigned int)
+void B8G8R8A8Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data()) + x*batchSize*4;
 	unsigned int row = x*batchSize/image().width();
@@ -294,7 +294,7 @@ void B8G8R8A8Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A8B8G8R8Converter::process(unsigned int x, unsigned int)
+void A8B8G8R8Converter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint8_t* curData = reinterpret_cast<std::uint8_t*>(data().data()) + x*batchSize*4;
 	unsigned int row = x*batchSize/image().width();
@@ -322,7 +322,7 @@ void A8B8G8R8Converter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int)
+void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -347,7 +347,7 @@ void A2R10G10B10UNormConverter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int)
+void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -372,7 +372,7 @@ void A2R10G10B10UIntConverter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int)
+void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -397,7 +397,7 @@ void A2B10G10R10UNormConverter::process(unsigned int x, unsigned int)
 	}
 }
 
-void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int)
+void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -422,7 +422,7 @@ void A2B10G10R10UIntConverter::process(unsigned int x, unsigned int)
 	}
 }
 
-void B10R11R11UFloatConverter::process(unsigned int x, unsigned int)
+void B10R11R11UFloatConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
@@ -443,7 +443,7 @@ void B10R11R11UFloatConverter::process(unsigned int x, unsigned int)
 	}
 }
 
-void E5B9G9R9UFloatConverter::process(unsigned int x, unsigned int)
+void E5B9G9R9UFloatConverter::process(unsigned int x, unsigned int, ThreadData*)
 {
 	std::uint32_t* curData = reinterpret_cast<std::uint32_t*>(data().data()) + x*batchSize;
 	unsigned int row = x*batchSize/image().width();
