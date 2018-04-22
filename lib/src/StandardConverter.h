@@ -80,7 +80,7 @@ class UNormConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
-	using Converter::ThreadData;
+	using typename Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -121,7 +121,7 @@ class SNormConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
-	using Converter::ThreadData;
+	using typename Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -162,7 +162,7 @@ class IntConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
-	using Converter::ThreadData;
+	using typename Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
@@ -205,7 +205,7 @@ class FloatConverter : public StandardConverter<T, C>
 {
 public:
 	using StandardConverter<T, C>::batchSize;
-	using Converter::ThreadData;
+	using typename Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
