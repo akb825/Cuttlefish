@@ -1,6 +1,6 @@
 [submodule "lib/FreeImage"]
 	path = lib/FreeImage
-	url = https://github.com/sdottaka/freeimage.git
+	url = https://github.com/akb825/freeimage.git
 [submodule "lib/nvidia-texture-tools"]
 	path = lib/nvidia-texture-tools
 	url = https://github.com/castano/nvidia-texture-tools.git
