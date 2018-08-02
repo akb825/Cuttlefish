@@ -1116,6 +1116,7 @@ Image Image::rotate(RotateAngle angle) const
 	if (!image)
 	{
 		// Fallback behavior
+		ColorRGBAd color = {};
 		switch (angle)
 		{
 			case RotateAngle::CCW90:
@@ -1129,11 +1130,10 @@ Image Image::rotate(RotateAngle angle) const
 					const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
-						ColorRGBAd color;
 						getPixelImpl(color, m_impl->format, srcScanline, x);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);
-						setPixelImpl(image.m_impl->format, dstScanline,
-							image.m_impl->width - y - 1, color);
+						setPixelImpl(image.m_impl->format, dstScanline, image.m_impl->width - y - 1,
+							color);
 					}
 				}
 				break;
@@ -1150,7 +1150,6 @@ Image Image::rotate(RotateAngle angle) const
 						m_impl->height - y - 1);
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
-						ColorRGBAd color;
 						getPixelImpl(color, m_impl->format, srcScanline, x);
 						setPixelImpl(image.m_impl->format, dstScanline, m_impl->width - x - 1,
 							color);
@@ -1168,7 +1167,6 @@ Image Image::rotate(RotateAngle angle) const
 					const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
-						ColorRGBAd color;
 						getPixelImpl(color, m_impl->format, srcScanline,
 							m_impl->width - x - 1);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);

@@ -190,12 +190,12 @@ TEST(TextureTest, Generate3DMipmaps)
 	EXPECT_EQ(1U, texture.getImage(3, 0).width());
 	EXPECT_EQ(1U, texture.getImage(3, 0).height());
 
-	EXPECT_FALSE(texture.getImage(1, 2));
-	EXPECT_TRUE(texture.getImage(1, 1));
-	EXPECT_FALSE(texture.getImage(2, 1));
-	EXPECT_TRUE(texture.getImage(2, 0));
-	EXPECT_FALSE(texture.getImage(3, 1));
-	EXPECT_TRUE(texture.getImage(3, 0));
+	EXPECT_FALSE(texture.getImage(1, 2).isValid());
+	EXPECT_TRUE(texture.getImage(1, 1).isValid());
+	EXPECT_FALSE(texture.getImage(2, 1).isValid());
+	EXPECT_TRUE(texture.getImage(2, 0).isValid());
+	EXPECT_FALSE(texture.getImage(3, 1).isValid());
+	EXPECT_TRUE(texture.getImage(3, 0).isValid());
 }
 
 TEST(TextureTest, ConvertSRGB)

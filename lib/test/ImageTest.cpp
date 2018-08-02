@@ -141,15 +141,15 @@ TEST_P(ImageTest, Initialize)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
-	EXPECT_TRUE(image);
+	EXPECT_TRUE(image.isValid());
 	EXPECT_EQ(imageInfo.format, image.format());
 	EXPECT_EQ(10U, image.width());
 	EXPECT_EQ(15U, image.height());
 
 	image.reset();
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 }
 
 TEST_P(ImageTest, GetSetPixel)
@@ -378,7 +378,7 @@ TEST_P(ImageTest, FlipHorizontal)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -409,7 +409,7 @@ TEST_P(ImageTest, FlipVertical)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -440,7 +440,7 @@ TEST_P(ImageTest, PreMultiplyAlpha)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -474,7 +474,7 @@ TEST_P(ImageColorTest, Grayscale)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -509,7 +509,7 @@ TEST_P(ImageColorTest, Swizzle)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -545,7 +545,7 @@ TEST_P(ImageSRGBColorTest, LinearToSRGB)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15, ColorSpace::Linear));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -582,7 +582,7 @@ TEST_P(ImageSRGBColorTest, sRGBToLinear)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 10, 15, ColorSpace::sRGB));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -619,7 +619,7 @@ TEST_P(ImageSRGBColorTest, Resize)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -662,7 +662,7 @@ TEST_P(ImageSRGBColorTest, PreMultiplyAlpha)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -697,7 +697,7 @@ TEST_P(ImageSRGBColorTest, Grayscale)
 {
 	const ImageTestInfo& imageInfo = GetParam();
 	Image image;
-	EXPECT_FALSE(image);
+	EXPECT_FALSE(image.isValid());
 	EXPECT_TRUE(image.initialize(imageInfo.format, 12, 16, ColorSpace::sRGB));
 
 	bool divide = shouldDivide(imageInfo.format);
@@ -752,7 +752,7 @@ TEST(NormalMapTest, CreateNormalMap)
 	}
 
 	Image normalMap = image.createNormalMap(true, 2.5);
-	EXPECT_TRUE(normalMap);
+	EXPECT_TRUE(normalMap.isValid());
 	for (unsigned int y = 0; y < image.height(); ++y)
 	{
 		for (unsigned int x = 0; x < image.width(); ++x)
@@ -784,7 +784,7 @@ TEST(NormalMapTest, CreateNormalMap)
 
 
 	normalMap = image.createNormalMap(false, 2.5);
-	EXPECT_TRUE(normalMap);
+	EXPECT_TRUE(normalMap.isValid());
 	for (unsigned int y = 0; y < image.height(); ++y)
 	{
 		for (unsigned int x = 0; x < image.width(); ++x)
