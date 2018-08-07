@@ -18,8 +18,8 @@ ELSE(FreeImage_LIBRARIES AND FreeImage_INCLUDE_DIRS)
 ENDIF (FreeImage_LIBRARIES AND FreeImage_INCLUDE_DIRS)
 
 SET(FreeImage_INCLUDE_SEARCH_DIRS
-	${FreeImage_LIBRARY_SEARCH_DIRS}
-	${CMAKE_LIBRARY_PATH}
+	${FreeImage_INCLUDE_SEARCH_DIRS}
+	${CMAKE_INCLUDE_PATH}
 	/usr/include
 	/usr/local/include
 	/opt/include
