@@ -89,6 +89,7 @@ The following options may be used when running cmake:
 ### Enabled Builds
 
 * `-DCUTTLEFISH_BUILD_TESTS=ON|OFF`: Set to `ON` to build the unit tests. `gtest` must also be found in order to build the unit tests. Defaults to `ON`.
+* `-DCUTTLEFISH_BUILD_DOCS=ON|OFF`: Set to `ON` to build the documentation. `doxygen` must also be found in order to build the documentation. Defaults to `ON`.
 * `-DCUTTLEFISH_BUILD_TOOL=ON|OFF`: Set to `ON` to build the tool. Defaults to `ON`.
 * `-DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON|OFF`: Set to `ON` to force building FreeImage internally even if a system version is found. Defaults to `OFF`.
 * `-DCUTTLEFISH_BUILD_S3TC=ON|OFF`: Set to `ON` to build S3TC texture compression support. Defaults to `ON`.
