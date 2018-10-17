@@ -33,6 +33,10 @@
 #pragma GCC diagnostic ignored "-Wexpansion-to-defined"
 #endif
 
+#if (CUTTLEFISH_GCC && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)))
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#endif
+
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
