@@ -21,55 +21,46 @@
 #  PVRTEXLIB_INCLUDE_DIRS - The PVRTexLib include directories
 #  PVRTEXLIB_LIBRARIES - The libraries needed to use PVRTexLib
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET( PVRTEXLIB_ROOT "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
-      CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
-  find_path(
-    PVRTEXLIB_INCLUDE_DIR PVRTexture.h
-    PATHS ${PVRTEXLIB_ROOT}/Include
-  )
+SET( PVRTEXLIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../lib/PVRTexToolLib"
+  CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
+find_path(
+  PVRTEXLIB_INCLUDE_DIR PVRTexture.h
+  PATHS ${PVRTEXLIB_ROOT}/Include
+)
 
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   find_library(PVRTEXLIB_LIB PVRTexLib
     PATHS ${PVRTEXLIB_ROOT}/OSX_x86
+    NO_DEFAULT_PATH
   )
 
   SET( USE_PTHREAD TRUE )
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  SET( PVRTEXLIB_ROOT "/opt/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
-       CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
-  find_path(
-    PVRTEXLIB_INCLUDE_DIR PVRTexture.h
-    PATHS ${PVRTEXLIB_ROOT}/Include
-  )
-
   IF(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/Linux_x86_64
+      NO_DEFAULT_PATH
     )
   ELSE()
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/Linux_x86_32
+      NO_DEFAULT_PATH
     )
   ENDIF()
 
   SET( USE_PTHREAD TRUE )
 
 ELSEIF(MSVC)
-  SET( PVRTEXLIB_ROOT "C:/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/Library"
-       CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
-  find_path(
-    PVRTEXLIB_INCLUDE_DIR PVRTexture.h
-    PATHS ${PVRTEXLIB_ROOT}/Include
-  )
-
   IF(${CMAKE_VS_PLATFORM_NAME} STREQUAL x64)
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/Windows_x86_64
+      NO_DEFAULT_PATH
     )
   ELSE()
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/Windows_x86_32
+      NO_DEFAULT_PATH
     )
   ENDIF()
 ENDIF()

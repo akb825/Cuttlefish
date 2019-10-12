@@ -13,3 +13,6 @@
 [submodule "lib/glm"]
 	path = lib/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "lib/PVRTexToolLib"]
+	path = lib/PVRTexToolLib
+	url = https://github.com/akb825/PVRTexToolLib.git
