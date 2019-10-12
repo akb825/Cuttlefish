@@ -20,6 +20,11 @@
 #include <gtest/gtest.h>
 #include <vector>
 
+// Handle different versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 namespace cuttlefish
 {
 
@@ -261,7 +266,7 @@ TEST_P(TextureConvertSpecialTest, Convert)
 	}
 }
 
-INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureConvertTestTypes,
 	TextureConvertTest,
 	testing::Values(
 		TextureConvertTestInfo(Texture::Format::R4G4, {Texture::Type::UNorm}),
@@ -362,7 +367,7 @@ INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
 #define PVRTC_CONVERSION_TESTS
 #endif
 
-INSTANTIATE_TEST_CASE_P(TextureConvertTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureConvertTestTypes,
 	TextureConvertSpecialTest,
 	testing::Values(
 		TextureConvertTestInfo(Texture::Format::B10G11R11_UFloat, {Texture::Type::UFloat}),

@@ -19,6 +19,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle different versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 namespace cuttlefish
 {
 
@@ -815,7 +820,7 @@ TEST(NormalMapTest, CreateNormalMap)
 	}
 }
 
-INSTANTIATE_TEST_CASE_P(ImageTestTypes,
+INSTANTIATE_TEST_SUITE_P(ImageTestTypes,
 	ImageTest,
 	testing::Values(
 		ImageTestInfo(Image::Format::Gray8, 1/255.0, 0),
@@ -835,7 +840,7 @@ INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 		ImageTestInfo(Image::Format::Double, 1e-15, 1),
 		ImageTestInfo(Image::Format::Complex, 1e-15, 2)));
 
-INSTANTIATE_TEST_CASE_P(ImageTestTypes,
+INSTANTIATE_TEST_SUITE_P(ImageTestTypes,
 	ImageColorTest,
 	testing::Values(
 		ImageTestInfo(Image::Format::RGB5, 1/31.0, 3),
@@ -847,7 +852,7 @@ INSTANTIATE_TEST_CASE_P(ImageTestTypes,
 		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
 		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4)));
 
-INSTANTIATE_TEST_CASE_P(ImageTestTypes,
+INSTANTIATE_TEST_SUITE_P(ImageTestTypes,
 	ImageSRGBColorTest,
 	testing::Values(
 		ImageTestInfo(Image::Format::RGB16, 2/65535.0, 3),

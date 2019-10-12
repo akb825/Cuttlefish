@@ -1,0 +1,147 @@
+trigger:
+  - master
+variables:
+  - group: Common
+jobs:
+  - job: Linux
+    pool:
+        vmImage: ubuntu-16.04
+    workspace:
+        clean: all
+    steps:
+      - script: |
+            git submodule init
+            git submodule update
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - script: |
+            git clone https://github.com/google/googletest.git googletest-code
+            cd googletest-code
+            git checkout $(gtest.version)
+            mkdir build
+            cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=$(dependency.location)
+            make
+            make install
+        displayName: Build gtest
+        workingDirectory: $(Build.BinariesDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Debug -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
+                -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
+                $(Build.SourcesDirectory)
+        displayName: Run CMake
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . -j 2
+        displayName: Build
+      - script: cmake --build . --target test
+        displayName: Run tests
+        workingDirectory: $(Build.BinariesDirectory)
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+        displayName: Publish test results
+  - job: Mac
+    pool:
+        vmImage: macOS-10.13
+    workspace:
+        clean: all
+    steps:
+      - script: |
+            git submodule init
+            git submodule update
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - script: |
+            git clone https://github.com/google/googletest.git googletest-code
+            cd googletest-code
+            git checkout $(gtest.version)
+            mkdir build
+            cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=$(dependency.location)
+            make
+            make install
+        displayName: Build gtest
+        workingDirectory: $(Build.BinariesDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Debug -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
+                -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
+                $(Build.SourcesDirectory)
+        displayName: Run CMake
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . -j 2
+        displayName: Build
+      - script: cmake --build . --target test
+        displayName: Run tests
+        workingDirectory: $(Build.BinariesDirectory)
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+        displayName: Publish test results
+  - job: Windows
+    pool:
+        vmImage: vs2017-win2016
+    workspace:
+        clean: all
+    steps:
+      - bash: |
+            git submodule init
+            git submodule update
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - bash: |
+            git clone https://github.com/google/googletest.git googletest-code
+            cd googletest-code
+            git checkout $(gtest.version)
+            mkdir build
+        displayName: Checkout gtest
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            cmake .. -DCMAKE_INSTALL_PREFIX=$(dependency.location) -Dgtest_force_shared_crt=ON
+            cmake --build . --config Release
+            cmake --build . --config Release --target install
+        displayName: Build gtest
+        workingDirectory: $(Build.BinariesDirectory)/googletest-code/build
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: >
+                -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
+                -DCMAKE_PREFIX_PATH=$(dependency.location)
+                $(Build.SourcesDirectory)
+        displayName: Run CMake
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            # NOTE: Would prefer to do a debug build, but it conflicts with PVRTexTool lib.
+            cmakeArgs: --build . --config Release
+        displayName: Build
+      - script: cmake --build . --config Release --target run_tests
+        displayName: Run tests
+        workingDirectory: $(Build.BinariesDirectory)
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+        displayName: Publish test results
+
+# vim: ts=4 sts=4 sw=4 et

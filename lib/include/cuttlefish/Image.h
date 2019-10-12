@@ -137,13 +137,13 @@ public:
 
 	~Image();
 
-	/// \{
+	/// @cond
 	Image(const Image& other);
 	Image(Image&& other);
 
 	Image& operator=(const Image& other);
 	Image& operator=(Image&& other);
-	/// \}
+	/// @endcond
 
 	/**
 	 * @brief Returns whether or not an image is valid.

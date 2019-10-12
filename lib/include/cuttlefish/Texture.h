@@ -344,13 +344,13 @@ public:
 
 	~Texture();
 
-	/// \{
+	/// @cond
 	Texture(const Texture& other);
 	Texture(Texture&& other);
 
 	Texture& operator=(const Texture& other);
 	Texture& operator=(Texture&& other);
-	/// \}
+	/// @endcond
 
 	/**
 	 * @brief Returns whether or not an texture is valid.

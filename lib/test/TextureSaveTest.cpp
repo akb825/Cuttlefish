@@ -21,6 +21,11 @@
 #include <vector>
 #include <utility>
 
+// Handle different versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 namespace cuttlefish
 {
 
@@ -231,7 +236,7 @@ TEST_P(TextureSaveSpecialPvrTest, Save)
 	}
 }
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveDdsTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::R4G4, {{Texture::Type::UNorm, success}}),
@@ -364,7 +369,7 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 #define PVRTC_SAVE_DDS_TESTS
 #endif
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveSpecialDdsTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),
@@ -375,7 +380,7 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 		PVRTC_SAVE_DDS_TESTS
 		));
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveKtxTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::R4G4, {{Texture::Type::UNorm, unsupported}}),
@@ -508,7 +513,7 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 #define PVRTC_SAVE_KTX_TESTS
 #endif
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveSpecialKtxTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),
@@ -519,7 +524,7 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 		PVRTC_SAVE_KTX_TESTS
 		));
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSavePvrTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::R4G4, {{Texture::Type::UNorm, success}}),
@@ -652,7 +657,7 @@ INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
 #define PVRTC_SAVE_PVR_TESTS
 #endif
 
-INSTANTIATE_TEST_CASE_P(TextureSaveTestTypes,
+INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveSpecialPvrTest,
 	testing::Values(
 		TextureSaveTestInfo(Texture::Format::B10G11R11_UFloat, {{Texture::Type::UFloat, success}}),

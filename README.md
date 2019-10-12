@@ -10,11 +10,13 @@ Features include:
 * Generate mipmaps.
 * Convert to most formats supported by the GPU, including:
 	* Most standard uncompressed formats. (normalized integers, non-normalized integers, floating point, etc.)
-	* S3TC formats (BC#/DXT)
+	* S3TC formats (BC/DXT)
 	* ETC
 	* ASTC
 	* PVRTC
 * Save the output texture in DDS, KTX, or PVR format.
+
+[![Build Status](https://dev.azure.com/akb825/DeepSea/_apis/build/status/akb825.Cuttlefish?branchName=master)](https://dev.azure.com/akb825/DeepSea/_build/latest?definitionId=1&branchName=master)
 
 # Dependencies
 
@@ -26,7 +28,7 @@ The following software is required to build Cuttlefish:
 * [nvidia-texture-tools](https://github.com/castano/nvidia-texture-tools) (optional, included as a submodule)
 * [etc2comp](https://github.com/google/etc2comp) (optional, included as a submodule)
 * [astc-encoder](https://github.com/ARM-software/astc-encoder) (optional, included as a submodule)
-* [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool/) (optional)
+* [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool/) (optional, included as a submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
