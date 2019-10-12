@@ -5,7 +5,7 @@ set(NVTT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools)
 set(ETC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/etc2comp)
 set(ASTC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/astc-encoder)
 set(defines)
-set(privateDefines _USE_MATH_DEFINES)
+set(privateDefines)
 
 if (NOT CUTTLEFISH_FORCE_INTERNAL_FREEIMAGE)
 	find_package(FreeImage QUIET)

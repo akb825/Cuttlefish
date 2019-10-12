@@ -1,6 +1,6 @@
 [submodule "lib/FreeImage"]
 	path = lib/FreeImage
-	url = https://github.com/akb825/freeimage.git
+	url = https://github.com/WinMerge/freeimage.git
 [submodule "lib/nvidia-texture-tools"]
 	path = lib/nvidia-texture-tools
 	url = https://github.com/castano/nvidia-texture-tools.git
@@ -9,7 +9,7 @@
 	url = https://github.com/google/etc2comp.git
 [submodule "lib/astc-encoder"]
 	path = lib/astc-encoder
-	url = https://github.com/akb825/astc-encoder.git
+	url = https://github.com/ARM-software/astc-encoder.git
 [submodule "lib/glm"]
 	path = lib/glm
-	url = https://github.com/g-truc/glm
+	url = https://github.com/g-truc/glm.git
