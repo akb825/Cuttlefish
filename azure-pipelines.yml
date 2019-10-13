@@ -22,8 +22,8 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=$(dependency.location)
-            make
-            make install
+            cmake --build . -j $(cores.count)
+            cmake --build . --target install
         displayName: Build gtest
         workingDirectory: $(Build.BinariesDirectory)
       - task: CMake@1
@@ -37,11 +37,13 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . -j 2
+            cmakeArgs: --build . -j $(cores.count)
         displayName: Build
-      - script: cmake --build . --target test
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --target test
         displayName: Run tests
-        workingDirectory: $(Build.BinariesDirectory)
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -68,8 +70,8 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=$(dependency.location)
-            make
-            make install
+            cmake --build . -j $(cores.count)
+            cmake --build . --target install
         displayName: Build gtest
         workingDirectory: $(Build.BinariesDirectory)
       - task: CMake@1
@@ -83,11 +85,13 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . -j 2
+            cmakeArgs: --build . -j $(cores.count)
         displayName: Build
-      - script: cmake --build . --target test
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --target test
         displayName: Run tests
-        workingDirectory: $(Build.BinariesDirectory)
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -133,9 +137,11 @@ jobs:
             # NOTE: Would prefer to do a debug build, but it conflicts with PVRTexTool lib.
             cmakeArgs: --build . --config Release
         displayName: Build
-      - script: cmake --build . --config Release --target run_tests
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Release --target run_tests
         displayName: Run tests
-        workingDirectory: $(Build.BinariesDirectory)
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
