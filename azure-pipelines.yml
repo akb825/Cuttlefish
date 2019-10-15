@@ -1,6 +1,10 @@
 trigger:
   - master
 variables:
+  - name: cmake.commonArgs
+    # NOTE: Can't shorten this line with folded style string since it has a trailing newline, which
+    # cmake warns about.
+    value: -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location) -DCMAKE_PREFIX_PATH=$(dependency.location)
   - group: Common
 jobs:
   - job: Linux
@@ -10,16 +14,10 @@ jobs:
         clean: all
     strategy:
         matrix:
-            debug:
-                config: Debug
+            static:
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
-            release_static:
-                config: Release
-                lib.type: Static
-                cmake.args: -DCUTTLEFISH_SHARED=OFF
-            release_shared:
-                config: Release
+            shared:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
     steps:
@@ -42,22 +40,20 @@ jobs:
         workingDirectory: $(Build.BinariesDirectory)
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=$(config) -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
-                -DCMAKE_FIND_ROOT_PATH=$(dependency.location) $(cmake.args)
-                $(Build.SourcesDirectory)
-        displayName: Run CMake
+                -DCMAKE_BUILD_TYPE=Debug $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake debug
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . -j $(cores.count)
-        displayName: Build
+        displayName: Build debug
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . --target test
-        displayName: Run tests
+        displayName: Run tests debug
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -66,9 +62,39 @@ jobs:
             testResultsFiles: '*.xml'
             searchFolder: $(Common.TestResultsDirectory)
             failTaskOnFailedTests: true
-            testRunTitle: Linux-$(config)-$(lib.type)
-            buildConfiguration: $(config)-$(lib.type)
-        displayName: Publish test results
+            testRunTitle: Linux-$(lib.type)-Debug
+            buildConfiguration: $(lib.type)-Debug
+        displayName: Publish test results debug
+      - script: rm -r $(Common.TestResultsDirectory)/*
+        displayName: Clear test results
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Release $(cmake.commonArgs) $(cmake.args)
+                $(Build.SourcesDirectory)
+        displayName: Run CMake release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . --target test
+        displayName: Run tests release
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Linux-$(lib.type)-Release
+            buildConfiguration: (lib.type)-Release
+        displayName: Publish test results release
   - job: Mac
     pool:
         vmImage: macOS-10.13
@@ -76,16 +102,10 @@ jobs:
         clean: all
     strategy:
         matrix:
-            debug:
-                config: Debug
+            static:
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
-            release_static:
-                config: Release
-                lib.type: Static
-                cmake.args: -DCUTTLEFISH_SHARED=OFF
-            release_shared:
-                config: Release
+            shared:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
     steps:
@@ -108,22 +128,20 @@ jobs:
         workingDirectory: $(Build.BinariesDirectory)
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
-                -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
-                $(Build.SourcesDirectory)
-        displayName: Run CMake
+                -DCMAKE_BUILD_TYPE=Debug $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake debug
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . -j $(cores.count)
-        displayName: Build
+        displayName: Build debug
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)
+            workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . --target test
-        displayName: Run tests
+        displayName: Run tests debug
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -132,11 +150,40 @@ jobs:
             testResultsFiles: '*.xml'
             searchFolder: $(Common.TestResultsDirectory)
             failTaskOnFailedTests: true
-            testRunTitle: Mac-$(config)-$(lib.type)
-            buildConfiguration: $(config)-$(lib.type)
-        displayName: Publish test results
+            testRunTitle: Mac-$(lib.type)-Debug
+            buildConfiguration: $(lib.type)-Debug
+        displayName: Publish test results debug
+      - script: rm -r $(Common.TestResultsDirectory)/*
+        displayName: Clear test results
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Release $(cmake.commonArgs) $(cmake.args)
+                $(Build.SourcesDirectory)
+        displayName: Run CMake release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . --target test
+        displayName: Run tests release
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Mac-$(lib.type)-Release
+            buildConfiguration: (lib.type)-Release
+        displayName: Publish test results release
   - job: Windows
-    # NOTE: No debug builds since PVRTexTool lib only provided for release runtime.
     pool:
         vmImage: vs2017-win2016
     workspace:
@@ -182,10 +229,7 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: >
-                -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
-                -DCMAKE_PREFIX_PATH=$(dependency.location) -A $(arch) $(cmake.args)
-                $(Build.SourcesDirectory)
+            cmakeArgs: $(cmake.commonArgs) $(cmake.args) -A $(arch) $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
         inputs:
@@ -207,7 +251,8 @@ jobs:
             failTaskOnFailedTests: true
             testRunTitle: Windows-$(arch)-$(lib.type)
             buildPlatform: $(arch)
-            buildConfiguration: Release-$(lib.type)
+            buildConfiguration: $(lib.type)-Release
         displayName: Publish test results
+    # NOTE: No debug builds since PVRTexTool lib only provided for release runtime.
 
 # vim: ts=4 sts=4 sw=4 et
