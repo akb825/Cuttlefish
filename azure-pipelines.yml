@@ -8,6 +8,20 @@ jobs:
         vmImage: ubuntu-16.04
     workspace:
         clean: all
+    strategy:
+        matrix:
+            debug:
+                config: Debug
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            release_static:
+                config: Release
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            release_shared:
+                config: Release
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON
     steps:
       - script: |
             git submodule init
@@ -30,8 +44,8 @@ jobs:
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
-                -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
+                -DCMAKE_BUILD_TYPE=$(config) -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
+                -DCMAKE_FIND_ROOT_PATH=$(dependency.location) $(cmake.args)
                 $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
@@ -44,18 +58,36 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: --build . --target test
         displayName: Run tests
+        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
             testResultsFormat: JUnit
             testResultsFiles: '*.xml'
             searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Linux-$(config)-$(lib.type)
+            buildConfiguration: $(config)-$(lib.type)
         displayName: Publish test results
   - job: Mac
     pool:
         vmImage: macOS-10.13
     workspace:
         clean: all
+    strategy:
+        matrix:
+            debug:
+                config: Debug
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            release_static:
+                config: Release
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            release_shared:
+                config: Release
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON
     steps:
       - script: |
             git submodule init
@@ -92,18 +124,41 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: --build . --target test
         displayName: Run tests
+        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
             testResultsFormat: JUnit
             testResultsFiles: '*.xml'
             searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Mac-$(config)-$(lib.type)
+            buildConfiguration: $(config)-$(lib.type)
         displayName: Publish test results
   - job: Windows
+    # NOTE: No debug builds since PVRTexTool lib only provided for release runtime.
     pool:
         vmImage: vs2017-win2016
     workspace:
         clean: all
+    strategy:
+        matrix:
+            win32_static:
+                arch: Win32
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            win32_shared:
+                arch: Win32
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON
+            win64_static:
+                arch: x64
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+            win64_shared:
+                arch: x64
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON
     steps:
       - bash: |
             git submodule init
@@ -118,7 +173,8 @@ jobs:
         displayName: Checkout gtest
         workingDirectory: $(Build.BinariesDirectory)
       - script: |
-            cmake .. -DCMAKE_INSTALL_PREFIX=$(dependency.location) -Dgtest_force_shared_crt=ON
+            cmake .. -DCMAKE_INSTALL_PREFIX=$(dependency.location) -Dgtest_force_shared_crt=ON ^
+                -A $(arch)
             cmake --build . --config Release
             cmake --build . --config Release --target install
         displayName: Build gtest
@@ -128,13 +184,12 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: >
                 -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
-                -DCMAKE_PREFIX_PATH=$(dependency.location)
+                -DCMAKE_PREFIX_PATH=$(dependency.location) -A $(arch) $(cmake.args)
                 $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            # NOTE: Would prefer to do a debug build, but it conflicts with PVRTexTool lib.
             cmakeArgs: --build . --config Release
         displayName: Build
       - task: CMake@1
@@ -142,12 +197,17 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: --build . --config Release --target run_tests
         displayName: Run tests
+        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
             testResultsFormat: JUnit
             testResultsFiles: '*.xml'
             searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Windows-$(arch)-$(lib.type)
+            buildPlatform: $(arch)
+            buildConfiguration: Release-$(lib.type)
         displayName: Publish test results
 
 # vim: ts=4 sts=4 sw=4 et

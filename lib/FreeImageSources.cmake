@@ -2,6 +2,7 @@
 # %s/ \.\//\${FREEIMAGE_DIR}\//g
 # %s/\/Sources\//\${FREEIMAGE_DIR}\/Sources\//g
 # Delete the "Wrapper" entries
+# Remove b44ExpLogTable.cpp (may need to check for other files with main function)
 set(freeImageSources
 	${FREEIMAGE_DIR}/Source/FreeImage/BitmapAccess.cpp
 	${FREEIMAGE_DIR}/Source/FreeImage/ColorLookup.cpp
@@ -226,7 +227,6 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibOpenJPEG/tcd.c
 	${FREEIMAGE_DIR}/Source/LibOpenJPEG/tgt.c
 	${FREEIMAGE_DIR}/Source/OpenEXR/IexMath/IexMathFpu.cpp
-	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/b44ExpLogTable.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfAcesFile.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfAttribute.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmImf/ImfB44Compressor.cpp
