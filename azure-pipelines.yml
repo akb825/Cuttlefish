@@ -54,7 +54,6 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . --target test
         displayName: Run tests debug
-        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -84,7 +83,6 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)/Release
             cmakeArgs: --build . --target test
         displayName: Run tests release
-        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -142,7 +140,6 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)/Debug
             cmakeArgs: --build . --target test
         displayName: Run tests debug
-        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -172,7 +169,6 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)/Release
             cmakeArgs: --build . --target test
         displayName: Run tests release
-        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
@@ -241,7 +237,6 @@ jobs:
             workingDirectory: $(Build.BinariesDirectory)
             cmakeArgs: --build . --config Release --target run_tests
         displayName: Run tests
-        continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
         inputs:
