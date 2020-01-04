@@ -76,7 +76,7 @@ Building is generally performed through Visual Studio. This can either be done t
 
 Once generated, the project may be opened through Visual Studio and built as normal. The `RUN_TESTS` project may be built in order to run the tests.
 
-In order to install the libraries and tool, run Visual Studio as administrator, perform a release build, and run the `INSTALL` project. The default installation location is `C:\Program Files\Cuttlefish`. After installation, it's recommended to place the `C:\Program Files\Cutlefish\bin` folder on your `PATH` environment variable to run the `cuttlefish` tool from the command line.
+In order to install the libraries and tool, run Visual Studio as administrator, perform a release build, and run the `INSTALL` project. The default installation location is `C:\Program Files\Cuttlefish`. After installation, it's recommended to place the `C:\Program Files\Cuttlefish\bin` folder on your `PATH` environment variable to run the `cuttlefish` tool from the command line.
 
 ## Options
 
@@ -103,7 +103,7 @@ The following options may be used when running cmake:
 
 * `-DCUTTLEFISH_OUTPUT_DIR=directory`: The folder to place the output files. This may be explicitly left empty in order to output to the defaults used by cmake, but this may prevent tests and executables from running properly when `CUTTLEFISH_SHARED` is set to `ON`. Defaults to `${CMAKE_BINARY_DIR}/output`.
 * `-DCUTTLEFISH_EXPORTS_DIR=directory`: The folder to place the cmake exports when building. This directory can be added to the module path when embedding in other projects to be able to use the `library_find()` cmake function. Defaults to `${CMAKE_BINARY_DIR}/cmake`.
-* `-DCUTTLEFISH_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding MSL in another project. Defaults to Cuttlefish.
+* `-DCUTTLEFISH_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding Cuttlefish in another project. Defaults to Cuttlefish.
 * `-DCUTTLEFISH_INSTALL=ON|OFF`: Allow installation for Cuttlefish components. This can be useful when embedding in other projects to prevent installations from including Cuttlefish. For example, when statically linking into a shared library. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_PVRTEXLIB=ON|OFF`: Include the PVRTextTool library with the installation. This allows the installation to be used for machines that don't have PVRTexTool installed, and can avoid adjusting the `PATH` environment variable on some platforms. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_SET_RPATH=ON|OFF`: Set rpath during install for the library and tool on installation. Set to `OFF` if including in another project that wants to control the rpath. Default is `ON`.
