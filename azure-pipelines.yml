@@ -97,7 +97,7 @@ jobs:
         displayName: Publish test results release
   - job: Mac
     pool:
-        vmImage: macOS-10.13
+        vmImage: macOS-10.14
     workspace:
         clean: all
     strategy:
