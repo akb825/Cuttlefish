@@ -98,14 +98,14 @@ set(COMPRESS_DIR ${NVTT_DIR}/src/nvtt)
 set(COMPRESS_SRCS
 	${COMPRESS_DIR}/ClusterFit.cpp
 	${COMPRESS_DIR}/ClusterFit.h
-	${COMPRESS_DIR}/CompressorDXT1.cpp
-	${COMPRESS_DIR}/CompressorDXT1.h
 	${COMPRESS_DIR}/OptimalCompressDXT.cpp
 	${COMPRESS_DIR}/OptimalCompressDXT.h
 	${COMPRESS_DIR}/QuickCompressDXT.cpp
 	${COMPRESS_DIR}/QuickCompressDXT.h
 	${COMPRESS_DIR}/SingleColorLookup.cpp
-	${COMPRESS_DIR}/SingleColorLookup.h)
+	${COMPRESS_DIR}/SingleColorLookup.h
+	${COMPRESS_DIR}/icbc.cpp
+	${COMPRESS_DIR}/icbc.h)
 
 # configuration file
 INCLUDE(CheckIncludeFiles)

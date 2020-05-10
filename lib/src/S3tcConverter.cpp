@@ -38,6 +38,7 @@
 #endif
 
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wreorder"
 #endif
 
 #include "bc6h/zoh.h"
@@ -49,9 +50,9 @@
 #include "nvmath/Vector.inl"
 #include "nvtt/squish/colourset.h"
 #include "nvtt/squish/weightedclusterfit.h"
-#include "nvtt/CompressorDXT1.h"
 #include "nvtt/OptimalCompressDXT.h"
 #include "nvtt/QuickCompressDXT.h"
+#include "nvtt/icbc.h"
 
 #if CUTTLEFISH_CLANG || CUTTLEFISH_GCC
 #pragma GCC diagnostic pop
@@ -192,9 +193,11 @@ void Bc1Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	clampColors(blockColors);
 	float weights[blockDim*blockDim];
 	createWeights(weights, blockColors, weightAlpha());
+	nv::Vector3 channelWeights = createChannelWeights(colorMask());
 
-	nv::compress_dxt1(reinterpret_cast<const nv::Vector4*>(blockColors), weights,
-		createChannelWeights(colorMask()), true, dxtBlock);
+	icbc::compress_dxt1(reinterpret_cast<const float*>(blockColors), weights,
+		reinterpret_cast<const float*>(&channelWeights), true, quality() >= Texture::Quality::High,
+		dxtBlock);
 }
 
 Bc1AConverter::Bc1AConverter(const Texture& texture, const Image& image, Texture::Quality quality)
