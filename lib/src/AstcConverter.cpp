@@ -33,40 +33,20 @@
 #pragma GCC diagnostic pop
 #endif
 
-// astc-encoder uses global variables to control its operation.
-int print_diagnostics;
-int print_tile_errors;
-int print_statistics;
-
-int perform_srgb_transform;
-int rgb_force_use_of_hdr;
-int alpha_force_use_of_hdr;
-
 // Stub out functions.
-int store_tga_image(const astc_codec_image*, const char*, int)
+int get_output_filename_enforced_bitness(const char*)
 {
 	return 0;
 }
 
-astc_codec_image* load_tga_image(const char*, int , int*)
+astc_codec_image* astc_codec_load_image(const char*, int, int, int, int, int, int*)
 {
 	return nullptr;
 }
 
-astc_codec_image* load_image_with_stb(const char*, int, int*)
-{
-	return nullptr;
-}
-
-int astc_codec_unlink(const char*)
+int astc_codec_store_image(const astc_codec_image*, const char*, const char**, int)
 {
 	return 0;
-}
-
-void astc_codec_internal_error(const char *filename, int linenum)
-{
-	std::printf("Internal error: File=%s Line=%d\n", filename, linenum);
-	std::exit(1);
 }
 
 namespace cuttlefish
@@ -115,8 +95,6 @@ private:
 	symbolic_compressed_block m_tempblocks[4];
 	imageblock m_temp;
 };
-
-std::mutex AstcConverter::m_mutex;
 
 static bool initialize()
 {
@@ -193,15 +171,13 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	else
 		m_averageErrorLimit = std::pow(0.1f, m_averageErrorLimit*0.1f)*65535.0f*65535.0f;
 
-	// ASTC encoder library uses global variables for control.
-	m_mutex.lock();
-	rgb_force_use_of_hdr = m_hdr;
-	alpha_force_use_of_hdr = m_hdr;
+	m_bsd.reset(new block_size_descriptor);
+	init_block_size_descriptor(m_blockX, m_blockY, 1, m_bsd.get());
 }
 
 AstcConverter::~AstcConverter()
 {
-	m_mutex.unlock();
+	term_block_size_descriptor(m_bsd.get());
 }
 
 void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadData)
@@ -233,12 +209,12 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 
 	// Just need the image for sizing information.
 	astc_codec_image dummyImage;
-	dummyImage.imagedata8 = nullptr;
-	dummyImage.imagedata16 = nullptr;
 	dummyImage.xsize = image().width();
 	dummyImage.ysize = image().height();
 	dummyImage.zsize = 1;
 	dummyImage.padding = 0;
+	dummyImage.rgb_force_use_of_hdr = m_hdr;
+	dummyImage.alpha_force_use_of_hdr = m_hdr;
 
 	error_weighting_params errorParams;
 	errorParams.rgb_power = 1.0f;
@@ -272,13 +248,12 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 	errorParams.max_refinement_iters = m_maxIters;
 
 	symbolic_compressed_block symbolicBlock;
-	compress_symbolic_block(&dummyImage, m_hdr ? DECODE_HDR : DECODE_LDR, m_blockX, m_blockY, 1,
-		&errorParams, &astcBlock, &symbolicBlock,
-		&reinterpret_cast<AstcThreadData*>(threadData)->tempBuffers);
+	compress_symbolic_block(&dummyImage, m_hdr ? DECODE_HDR : DECODE_LDR, m_bsd.get(), &errorParams,
+		&astcBlock, &symbolicBlock, &reinterpret_cast<AstcThreadData*>(threadData)->tempBuffers);
 
 	auto block = reinterpret_cast<physical_compressed_block*>(
 		data().data() + (y*m_jobsX + x)*blockSize);
-	*block = symbolic_to_physical(m_blockX, m_blockY, 1, &symbolicBlock);
+	*block = symbolic_to_physical(m_bsd.get(), &symbolicBlock);
 }
 
 std::unique_ptr<Converter::ThreadData> AstcConverter::createThreadData()

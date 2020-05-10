@@ -22,6 +22,8 @@
 
 #if CUTTLEFISH_HAS_ASTC
 
+struct block_size_descriptor;
+
 namespace cuttlefish
 {
 
@@ -49,6 +51,7 @@ private:
 	Texture::ColorMask m_colorMask;
 	bool m_hdr;
 
+	std::unique_ptr<block_size_descriptor> m_bsd;
 	bool m_alphaWeight;
 	int m_partitionsToTest;
 	float m_oplimit;
@@ -56,8 +59,6 @@ private:
 	float m_averageErrorLimit;
 	float m_blockModeCutoff;
 	int m_maxIters;
-
-	static std::mutex m_mutex;
 };
 
 } // namespace cuttlefish

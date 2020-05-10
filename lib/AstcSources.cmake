@@ -1,30 +1,35 @@
 set(astcSources
 	${ASTC_DIR}/Source/astc_averages_and_directions.cpp
 	${ASTC_DIR}/Source/astc_block_sizes2.cpp
+	${ASTC_DIR}/Source/astc_codec_internals.h
 	${ASTC_DIR}/Source/astc_color_quantize.cpp
 	${ASTC_DIR}/Source/astc_color_unquantize.cpp
 	${ASTC_DIR}/Source/astc_compress_symbolic.cpp
+	${ASTC_DIR}/Source/astc_compute_variance.cpp
 	${ASTC_DIR}/Source/astc_decompress_symbolic.cpp
 	${ASTC_DIR}/Source/astc_encoding_choice_error.cpp
+	${ASTC_DIR}/Source/astc_error_metrics.cpp
 	${ASTC_DIR}/Source/astc_find_best_partitioning.cpp
 	${ASTC_DIR}/Source/astc_ideal_endpoints_and_weights.cpp
-	${ASTC_DIR}/Source/astc_image_load_store.cpp
+	${ASTC_DIR}/Source/astc_image.cpp
 	${ASTC_DIR}/Source/astc_integer_sequence.cpp
-	${ASTC_DIR}/Source/astc_ktx_dds.cpp
 	${ASTC_DIR}/Source/astc_kmeans_partitioning.cpp
+	${ASTC_DIR}/Source/astc_mathlib.cpp
+	${ASTC_DIR}/Source/astc_mathlib.h
+	${ASTC_DIR}/Source/astc_mathlib_softfloat.cpp
 	${ASTC_DIR}/Source/astc_partition_tables.cpp
 	${ASTC_DIR}/Source/astc_percentile_tables.cpp
 	${ASTC_DIR}/Source/astc_pick_best_endpoint_format.cpp
+	${ASTC_DIR}/Source/astc_platform_dependents.cpp
 	${ASTC_DIR}/Source/astc_quantization.cpp
 	${ASTC_DIR}/Source/astc_symbolic_physical.cpp
+	${ASTC_DIR}/Source/astc_toplevel.cpp
+	${ASTC_DIR}/Source/astc_toplevel_help.cpp
 	${ASTC_DIR}/Source/astc_weight_align.cpp
 	${ASTC_DIR}/Source/astc_weight_quant_xfer_tables.cpp
-	${ASTC_DIR}/Source/astc_compute_variance.cpp
-	${ASTC_DIR}/Source/mathlib.cpp
-	${ASTC_DIR}/Source/softfloat.cpp
-	${ASTC_DIR}/Source/astc_codec_internals.h
-	${ASTC_DIR}/Source/mathlib.h
-	${ASTC_DIR}/Source/softfloat.h
+	${ASTC_DIR}/Source/stb_image.h
+	${ASTC_DIR}/Source/stb_image_write.h
+	${ASTC_DIR}/Source/tinyexr.h
 )
 
 set(ASTC_INCLUDE_DIRS ${ASTC_DIR}/Source)

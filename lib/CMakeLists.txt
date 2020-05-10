@@ -48,7 +48,7 @@ if (CUTTLEFISH_BUILD_ASTC)
 			"'git submodule update' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/AstcSources.cmake)
-	list(APPEND defines CUTTLEFISH_HAS_ASTC=1)
+	list(APPEND defines CUTTLEFISH_HAS_ASTC=1 ASTC_SSE=20)
 endif()
 
 if (CUTTLEFISH_BUILD_PVRTC)

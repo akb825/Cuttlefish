@@ -213,11 +213,11 @@ static void printHelp(const char* name)
 	          << "                            opacity; this will avoid weighting the colors during" << std::endl
 	          << "                            compression for some formats" << std::endl;
 	std::cout << "  -Q, --quaility q      the quality of compression; may be: lowest, low," << std::endl
-	          << "                          normal (default), high, highest; lower qualities are" << std::endl
-	          << "                          faster to convert" << std::endl;
+	          << "                        normal (default), high, highest; lower qualities are" << std::endl
+	          << "                        faster to convert" << std::endl;
 	std::cout << "  -o, --output file (*) the output file for the texture" << std::endl;
 	std::cout << "      --file-format f   the output file format; may be: dds, ktx, pvr; default" << std::endl
-	          << "                          is based on the extension" << std::endl;
+	          << "                        is based on the extension" << std::endl;
 }
 
 static bool matches(const char* command, const char* shortCmd, const char* longCmd)

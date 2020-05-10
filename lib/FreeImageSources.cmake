@@ -1,6 +1,7 @@
 # Copied from flipMakefile.srcs withthe following substitutions:
-# %s/ \.\//\${FREEIMAGE_DIR}\//g
-# %s/\/Sources\//\${FREEIMAGE_DIR}\/Sources\//g
+# .s/\.\//\${FREEIMAGE_DIR}\//g
+# .s/ Source\// \${FREEIMAGE_DIR}\/Source\//g
+# .s/ /\r/g
 # Delete the "Wrapper" entries
 # Remove b44ExpLogTable.cpp (may need to check for other files with main function)
 set(freeImageSources
@@ -474,7 +475,7 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRGlueJxr.c
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRGluePFC.c
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRMeta.c
-)
+	)
 
 set(FreeImage_INCLUDE_DIRS
 	${FREEIMAGE_DIR}/Source
