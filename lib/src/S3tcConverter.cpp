@@ -134,7 +134,7 @@ static void createWeights(float* weights, const ColorRGBAf* blockColors, bool we
 	else
 	{
 		for (unsigned int i = 0; i < S3tcConverter::blockDim*S3tcConverter::blockDim; ++i)
-			weights[i] = 1.0f;;
+			weights[i] = 1.0f;
 	}
 }
 
@@ -179,6 +179,7 @@ void S3tcConverter::process(unsigned int x, unsigned int y, ThreadData*)
 Bc1Converter::Bc1Converter(const Texture& texture, const Image& image, Texture::Quality quality)
 	: S3tcConverter(texture, image, 8, quality)
 {
+	icbc::init();
 }
 
 void Bc1Converter::compressBlock(void* block, ColorRGBAf* blockColors)
