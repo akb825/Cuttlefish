@@ -218,6 +218,8 @@ static void printHelp(const char* name)
 	std::cout << "  -o, --output file (*) the output file for the texture" << std::endl;
 	std::cout << "      --file-format f   the output file format; may be: dds, ktx, pvr; default" << std::endl
 	          << "                        is based on the extension" << std::endl;
+	std::cout << "      --create-dir      create the parent directory for the output file if it" << std::endl
+			  << "                        doesn't exist" << std::endl;
 }
 
 static bool matches(const char* command, const char* shortCmd, const char* longCmd)
@@ -1082,6 +1084,8 @@ bool CommandLine::parse(int argc, const char** argv)
 				break;
 			}
 		}
+		else if (std::strcmp(argv[i], "--create-dir") == 0)
+			createOutputDir = true;
 		else
 		{
 			std::cerr << "error: unknown option: " << argv[i] << std::endl;

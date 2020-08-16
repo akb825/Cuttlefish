@@ -18,8 +18,16 @@
 #include <cuttlefish/Image.h>
 #include <cuttlefish/Texture.h>
 #include <cassert>
+#include <cerrno>
 #include <vector>
 #include <iostream>
+
+#if CUTTLEFISH_WINDOWS
+#include <direct.h>
+#define mkdir(path, mode) _mkdir(path)
+#else
+#include <sys/stat.h>
+#endif
 
 using namespace cuttlefish;
 
@@ -61,6 +69,33 @@ static bool isSigned(Texture::Type type)
 
 	assert(false);
 	return false;
+}
+
+// Intentionally pass by value since the path will be modified.
+static bool createParentDir(std::string path)
+{
+#if CUTTLEFISH_WINDOWS
+	const char* pathSep = "\\/";
+#else
+	const char* pathSep = "/";
+#endif
+
+	std::size_t prevPos = 0;
+	do
+	{
+		std::size_t nextPos = path.find_first_of(pathSep, prevPos + 1);
+		if (nextPos == std::string::npos)
+			return true;
+
+		char prevChar = path[nextPos];
+		path[nextPos] = 0;
+		int result = mkdir(path.c_str(), 0755);
+		path[nextPos] = prevChar;
+		if (result < 0 && errno != EEXIST)
+			return false;
+
+		prevPos = nextPos;
+	} while (true);
 }
 
 bool loadImages(std::vector<Image>& images, CommandLine& args)
@@ -263,8 +298,24 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 			std::cerr << "error: texture format unsupported by target file format" << std::endl;
 			return false;
 		case Texture::SaveResult::WriteError:
+		{
+			if (args.createOutputDir)
+			{
+				// Try to create the directory and save again. We do this off of the initial save
+				// so another error like an invalid format won't leave directories behind.
+				if (!createParentDir(args.output))
+				{
+					std::cerr << "error: couldn't create parent directory for '" <<
+						args.output << "'" << std::endl;
+					return false;
+				}
+
+				if (texture.save(args.output, args.fileType) == Texture::SaveResult::Success)
+					return true;
+			}
 			std::cerr << "error: couldn't write file '" << args.output << "'" << std::endl;
 			return false;
+		}
 	}
 	assert(false);
 	return false;

@@ -79,4 +79,5 @@ struct CommandLine
 	cuttlefish::Texture::Quality quality = cuttlefish::Texture::Quality::Normal;
 	const char* output = nullptr;
 	cuttlefish::Texture::FileType fileType = cuttlefish::Texture::FileType::Auto;
+	bool createOutputDir = false;
 };
