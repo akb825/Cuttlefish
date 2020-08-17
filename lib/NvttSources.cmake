@@ -28,10 +28,9 @@ set(MATH_SRCS
     ${MATH_DIR}/Fitting.h ${MATH_DIR}/Fitting.cpp
     ${MATH_DIR}/Gamma.h ${MATH_DIR}/Gamma.cpp
     ${MATH_DIR}/Half.h ${MATH_DIR}/Half.cpp
-    ${MATH_DIR}/Matrix.h
+    ${MATH_DIR}/Matrix.h ${MATH_DIR}/Matrix.inl ${MATH_DIR}/Matrix.cpp
     ${MATH_DIR}/Plane.h ${MATH_DIR}/Plane.inl ${MATH_DIR}/Plane.cpp
     ${MATH_DIR}/SphericalHarmonic.h ${MATH_DIR}/SphericalHarmonic.cpp
-    ${MATH_DIR}/SimdVector.h ${MATH_DIR}/SimdVector_SSE.h ${MATH_DIR}/SimdVector_VE.h
     ${MATH_DIR}/Vector.h ${MATH_DIR}/Vector.inl)
 
 set(BC6H_DIR ${NVTT_DIR}/src/bc6h)
@@ -96,8 +95,6 @@ set(IMAGE_SRCS
 
 set(COMPRESS_DIR ${NVTT_DIR}/src/nvtt)
 set(COMPRESS_SRCS
-	${COMPRESS_DIR}/ClusterFit.cpp
-	${COMPRESS_DIR}/ClusterFit.h
 	${COMPRESS_DIR}/OptimalCompressDXT.cpp
 	${COMPRESS_DIR}/OptimalCompressDXT.h
 	${COMPRESS_DIR}/QuickCompressDXT.cpp

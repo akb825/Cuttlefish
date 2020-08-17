@@ -2,6 +2,7 @@ find_package(Threads)
 
 set(FREEIMAGE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FreeImage)
 set(NVTT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nvidia-texture-tools)
+set(BC7ENC16_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bc7enc16)
 set(ETC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/etc2comp)
 set(ASTC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/astc-encoder)
 set(defines)
@@ -14,8 +15,7 @@ if (NOT FreeImage_FOUND)
 	message("FreeImage not found")
 	if (NOT EXISTS ${FREEIMAGE_DIR})
 		message(FATAL_ERROR
-			"FreeImage not found. Run 'git submodule init' and "
-			"'git submodule update' to pull the submodules.")
+			"FreeImage not found. Run 'git submodule init --update' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/FreeImageSources.cmake)
 	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1)
@@ -24,18 +24,25 @@ endif()
 if (CUTTLEFISH_BUILD_S3TC)
 	if (NOT EXISTS ${NVTT_DIR})
 		message(FATAL_ERROR
-			"nvidia-texture-tools not found. Run 'git submodule init' and "
-			"'git submodule update' to pull the submodules.")
+			"nvidia-texture-tools not found. Run 'git submodule init --update' to pull the "
+			"submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/NvttSources.cmake)
+
+	if (NOT EXISTS ${BC7ENC16_DIR})
+		message(FATAL_ERROR
+			"nvidia-texture-tools not found. Run 'git submodule init --update' to pull the "
+			"submodules.")
+	endif()
+	include(${CMAKE_CURRENT_LIST_DIR}/Bc7enc16Sources.cmake)
+
 	list(APPEND defines CUTTLEFISH_HAS_S3TC=1)
 endif()
 
 if (CUTTLEFISH_BUILD_ETC)
 	if (NOT EXISTS ${ETC_DIR})
 		message(FATAL_ERROR
-			"etc2comp not found. Run 'git submodule init' and "
-			"'git submodule update' to pull the submodules.")
+			"etc2comp not found. Run 'git submodule init --update' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/Etc2CompSources.cmake)
 	list(APPEND defines CUTTLEFISH_HAS_ETC=1)
@@ -44,8 +51,7 @@ endif()
 if (CUTTLEFISH_BUILD_ASTC)
 	if (NOT EXISTS ${ASTC_DIR})
 		message(FATAL_ERROR
-			"astc-encoder not found. Run 'git submodule init' and "
-			"'git submodule update' to pull the submodules.")
+			"astc-encoder not found. Run 'git submodule init --update' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/AstcSources.cmake)
 	list(APPEND defines CUTTLEFISH_HAS_ASTC=1 ASTC_SSE=20)
@@ -63,7 +69,8 @@ if (CUTTLEFISH_BUILD_PVRTC)
 endif()
 
 file(GLOB_RECURSE sources src/*.cpp src/*.h include/*.h)
-set(externalSources ${freeImageSources} ${ALL_NVTT_SOURCES} ${etcSources} ${astcSources})
+set(externalSources ${freeImageSources} ${ALL_NVTT_SOURCES} ${bc7enc16Sources} ${etcSources}
+	${astcSources})
 
 # Don't care about warnings for external files.
 if (MSVC)
@@ -77,6 +84,7 @@ set_target_properties(cuttlefish_lib PROPERTIES OUTPUT_NAME cuttlefish)
 target_include_directories(cuttlefish_lib
 	PRIVATE ${FreeImage_INCLUDE_DIRS}
 			${NVTT_INCLUDE_DIRS}
+			${BC7ENC16_INCLUDE_DIRS}
 			${ETC_INCLUDE_DIRS}
 			${ASTC_INCLUDE_DIRS}
 			${PVRTEXLIB_INCLUDE_DIRS}

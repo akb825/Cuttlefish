@@ -16,3 +16,6 @@
 [submodule "lib/PVRTexToolLib"]
 	path = lib/PVRTexToolLib
 	url = https://github.com/akb825/PVRTexToolLib.git
+[submodule "lib/bc7enc16"]
+	path = lib/bc7enc16
+	url = https://github.com/richgel999/bc7enc16.git

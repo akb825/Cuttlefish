@@ -26,16 +26,16 @@ The following software is required to build Cuttlefish:
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) (required, included as a submodule)
 * [nvidia-texture-tools](https://github.com/castano/nvidia-texture-tools) (optional, included as a submodule)
+* [bc7enc16](https://github.com/richgel999/bc7enc16) (optional, included as a submodule)
 * [etc2comp](https://github.com/google/etc2comp) (optional, included as a submodule)
 * [astc-encoder](https://github.com/ARM-software/astc-encoder) (optional, included as a submodule)
 * [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool/) (optional, included as a submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
-The submodules can be downloaded by running the commands
+The submodules can be downloaded by running the command
 
-	Cuttlefish$ git submodule init
-	Cuttlefish$ git submodule update
+	Cuttlefish$ git submodule update --init
 
 # Platforms
 
