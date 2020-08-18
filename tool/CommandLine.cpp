@@ -866,9 +866,9 @@ bool CommandLine::parse(int argc, const char** argv)
 				parsed = false;
 			if (parsed && !readChannel(redSwzl, argv[i][0]))
 				parsed = false;
-			if (parsed && !readChannel(blueSwzl, argv[i][1]))
+			if (parsed && !readChannel(greenSwzl, argv[i][1]))
 				parsed = false;
-			if (parsed && !readChannel(greenSwzl, argv[i][2]))
+			if (parsed && !readChannel(blueSwzl, argv[i][2]))
 				parsed = false;
 			if (parsed && !readChannel(alphaSwzl, argv[i][3]))
 				parsed = false;
