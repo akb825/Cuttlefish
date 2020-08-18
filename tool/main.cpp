@@ -17,6 +17,8 @@
 #include "CommandLine.h"
 #include <cuttlefish/Image.h>
 #include <cuttlefish/Texture.h>
+
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <vector>
@@ -98,7 +100,47 @@ static bool createParentDir(std::string path)
 	} while (true);
 }
 
-bool loadImages(std::vector<Image>& images, CommandLine& args)
+static unsigned int getDimension(unsigned int curDim, unsigned int width, unsigned int height,
+	int size)
+{
+	switch (size)
+	{
+		case CommandLine::OriginalSize:
+			return curDim;
+		case CommandLine::NextPO2:
+			return nextPO2(curDim);
+		case CommandLine::NearestPO2:
+			return nearestPO2(curDim);
+		case CommandLine::Width:
+			return width;
+		case CommandLine::WidthNextPO2:
+			return nextPO2(width);
+		case CommandLine::WidthNearestPO2:
+			return nearestPO2(width);
+		case CommandLine::Height:
+			return height;
+		case CommandLine::HeightNextPO2:
+			return nextPO2(height);
+		case CommandLine::HeightNearestPO2:
+			return nearestPO2(height);
+		case CommandLine::Min:
+			return std::min(width, height);
+		case CommandLine::MinNextPO2:
+			return nextPO2(std::min(width, height));
+		case CommandLine::MinNearestPO2:
+			return nearestPO2(std::min(width, height));
+		case CommandLine::Max:
+			return std::max(width, height);
+		case CommandLine::MaxNextPO2:
+			return nextPO2(std::max(width, height));
+		case CommandLine::MaxNearestPO2:
+			return nearestPO2(std::max(width, height));
+		default:
+			return size;
+	}
+}
+
+static bool loadImages(std::vector<Image>& images, CommandLine& args)
 {
 	images.resize(args.images.size());
 	for (std::size_t i = 0; i < args.images.size(); ++i)
@@ -125,39 +167,10 @@ bool loadImages(std::vector<Image>& images, CommandLine& args)
 			images[i].changeColorSpace(args.textureColorSpace);
 		}
 
-		unsigned int width;
-		switch (args.width)
-		{
-			case CommandLine::OriginalSize:
-				width = images[0].width();
-				break;
-			case CommandLine::NextPO2:
-				width = nextPO2(images[0].width());
-				break;
-			case CommandLine::NearestPO2:
-				width = nearestPO2(images[0].width());
-				break;
-			default:
-				width = args.width;
-				break;
-		}
-
-		unsigned int height;
-		switch (args.height)
-		{
-			case CommandLine::OriginalSize:
-				height = images[0].height();
-				break;
-			case CommandLine::NextPO2:
-				height = nextPO2(images[0].height());
-				break;
-			case CommandLine::NearestPO2:
-				height = nearestPO2(images[0].height());
-				break;
-			default:
-				height = args.height;
-				break;
-		}
+		unsigned int width =
+			getDimension(images[0].width(), images[0].width(), images[0].height(), args.width);
+		unsigned int height =
+			getDimension(images[0].height(), images[0].width(), images[0].height(), args.height);
 
 		if (width != images[i].width() || height != images[i].height())
 		{

@@ -163,6 +163,26 @@ static void printHelp(const char* name)
 	          << "                                   w: the width in pixels, or one of:" << std::endl
 	          << "                                     nextpo2: the next power of 2" << std::endl
 	          << "                                     nearestpo2: the nearest power of 2" << std::endl
+	          << "                                     width: the width" << std::endl
+	          << "                                     width-nextpo2: the next power of 2 for the" << std::endl
+	          << "                                       width" << std::endl
+	          << "                                     width-nearestpo2: the nearest power of 2" << std::endl
+	          << "                                       for the width" << std::endl
+	          << "                                     height: the height" << std::endl
+	          << "                                     height-nextpo2: the next power of 2 for the" << std::endl
+	          << "                                       height" << std::endl
+	          << "                                     height-nearestpo2: the nearest power of 2" << std::endl
+	          << "                                       for the height" << std::endl
+	          << "                                     min: the minimum between width and height" << std::endl
+	          << "                                     min-nextpo2: the next power of 2 for the" << std::endl
+	          << "                                       minimum between width and height" << std::endl
+	          << "                                     min-nearestpo2: the nearest power of 2 for" << std::endl
+	          << "                                       the minimum between width and height" << std::endl
+	          << "                                     max: the maximum between width and height" << std::endl
+	          << "                                     max-nextpo2: the next power of 2 for the" << std::endl
+	          << "                                       maximum between width and height" << std::endl
+	          << "                                     max-nearestpo2: the nearest power of 2 for" << std::endl
+	          << "                                       the maximum between width and height" << std::endl
 	          << "                                   h: the height in pixels or po2 value" << std::endl
 	          << "                                   filter: the resizing filter, is one of:" << std::endl
 	          << "                                     box, linear, cubic, catmull-rom (default)" << std::endl;
@@ -333,6 +353,30 @@ static bool readSize(int& size, int& i, int argc, const char** argv)
 		size = CommandLine::NextPO2;
 	else if (strcasecmp(argv[i], "nearestpo2") == 0)
 		size = CommandLine::NearestPO2;
+	else if (strcasecmp(argv[i], "width") == 0)
+		size = CommandLine::Width;
+	else if (strcasecmp(argv[i], "width-nextpo2") == 0)
+		size = CommandLine::WidthNextPO2;
+	else if (strcasecmp(argv[i], "width-nearestpo2") == 0)
+		size = CommandLine::WidthNearestPO2;
+	else if (strcasecmp(argv[i], "height") == 0)
+		size = CommandLine::Height;
+	else if (strcasecmp(argv[i], "height-nextpo2") == 0)
+		size = CommandLine::HeightNextPO2;
+	else if (strcasecmp(argv[i], "height-nearestpo2") == 0)
+		size = CommandLine::HeightNearestPO2;
+	else if (strcasecmp(argv[i], "min") == 0)
+		size = CommandLine::Min;
+	else if (strcasecmp(argv[i], "min-nextpo2") == 0)
+		size = CommandLine::MinNextPO2;
+	else if (strcasecmp(argv[i], "min-nearestpo2") == 0)
+		size = CommandLine::MinNearestPO2;
+	else if (strcasecmp(argv[i], "max") == 0)
+		size = CommandLine::Max;
+	else if (strcasecmp(argv[i], "max-nextpo2") == 0)
+		size = CommandLine::MaxNextPO2;
+	else if (strcasecmp(argv[i], "max-nearestpo2") == 0)
+		size = CommandLine::MaxNearestPO2;
 	else
 	{
 		char* endPtr;

@@ -42,7 +42,19 @@ struct CommandLine
 	{
 		OriginalSize = -1,
 		NextPO2 = -2,
-		NearestPO2 = -3
+		NearestPO2 = -3,
+		Width = -4,
+		WidthNextPO2 = -5,
+		WidthNearestPO2 = -6,
+		Height = -7,
+		HeightNextPO2 = -8,
+		HeightNearestPO2 = -9,
+		Min = -10,
+		MinNextPO2 = -11,
+		MinNearestPO2 = -12,
+		Max = -13,
+		MaxNextPO2 = -14,
+		MaxNearestPO2 = -15
 	};
 
 	bool parse(int argc, const char** argv);
