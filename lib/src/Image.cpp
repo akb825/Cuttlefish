@@ -641,6 +641,18 @@ bool Image::load(const std::uint8_t* data, std::size_t size, ColorSpace colorSpa
 	return m_impl != nullptr;
 }
 
+bool Image::save(const char* fileName)
+{
+	if (!m_impl)
+		return false;
+
+	FREE_IMAGE_FORMAT format = FreeImage_GetFIFFromFilename(fileName);
+	if (format == FIF_UNKNOWN)
+		return false;
+
+	return FreeImage_Save(format, m_impl->image, fileName) != false;
+}
+
 bool Image::initialize(Format format, unsigned int width, unsigned int height,
 	ColorSpace colorSpace)
 {

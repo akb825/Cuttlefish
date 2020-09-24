@@ -787,7 +787,6 @@ TEST(NormalMapTest, CreateNormalMap)
 		}
 	}
 
-
 	normalMap = image.createNormalMap(false, 2.5);
 	EXPECT_TRUE(normalMap.isValid());
 	for (unsigned int y = 0; y < image.height(); ++y)

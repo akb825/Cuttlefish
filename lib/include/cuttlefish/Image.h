@@ -173,6 +173,20 @@ public:
 		ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
+	 * @brief Saves an image to a file.
+	 *
+	 * Nearly all image file formats, such as png, jpeg, etc., are supported. This will use the
+	 * default parameters for settings like compression, and is intended for the most common use
+	 * cases. For more intricate use cases where finer levels of control are needed, you will need
+	 * to extract the raw image data and use a dedicated image library.
+	 *
+	 * @remark You should ensure that the image's pixel format is supported by the file format.
+	 * @param fileName The name of the file to save.
+	 * @return False if the image couldn't be saved.
+	 */
+	bool save(const char* fileName);
+
+	/**
 	 * @brief Initializes an empty image.
 	 * @param format The pixel format.
 	 * @param width The width of the image.
