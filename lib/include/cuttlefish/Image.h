@@ -122,7 +122,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(const std::uint8_t* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
+	Image(const void* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Initializes an empty image.
@@ -169,8 +169,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(const std::uint8_t* data, std::size_t size,
-		ColorSpace colorSpace = ColorSpace::Linear);
+	bool load(const void* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Saves an image to a file.

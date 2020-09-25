@@ -539,7 +539,7 @@ Image::Image(const char* fileName, ColorSpace colorSpace)
 	load(fileName, colorSpace);
 }
 
-Image::Image(const std::uint8_t* data, std::size_t size, ColorSpace colorSpace)
+Image::Image(const void* data, std::size_t size, ColorSpace colorSpace)
 	: Image()
 {
 	load(data, size, colorSpace);
@@ -621,7 +621,7 @@ bool Image::load(const char* fileName, ColorSpace colorSpace)
 	return m_impl != nullptr;
 }
 
-bool Image::load(const std::uint8_t* data, std::size_t size, ColorSpace colorSpace)
+bool Image::load(const void* data, std::size_t size, ColorSpace colorSpace)
 {
 	reset();
 
