@@ -756,16 +756,16 @@ TEST(NormalMapTest, CreateNormalMap)
 		}
 	}
 
-	Image normalMap = image.createNormalMap(true, 2.5);
+	Image normalMap = image.createNormalMap(Image::NormalOptions::KeepSign, 2.5);
 	EXPECT_TRUE(normalMap.isValid());
 	for (unsigned int y = 0; y < image.height(); ++y)
 	{
 		for (unsigned int x = 0; x < image.width(); ++x)
 		{
-			double x0 = getHeight(image, x == 0 ? 0 : x - 1, y);
-			double x1 = getHeight(image, x == image.width() - 1 ? image.width() - 1 : x + 1, y);
-			double y0 = getHeight(image, x, y == 0 ? 0 : y - 1);
-			double y1 = getHeight(image, x, y == image.height() - 1 ? image.height() - 1 : y + 1);
+			double x0 = getHeight(image, x == 0 ? x : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? x : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? y : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? y : y + 1);
 
 			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
 			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
@@ -786,20 +786,130 @@ TEST(NormalMapTest, CreateNormalMap)
 			EXPECT_NEAR(1.0/len, color.b, 1e-4);
 		}
 	}
+}
 
-	normalMap = image.createNormalMap(false, 2.5);
+TEST(NormalMapTest, CreateNormalMapKeepSign)
+{
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBF, 9, 9));
+
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double h = getHeight(image, x, y);
+			ColorRGBAd color = {h, 0.0, 0.0, 1.0};
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	Image normalMap = image.createNormalMap(Image::NormalOptions::Default, 2.5);
 	EXPECT_TRUE(normalMap.isValid());
 	for (unsigned int y = 0; y < image.height(); ++y)
 	{
 		for (unsigned int x = 0; x < image.width(); ++x)
 		{
-			double x0 = getHeight(image, x == 0 ? 0 : x - 1, y);
-			double x1 = getHeight(image, x == image.width() - 1 ? image.width() - 1 : x + 1, y);
-			double y0 = getHeight(image, x, y == 0 ? 0 : y - 1);
-			double y1 = getHeight(image, x, y == image.height() - 1 ? image.height() - 1 : y + 1);
+			double x0 = getHeight(image, x == 0 ? x : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? x : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? y : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? y : y + 1);
 
 			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
 			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
+			double dx = (x1 - x0)*2.5/width;
+			double dy = (y0 - y1)*2.5/height;
+			double len = std::sqrt(dx*dx + dy*dy + 1);
+
+			ColorRGBAd color;
+			EXPECT_TRUE(normalMap.getPixel(color, x, y));
+			EXPECT_GE(1.0, color.r);
+			EXPECT_LE(0.0, color.r);
+			EXPECT_GE(1.0, color.g);
+			EXPECT_LE(0.0, color.g);
+			EXPECT_GE(1.0, color.b);
+			EXPECT_LE(0.0, color.b);
+			EXPECT_NEAR(dx/len*0.5 + 0.5, color.r, 1e-4);
+			EXPECT_NEAR(dy/len*0.5 + 0.5, color.g, 1e-4);
+			EXPECT_NEAR(1.0/len*0.5 + 0.5, color.b, 1e-4);
+		}
+	}
+}
+
+TEST(NormalMapTest, CreateNormalMapWrapX)
+{
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBF, 9, 9));
+
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double h = getHeight(image, x, y);
+			ColorRGBAd color = {h, 0.0, 0.0, 1.0};
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	Image normalMap = image.createNormalMap(Image::NormalOptions::WrapX, 2.5);
+	EXPECT_TRUE(normalMap.isValid());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double x0 = getHeight(image, x == 0 ? image.width() - 1 : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? 0 : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? y : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? y : y + 1);
+
+			double width = 2.0;
+			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
+			double dx = (x1 - x0)*2.5/width;
+			double dy = (y0 - y1)*2.5/height;
+			double len = std::sqrt(dx*dx + dy*dy + 1);
+
+			ColorRGBAd color;
+			EXPECT_TRUE(normalMap.getPixel(color, x, y));
+			EXPECT_GE(1.0, color.r);
+			EXPECT_LE(0.0, color.r);
+			EXPECT_GE(1.0, color.g);
+			EXPECT_LE(0.0, color.g);
+			EXPECT_GE(1.0, color.b);
+			EXPECT_LE(0.0, color.b);
+			EXPECT_NEAR(dx/len*0.5 + 0.5, color.r, 1e-4);
+			EXPECT_NEAR(dy/len*0.5 + 0.5, color.g, 1e-4);
+			EXPECT_NEAR(1.0/len*0.5 + 0.5, color.b, 1e-4);
+		}
+	}
+}
+
+TEST(NormalMapTest, CreateNormalMapWrapY)
+{
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBF, 9, 9));
+
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double h = getHeight(image, x, y);
+			ColorRGBAd color = {h, 0.0, 0.0, 1.0};
+			EXPECT_TRUE(image.setPixel(x, y, color));
+		}
+	}
+
+	Image normalMap = image.createNormalMap(Image::NormalOptions::WrapY, 2.5);
+	EXPECT_TRUE(normalMap.isValid());
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+		{
+			double x0 = getHeight(image, x == 0 ? x : x - 1, y);
+			double x1 = getHeight(image, x == image.width() - 1 ? x : x + 1, y);
+			double y0 = getHeight(image, x, y == 0 ? image.height() - 1 : y - 1);
+			double y1 = getHeight(image, x, y == image.height() - 1 ? 0 : y + 1);
+
+			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
+			double height = 2.0;
 			double dx = (x1 - x0)*2.5/width;
 			double dy = (y0 - y1)*2.5/height;
 			double len = std::sqrt(dx*dx + dy*dy + 1);

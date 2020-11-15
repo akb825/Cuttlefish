@@ -105,6 +105,17 @@ public:
 		None   ///< Unused. Will be set to 1 for alpha, 0 otherwise.
 	};
 
+	/**
+	 * @brief Bitmask enum for options when creating normal maps.
+	 */
+	enum class NormalOptions
+	{
+		Default = 0x0,  ///< Default options.
+		KeepSign = 0x1, ///< Keep the range in [-1, 1] rather than [0, 1].
+		WrapX = 0x2,    ///< Wrap along the X axis.
+		WrapY = 0x4     ///< Wrap along the Y axis.
+	};
+
 	Image();
 
 	/**
@@ -383,16 +394,53 @@ public:
 
 	/**
 	 * @brief Creates a normal map from the R channel of the image.
-	 * @param keepSign True to keep the sign of the image, false to make the values unsigned.
+	 * @param options The options to use for computing the normal map.
 	 * @param height The height for the image.
 	 * @param format The format of the final image.
 	 * @return The normal map image.
 	 */
-	Image createNormalMap(bool keepSign = false, double height = 1.0, Format format = Format::RGBF);
+	Image createNormalMap(NormalOptions options = NormalOptions::Default, double height = 1.0,
+		Format format = Format::RGBF);
 
 private:
 	struct Impl;
 	Impl* m_impl;
 };
+
+/**
+ * @brief Combines two normal options.
+ * @param left The left options.
+ * @param right The right options.
+ * @return The combination of the left and right options.
+ */
+inline Image::NormalOptions operator|(Image::NormalOptions left, Image::NormalOptions right)
+{
+	return static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
+		static_cast<unsigned int>(right));
+}
+
+/**
+ * @brief Combines two normal options.
+ * @param left The left options to add right options to.
+ * @param right The right options.
+ * @return The combination of the left and right options.
+ */
+inline Image::NormalOptions& operator|=(Image::NormalOptions& left, Image::NormalOptions right)
+{
+	left = static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
+		static_cast<unsigned int>(right));
+	return left;
+}
+
+/**
+ * @brief Checks if there are shared options between two normal options.
+ * @param left The left options.
+ * @param right The right options.
+ * @return True if there are shared options between left and right.
+ */
+inline bool operator&(Image::NormalOptions left, Image::NormalOptions right)
+{
+	return (static_cast<unsigned int>(left) & static_cast<unsigned int>(right)) != 0;
+}
 
 } // namespace cuttlefish

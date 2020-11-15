@@ -73,6 +73,7 @@ struct CommandLine
 	bool rotate = false;
 	cuttlefish::Image::RotateAngle rotateAngle = cuttlefish::Image::RotateAngle::CW90;
 	bool normalMap = false;
+	cuttlefish::Image::NormalOptions normalOptions = cuttlefish::Image::NormalOptions::Default;
 	double normalHeight = 1.0;
 	bool grayscale = false;
 	bool swizzle = false;

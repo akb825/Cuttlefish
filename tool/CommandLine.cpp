@@ -195,7 +195,11 @@ static void printHelp(const char* name)
 	std::cout << "      --flipy                    flip the images in the Y direction" << std::endl;
 	std::cout << "      --rotate degrees           rotate by an angle" << std::endl
 	          << "                                   degrees: must be a multiple of 90" << std::endl;
-	std::cout << "  -n, --normalmap [h]            generate a normalmap from a bitmap" << std::endl
+	std::cout << "  -n, --normalmap [wrap] [h]     generate a normalmap from a bitmap" << std::endl
+	          << "                                   wrap: set to wrap for tiled textures:" << std::endl
+	          << "                                     wrap: wrap along both X and Y axes" << std::endl
+	          << "                                     wrapx: wrap along the X axis" << std::endl
+	          << "                                     wrapy: wrap along the Y axis" << std::endl
 	          << "                                   h: the height scale (default is 1.0)" << std::endl;
 	std::cout << "  -g, --grayscale                convert the image to grayscale" << std::endl;
 	std::cout << "  -s, --swizzle rgba             swizzle the channels of the image, a " << std::endl
@@ -881,6 +885,25 @@ bool CommandLine::parse(int argc, const char** argv)
 		else if (matches(argv[i], "-n", "--normalmap"))
 		{
 			normalMap = true;
+			if (i < argc - 1)
+			{
+				if (strcasecmp(argv[i + 1], "wrap") == 0)
+				{
+					normalOptions = Image::NormalOptions::WrapX | Image::NormalOptions::WrapY;
+					++i;
+				}
+				else if (strcasecmp(argv[i + 1], "wrapx") == 0)
+				{
+					normalOptions = Image::NormalOptions::WrapX;
+					++i;
+				}
+				else if (strcasecmp(argv[i + 1], "wrapy") == 0)
+				{
+					normalOptions = Image::NormalOptions::WrapY;
+					++i;
+				}
+			}
+
 			if (i < argc - 1)
 			{
 				char* endPtr;

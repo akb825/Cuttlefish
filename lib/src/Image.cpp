@@ -1370,7 +1370,7 @@ bool Image::swizzle(Channel red, Channel green, Channel blue, Channel alpha)
 	return true;
 }
 
-Image Image::createNormalMap(bool keepSign, double height, Format format)
+Image Image::createNormalMap(NormalOptions options, double height, Format format)
 {
 	Image image;
 	if (!m_impl)
@@ -1387,8 +1387,13 @@ Image Image::createNormalMap(bool keepSign, double height, Format format)
 		const void* scanline0;
 		if (y == 0)
 		{
-			scanline0 = scanline1;
-			distY = 1.0;
+			if (options & NormalOptions::WrapY)
+				scanline0 = FreeImage_GetScanLine(m_impl->image, m_impl->height - 1);
+			else
+			{
+				scanline0 = scanline1;
+				distY = 1.0;
+			}
 		}
 		else
 			scanline0 = FreeImage_GetScanLine(m_impl->image, y - 1);
@@ -1396,8 +1401,13 @@ Image Image::createNormalMap(bool keepSign, double height, Format format)
 		const void* scanline2;
 		if (y == m_impl->height - 1)
 		{
-			scanline2 = scanline1;
-			distY = 1.0;
+			if (options & NormalOptions::WrapY)
+				scanline2 = FreeImage_GetScanLine(m_impl->image, 0);
+			else
+			{
+				scanline2 = scanline1;
+				distY = 1.0;
+			}
 		}
 		else
 			scanline2 = FreeImage_GetScanLine(m_impl->image, y + 1);
@@ -1414,16 +1424,26 @@ Image Image::createNormalMap(bool keepSign, double height, Format format)
 			double distX = 2.0;
 			if (x == 0)
 			{
-				getPixelImpl(curColor0, m_impl->format, scanline1, 0);
-				distX = 1.0;
+				if (options & NormalOptions::WrapX)
+					getPixelImpl(curColor0, m_impl->format, scanline1, m_impl->width - 1);
+				else
+				{
+					getPixelImpl(curColor0, m_impl->format, scanline1, x);
+					distX = 1.0;
+				}
 			}
 			else
 				getPixelImpl(curColor0, m_impl->format, scanline1, x - 1);
 
 			if (x == m_impl->width - 1)
 			{
-				getPixelImpl(curColor1, m_impl->format, scanline1, m_impl->width - 1);
-				distX = 1.0;
+				if (options & NormalOptions::WrapX)
+					getPixelImpl(curColor1, m_impl->format, scanline1, 0);
+				else
+				{
+					getPixelImpl(curColor1, m_impl->format, scanline1, x);
+					distX = 1.0;
+				}
 			}
 			else
 				getPixelImpl(curColor1, m_impl->format, scanline1, x + 1);
@@ -1436,7 +1456,7 @@ Image Image::createNormalMap(bool keepSign, double height, Format format)
 			normal.g = dy/len;
 			normal.b = 1.0/len;
 			normal.a = 1.0;
-			if (!keepSign)
+			if (!(options & NormalOptions::KeepSign))
 			{
 				normal.r = normal.r*0.5 + 0.5;
 				normal.g = normal.g*0.5 + 0.5;

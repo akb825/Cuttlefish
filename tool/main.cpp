@@ -200,7 +200,10 @@ static bool loadImages(std::vector<Image>& images, CommandLine& args)
 		{
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "generating normalmap for image '" << args.images[i] << "'" << std::endl;
-			images[i] = images[i].createNormalMap(isSigned(args.type), args.normalHeight);
+			Image::NormalOptions options = args.normalOptions;
+			if (isSigned(args.type))
+				options |= Image::NormalOptions::KeepSign;
+			images[i] = images[i].createNormalMap(options, args.normalHeight);
 		}
 
 		if (args.flipX)

@@ -276,6 +276,18 @@ add_test(NAME CuttlefishNormalimap
 add_test(NAME CuttlefishNormalimapHeight
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --normalmap 2.3 -o ${nullFile} --file-format pvr" 0)
+add_test(NAME CuttlefishNormalimapWrap
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --normalmap wrap -o ${nullFile} --file-format pvr" 0)
+add_test(NAME CuttlefishNormalimapWrapX
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --normalmap wrapx -o ${nullFile} --file-format pvr" 0)
+add_test(NAME CuttlefishNormalimapWrapY
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --normalmap wrapy -o ${nullFile} --file-format pvr" 0)
+add_test(NAME CuttlefishNormalimapWrapWithHeight
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} "-i texture.png -f R8G8B8A8 --normalmap wrap 2.3 -o ${nullFile} --file-format pvr" 0)
 
 add_test(NAME CuttlefishAlphaNone
 	WORKING_DIRECTORY ${testPath}
