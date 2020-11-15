@@ -46,7 +46,7 @@
 #pragma GCC diagnostic ignored "-Wreorder"
 #endif
 
-#include "bc7enc16.h"
+#include "bc7enc.h"
 #include "bc6h/zoh.h"
 #include "bc7/avpcl.h"
 #include "nvimage/BlockDXT.h"
@@ -120,7 +120,8 @@ static nv::AlphaBlock4x4 toAlphaBlock(const ColorRGBAf* blockColors, unsigned in
 		for (unsigned int i = 0; i < S3tcConverter::blockDim*S3tcConverter::blockDim; ++i)
 		{
 			float value = (reinterpret_cast<const float*>(blockColors + i)[channel] + 0.5f) + 0.5f;
-			alphaBlock.alpha[i] = static_cast<std::uint8_t>(std::round(clamp(value, 0.0f, 1.0f)*0xFF));
+			alphaBlock.alpha[i] =
+				static_cast<std::uint8_t>(std::round(clamp(value, 0.0f, 1.0f)*0xFF));
 			alphaBlock.weights[i] = 1.0f;
 		}
 	}
@@ -129,7 +130,8 @@ static nv::AlphaBlock4x4 toAlphaBlock(const ColorRGBAf* blockColors, unsigned in
 		for (unsigned int i = 0; i < S3tcConverter::blockDim*S3tcConverter::blockDim; ++i)
 		{
 			float value = (reinterpret_cast<const float*>(blockColors + i)[channel]);
-			alphaBlock.alpha[i] = static_cast<std::uint8_t>(std::round(clamp(value, 0.0f, 1.0f)*0xFF));
+			alphaBlock.alpha[i] =
+				static_cast<std::uint8_t>(std::round(clamp(value, 0.0f, 1.0f)*0xFF));
 			alphaBlock.weights[i] = 1.0f;
 		}
 	}
@@ -173,43 +175,46 @@ static void setChannelWeights(nvsquish::WeightedClusterFit& fit, Texture::ColorM
 	fit.SetMetric(colorMask.r ? 1.0f : 0.0f, colorMask.g ? 1.0f : 0.0f, colorMask.b ? 1.0f : 0.0f);
 }
 
-static bc7enc16_compress_block_params createBc7BlockParams(const S3tcConverter& converter)
+static bc7enc_compress_block_params createBc7BlockParams(const S3tcConverter& converter)
 {
-	bc7enc16_compress_block_params params;
+	bc7enc_compress_block_params params;
 
 	switch (converter.quality())
 	{
 		case Texture::Quality::Lowest:
-			params.m_max_partitions_mode1 = 0;
+			params.m_max_partitions_mode = 0;
 			params.m_uber_level = 0;
 			params.m_try_least_squares = false;
-			params.m_mode1_partition_estimation_filterbank = true;
-			bc7enc16_compress_block_params_init_linear_weights(&params);
+			params.m_mode_partition_estimation_filterbank = true;
+			bc7enc_compress_block_params_init_linear_weights(&params);
 			break;
 		case Texture::Quality::Low:
-			params.m_max_partitions_mode1 = 16;
+			params.m_max_partitions_mode = 16;
 			params.m_uber_level = 0;
 			params.m_try_least_squares = true;
-			params.m_mode1_partition_estimation_filterbank = true;
-			bc7enc16_compress_block_params_init_linear_weights(&params);
+			params.m_mode_partition_estimation_filterbank = true;
+			bc7enc_compress_block_params_init_linear_weights(&params);
 			break;
 		case Texture::Quality::Normal:
-			params.m_max_partitions_mode1 = BC7ENC16_MAX_PARTITIONS1;
+			params.m_max_partitions_mode = BC7ENC_MAX_PARTITIONS1;
 			params.m_uber_level = 1;
 			params.m_try_least_squares = true;
-			params.m_mode1_partition_estimation_filterbank = false;
-			bc7enc16_compress_block_params_init_linear_weights(&params);
+			params.m_mode_partition_estimation_filterbank = false;
+			if (converter.image().colorSpace() == ColorSpace::sRGB)
+				bc7enc_compress_block_params_init_perceptual_weights(&params);
+			else
+				bc7enc_compress_block_params_init_linear_weights(&params);
 			break;
 		case Texture::Quality::High:
 		case Texture::Quality::Highest:
-			params.m_max_partitions_mode1 = BC7ENC16_MAX_PARTITIONS1;
+			params.m_max_partitions_mode = BC7ENC_MAX_PARTITIONS1;
 			params.m_uber_level = 4;
 			params.m_try_least_squares = true;
-			params.m_mode1_partition_estimation_filterbank = false;
+			params.m_mode_partition_estimation_filterbank = false;
 			if (converter.image().colorSpace() == ColorSpace::sRGB)
-				bc7enc16_compress_block_params_init_perceptual_weights(&params);
+				bc7enc_compress_block_params_init_perceptual_weights(&params);
 			else
-				bc7enc16_compress_block_params_init_linear_weights(&params);
+				bc7enc_compress_block_params_init_linear_weights(&params);
 			break;
 		default:
 			assert(false);
@@ -491,53 +496,25 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 Bc7Converter::Bc7Converter(const Texture& texture, const Image& image, Texture::Quality quality)
 	: S3tcConverter(texture, image, 16, quality)
 {
-	bc7enc16_compress_block_init();
+	bc7enc_compress_block_init();
 }
 
 void Bc7Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
-	bool useBc7Enc16;
-	switch (quality())
-	{
-		case Texture::Quality::Lowest:
-		case Texture::Quality::Low:
-		case Texture::Quality::Normal:
-			useBc7Enc16 = true;
-			break;
-		case Texture::Quality::High:
-		{
-			float minAlpha = std::numeric_limits<float>::max();
-			float maxAlpha = std::numeric_limits<float>::lowest();
-			for (unsigned int i = 0; i < 16; ++i)
-			{
-				minAlpha = std::min(minAlpha, blockColors[i].a);
-				maxAlpha = std::min(maxAlpha, blockColors[i].a);
-			}
+	// Take advantage of full colorblock support of nvidia-texture-tools for highest quality only
+	// since it's very slow.
+	bool useBc7Enc = quality() < Texture::Quality::Highest;
 
-			const float complexAlphaLimit = 0.2f;
-			useBc7Enc16 = (maxAlpha - minAlpha) < complexAlphaLimit;
-			break;
-		}
-		case Texture::Quality::Highest:
-			// Take advantage of the extra modes for all situations, though this is very slow.
-			useBc7Enc16 = false;
-			break;
-		default:
-			assert(false);
-			useBc7Enc16 = true;
-			break;
-	}
-
-	if (useBc7Enc16)
+	if (useBc7Enc)
 	{
 		std::uint8_t colorBlock[16][4];
 		toBc7ColorBlock(colorBlock, blockColors);
 
 		// NOTE: would be slightly more optimal to create this ahead of time, but can't forward
-		// declare the type due to how it's declared in bc7enc16. The overhead of this is expected
+		// declare the type due to how it's declared in bc7enc. The overhead of this is expected
 		// to be very small.
-		bc7enc16_compress_block_params params = createBc7BlockParams(*this);
-		bc7enc16_compress_block(block, &colorBlock, &params);
+		bc7enc_compress_block_params params = createBc7BlockParams(*this);
+		bc7enc_compress_block(block, &colorBlock, &params);
 	}
 	else
 	{

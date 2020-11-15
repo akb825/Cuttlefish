@@ -1,6 +1,0 @@
-set(bc7enc16Sources
-	${BC7ENC16_DIR}/bc7enc16.c
-	${BC7ENC16_DIR}/bc7enc16.h
-)
-
-set(BC7ENC16_INCLUDE_DIRS ${BC7ENC16_DIR})
