@@ -769,8 +769,8 @@ TEST(NormalMapTest, CreateNormalMap)
 
 			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
 			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
-			double dx = (x1 - x0)*2.5/width;
-			double dy = (y0 - y1)*2.5/height;
+			double dx = (x0 - x1)*2.5/width;
+			double dy = (y1 - y0)*2.5/height;
 			double len = std::sqrt(dx*dx + dy*dy + 1);
 
 			ColorRGBAd color;
@@ -816,8 +816,8 @@ TEST(NormalMapTest, CreateNormalMapKeepSign)
 
 			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
 			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
-			double dx = (x1 - x0)*2.5/width;
-			double dy = (y0 - y1)*2.5/height;
+			double dx = (x0 - x1)*2.5/width;
+			double dy = (y1 - y0)*2.5/height;
 			double len = std::sqrt(dx*dx + dy*dy + 1);
 
 			ColorRGBAd color;
@@ -863,8 +863,8 @@ TEST(NormalMapTest, CreateNormalMapWrapX)
 
 			double width = 2.0;
 			double height = y == 0 || y == image.height() - 1 ? 1.0 : 2.0;
-			double dx = (x1 - x0)*2.5/width;
-			double dy = (y0 - y1)*2.5/height;
+			double dx = (x0 - x1)*2.5/width;
+			double dy = (y1 - y0)*2.5/height;
 			double len = std::sqrt(dx*dx + dy*dy + 1);
 
 			ColorRGBAd color;
@@ -910,8 +910,8 @@ TEST(NormalMapTest, CreateNormalMapWrapY)
 
 			double width = x == 0 || x == image.width() - 1 ? 1.0 : 2.0;
 			double height = 2.0;
-			double dx = (x1 - x0)*2.5/width;
-			double dy = (y0 - y1)*2.5/height;
+			double dx = (x0 - x1)*2.5/width;
+			double dy = (y1 - y0)*2.5/height;
 			double len = std::sqrt(dx*dx + dy*dy + 1);
 
 			ColorRGBAd color;

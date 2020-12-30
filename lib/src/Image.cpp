@@ -1419,7 +1419,7 @@ Image Image::createNormalMap(NormalOptions options, double height, Format format
 			ColorRGBAd curColor0, curColor1;
 			getPixelImpl(curColor0, m_impl->format, scanline0, x);
 			getPixelImpl(curColor1, m_impl->format, scanline2, x);
-			double dy = (curColor1.r - curColor0.r)*height/distY;
+			double dy = (curColor0.r - curColor1.r)*height/distY;
 
 			double distX = 2.0;
 			if (x == 0)
@@ -1448,7 +1448,7 @@ Image Image::createNormalMap(NormalOptions options, double height, Format format
 			else
 				getPixelImpl(curColor1, m_impl->format, scanline1, x + 1);
 
-			double dx = (curColor1.r - curColor0.r)*height/distX;
+			double dx = (curColor0.r - curColor1.r)*height/distX;
 
 			ColorRGBAd normal;
 			double len = std::sqrt(dx*dx + dy*dy + 1);
