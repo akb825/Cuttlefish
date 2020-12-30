@@ -24,7 +24,7 @@
 SET( PVRTEXLIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../lib/PVRTexToolLib"
   CACHE PATH "Location of the PVRTexTool library platform subdirectories" )
 find_path(
-  PVRTEXLIB_INCLUDE_DIR PVRTexture.h
+  PVRTEXLIB_INCLUDE_DIR PVRTexLib.h
   PATHS ${PVRTEXLIB_ROOT}/Include
 )
 

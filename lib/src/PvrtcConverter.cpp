@@ -27,8 +27,7 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
-#include <PVRTextureUtilities.h>
-#include <PVRTTexture.h>
+#include <PVRTexLib.hpp>
 
 #if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
 #pragma GCC diagnostic pop
@@ -47,12 +46,12 @@ PvrtcConverter::PvrtcConverter(const Texture& texture, const Image& image, Textu
 
 void PvrtcConverter::process(unsigned int, unsigned int, ThreadData*)
 {
-	pvrtexture::CPVRTexture pvrTexture(pvrtexture::CPVRTextureHeader(
-		pvrtexture::PVRStandard8PixelType.PixelTypeID, image().width(), image().height(), 1,
-		1, 1, 1, ePVRTCSpacelRGB, ePVRTVarTypeUnsignedByteNorm, m_premultipliedAlpha));
-
-	auto dstData = reinterpret_cast<std::uint8_t*>(pvrTexture.getDataPtr());
 	unsigned int width = image().width(), height = image().height();
+	const PVRTuint64 inPixelType = PVRTGENPIXELID4('r', 'g', 'b', 'a', 8, 8, 8, 8);
+	pvrtexlib::PVRTexture pvrTexture(pvrtexlib::PVRTextureHeader(inPixelType, width, height, 1, 1,
+		1, 1, PVRTLCS_Linear, PVRTLVT_UnsignedByteNorm, m_premultipliedAlpha), nullptr);
+
+	auto dstData = reinterpret_cast<std::uint8_t*>(pvrTexture.GetTextureDataPointer());
 	for (unsigned int y = 0; y < height; ++y)
 	{
 		const ColorRGBAf* scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(y));
@@ -74,33 +73,33 @@ void PvrtcConverter::process(unsigned int, unsigned int, ThreadData*)
 	switch (m_format)
 	{
 		case Texture::Format::PVRTC1_RGB_2BPP:
-			pixelType = ePVRTPF_PVRTCI_2bpp_RGB;
+			pixelType = PVRTLPF_PVRTCI_2bpp_RGB;
 			break;
 		case Texture::Format::PVRTC1_RGBA_2BPP:
-			pixelType = ePVRTPF_PVRTCI_2bpp_RGBA;
+			pixelType = PVRTLPF_PVRTCI_2bpp_RGBA;
 			break;
 		case Texture::Format::PVRTC1_RGB_4BPP:
-			pixelType = ePVRTPF_PVRTCI_4bpp_RGB;
+			pixelType = PVRTLPF_PVRTCI_4bpp_RGB;
 			break;
 		case Texture::Format::PVRTC1_RGBA_4BPP:
-			pixelType = ePVRTPF_PVRTCI_4bpp_RGBA;
+			pixelType = PVRTLPF_PVRTCI_4bpp_RGBA;
 			break;
 		case Texture::Format::PVRTC2_RGBA_2BPP:
-			pixelType = ePVRTPF_PVRTCII_2bpp;
+			pixelType = PVRTLPF_PVRTCII_2bpp;
 			break;
 		case Texture::Format::PVRTC2_RGBA_4BPP:
-			pixelType = ePVRTPF_PVRTCII_4bpp;
+			pixelType = PVRTLPF_PVRTCII_4bpp;
 			break;
 		default:
 			assert(false);
 			return;
 	}
 
-	pvrtexture::Transcode(pvrTexture, pixelType, ePVRTVarTypeUnsignedByteNorm, ePVRTCSpacelRGB,
-		static_cast<pvrtexture::ECompressorQuality>(m_quality));
+	pvrTexture.Transcode(pixelType, PVRTLVT_UnsignedByteNorm, PVRTLCS_Linear,
+		static_cast<PVRTexLibCompressorQuality>(m_quality));
 
-	auto textureData = reinterpret_cast<const std::uint8_t*>(pvrTexture.getDataPtr());
-	data().assign(textureData, textureData + pvrTexture.getDataSize());
+	auto textureData = reinterpret_cast<const std::uint8_t*>(pvrTexture.GetTextureDataPointer());
+	data().assign(textureData, textureData + pvrTexture.GetTextureDataSize());
 }
 
 } // namespace cuttlefish
