@@ -101,7 +101,7 @@ public:
 		}
 
 		astcenc_config config;
-		astcenc_config_init(converter.m_hdr ? ASTCENC_PRF_HDR : ASTCENC_PRF_LDR, converter.m_blockX,
+		astcenc_config_init(static_cast<astcenc_profile>(converter.m_hdr), converter.m_blockX,
 			converter.m_blockY, 1, preset, flags, config);
 
 		astcenc_context_alloc(config, 1, &context);
@@ -156,8 +156,17 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	: Converter(image), m_blockX(blockX), m_blockY(blockY),
 	m_jobsX((image.width() + blockX - 1)/blockX), m_jobsY((image.height() + blockY - 1)/blockY),
 	m_quality(quality), m_alphaType(texture.alphaType()), m_colorSpace(texture.colorSpace()),
-	m_colorMask(texture.colorMask()), m_hdr(texture.type() == Texture::Type::UFloat)
+	m_colorMask(texture.colorMask())
 {
+	if (texture.type() == Texture::Type::UFloat)
+	{
+		if (m_alphaType == Texture::Alpha::None || m_alphaType == Texture::Alpha::PreMultiplied)
+			m_hdr = ASTCENC_PRF_HDR_RGB_LDR_A;
+		else
+			m_hdr = ASTCENC_PRF_HDR;
+	}
+	else
+		m_hdr = ASTCENC_PRF_LDR;
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
 	data().resize(m_jobsX*m_jobsY*blockSize);
 }
@@ -187,8 +196,8 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 	void* imageDataPtr = imageData;
 	dummyImage.data = &imageDataPtr;
 	imageblock astcBlock;
-	fetch_imageblock(m_hdr ? ASTCENC_PRF_HDR : ASTCENC_PRF_LDR, dummyImage, &astcBlock,
-		context->bsd, 0, 0, 0, astcThreadData->swizzle);
+	fetch_imageblock(static_cast<astcenc_profile>(m_hdr), dummyImage, &astcBlock, context->bsd, 0,
+		0, 0, astcThreadData->swizzle);
 
 	if (astcThreadData->context->input_averages)
 	{

@@ -254,7 +254,7 @@ bool Texture::hasNativeSRGB(Format format, Type type)
 		case Format::ASTC_10x10:
 		case Format::ASTC_12x10:
 		case Format::ASTC_12x12:
-			return type == Type::UNorm || type == Type::UFloat;
+			return type == Type::UNorm;
 
 		default:
 			return false;

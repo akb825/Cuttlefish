@@ -54,7 +54,7 @@ private:
 	Texture::Alpha m_alphaType;
 	ColorSpace m_colorSpace;
 	Texture::ColorMask m_colorMask;
-	bool m_hdr;
+	unsigned int m_hdr;
 };
 
 } // namespace cuttlefish
