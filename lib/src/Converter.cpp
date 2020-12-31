@@ -505,9 +505,13 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 	Texture::Quality quality, unsigned int threadCount)
 {
 	std::vector<std::pair<unsigned int, unsigned int>> jobs;
+	std::vector<std::unique_ptr<ThreadData>> threadData;
 	std::vector<std::thread> threads;
 	if (threadCount > 1)
+	{
+		threadData.reserve(threadCount);
 		threads.reserve(threadCount);
+	}
 
 	textureData.resize(images.size());
 	for (unsigned int mip = 0; mip < images.size(); ++mip)
@@ -540,19 +544,23 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 				unsigned int curThreads = std::min(jobsX*jobsY, threadCount);
 				if (curThreads <= 1)
 				{
-					std::unique_ptr<ThreadData> threadData = converter->createThreadData();
+					std::unique_ptr<ThreadData> singleThreadData = converter->createThreadData();
 					for (const std::pair<unsigned int, unsigned int>& job : jobs)
-						converter->process(job.first, job.second, threadData.get());
+						converter->process(job.first, job.second, singleThreadData.get());
 				}
 				else
 				{
 					std::atomic<unsigned int> curJob(0);
+					// Initialize all thread data first in case they work with global data, such as
+					// library initialization. (some of which is beyond our control)
+					for (unsigned int i = 0; i < curThreads; ++i)
+						threadData.push_back(converter->createThreadData());
+
 					for (unsigned int i = 0; i < curThreads; ++i)
 					{
-						threads.emplace_back([&curJob, &jobs, &converter]()
+						Converter::ThreadData* threadDataPtr = threadData[i].get();
+						threads.emplace_back([&curJob, &jobs, &converter, threadDataPtr]()
 							{
-								std::unique_ptr<ThreadData> threadData =
-									converter->createThreadData();
 								do
 								{
 									unsigned int thisJob = curJob++;
@@ -560,13 +568,14 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 										return;
 
 									converter->process(jobs[thisJob].first, jobs[thisJob].second,
-										threadData.get());
+										threadDataPtr);
 								} while (true);
 							});
 					}
 
 					for (std::thread& thread : threads)
 						thread.join();
+					threadData.clear();
 					threads.clear();
 				}
 

@@ -24,8 +24,22 @@
 
 #if CUTTLEFISH_HAS_ASTC
 
+#if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#elif CUTTLEFISH_MSC
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#endif
+
 #include "astcenc.h"
 #include "astcenc_internal.h"
+
+#if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
+#pragma GCC diagnostic pop
+#elif CUTTLEFISH_MSC
+#pragma warning(pop)
+#endif
 
 // Need to stub out these functions, since they don't work on all compilers. Return true for all,
 // since it will only be called if support was compiled in.
@@ -92,6 +106,17 @@ public:
 
 		astcenc_context_alloc(config, 1, &context);
 
+		swizzle.r = converter.m_colorMask.r ? ASTCENC_SWZ_R : ASTCENC_SWZ_0;
+		swizzle.g = converter.m_colorMask.g ? ASTCENC_SWZ_G : ASTCENC_SWZ_0;
+		swizzle.b = converter.m_colorMask.b ? ASTCENC_SWZ_B : ASTCENC_SWZ_0;
+		if (converter.m_colorMask.a)
+		{
+			swizzle.a = converter.m_alphaType == Texture::Alpha::None ?
+				ASTCENC_SWZ_1 : ASTCENC_SWZ_A;
+		}
+		else
+			swizzle.a = ASTCENC_SWZ_0;
+
 		dummyImage.dim_x = converter.m_blockX;
 		dummyImage.dim_y = converter.m_blockY;
 		dummyImage.dim_z = 1;
@@ -104,18 +129,6 @@ public:
 			context->input_averages = m_inputAverages;
 			context->input_variances = m_inputVariances;
 			context->input_alpha_averages = m_inputAlphaAverages;
-
-			astcenc_swizzle swizzle;
-			swizzle.r = converter.m_colorMask.r ? ASTCENC_SWZ_R : ASTCENC_SWZ_0;
-			swizzle.g = converter.m_colorMask.g ? ASTCENC_SWZ_G : ASTCENC_SWZ_0;
-			swizzle.b = converter.m_colorMask.b ? ASTCENC_SWZ_B : ASTCENC_SWZ_0;
-			if (converter.m_colorMask.a)
-			{
-				swizzle.a = converter.m_alphaType == Texture::Alpha::None ?
-					ASTCENC_SWZ_1 : ASTCENC_SWZ_A;
-			}
-			else
-				swizzle.a = ASTCENC_SWZ_0;
 			init_compute_averages_and_variances(dummyImage,  context->config.v_rgb_power,
 				context->config.v_a_power, context->config.v_rgba_radius,
 				context->config.a_scale_radius, swizzle, context->arg, context->ag);
@@ -128,6 +141,7 @@ public:
 	}
 
 	astcenc_context* context;
+	astcenc_swizzle swizzle;
 	astcenc_image dummyImage;
 	compress_symbolic_block_buffers tempBuffers;
 
@@ -137,13 +151,6 @@ private:
 	float m_inputAlphaAverages[maxBlockSize*maxBlockSize];
 };
 
-static bool initialize()
-{
-	prepare_angular_tables();
-	build_quantization_mode_table();
-	return true;
-}
-
 AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
 	unsigned int blockY, Texture::Quality quality)
 	: Converter(image), m_blockX(blockX), m_blockY(blockY),
@@ -151,9 +158,6 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	m_quality(quality), m_alphaType(texture.alphaType()), m_colorSpace(texture.colorSpace()),
 	m_colorMask(texture.colorMask()), m_hdr(texture.type() == Texture::Type::UFloat)
 {
-	static bool initialized = initialize();
-	(void)initialized;
-
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
 	data().resize(m_jobsX*m_jobsY*blockSize);
 }
@@ -165,10 +169,6 @@ AstcConverter::~AstcConverter()
 void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadData)
 {
 	ColorRGBAf imageData[maxBlockSize*maxBlockSize];
-	imageblock astcBlock;
-	astcBlock.xpos = x*m_blockX;
-	astcBlock.ypos = y*m_blockY;
-	astcBlock.zpos = 0;
 	for (unsigned int j = 0, index = 0; j < m_blockY; ++j)
 	{
 		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
@@ -177,25 +177,19 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 		{
 			unsigned int scanlineIdx = std::min(x*m_blockX + i, image().width() - 1);
 			imageData[index] = scanline[scanlineIdx];
-			astcBlock.data_r[index] = scanline[scanlineIdx].r;
-			astcBlock.data_g[index] = scanline[scanlineIdx].g;
-			astcBlock.data_b[index] = scanline[scanlineIdx].b;
-			astcBlock.data_a[index] = scanline[scanlineIdx].a;
-			astcBlock.rgb_lns[index] = m_hdr;
-			astcBlock.alpha_lns[index] = m_hdr;
-			astcBlock.nan_texel[index] = false;
 		}
 	}
 
 	auto astcThreadData = static_cast<AstcThreadData*>(threadData);
-	void* imageDataPtr = imageData;
-	astcThreadData->dummyImage.data = &imageDataPtr;
-
-	// Fill in the rest of the information.
-	imageblock_initialize_work_from_orig(&astcBlock, m_blockX*m_blockY);
-	update_imageblock_flags(&astcBlock, m_blockX, m_blockY, 1);
-
+	astcenc_image& dummyImage = astcThreadData->dummyImage;
 	astcenc_context* context = astcThreadData->context;
+
+	void* imageDataPtr = imageData;
+	dummyImage.data = &imageDataPtr;
+	imageblock astcBlock;
+	fetch_imageblock(m_hdr ? ASTCENC_PRF_HDR : ASTCENC_PRF_LDR, dummyImage, &astcBlock,
+		context->bsd, 0, 0, 0, astcThreadData->swizzle);
+
 	if (astcThreadData->context->input_averages)
 	{
 		// This assumes that it's going to be a pool of thread jobs, so always make sure there's
