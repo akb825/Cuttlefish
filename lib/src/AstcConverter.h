@@ -44,16 +44,17 @@ public:
 
 private:
 	class AstcThreadData;
+	friend class AstcThreadData;
 
 	unsigned int m_blockX;
 	unsigned int m_blockY;
 	unsigned int m_jobsX;
 	unsigned int m_jobsY;
+	Texture::Quality m_quality;
+	Texture::Alpha m_alphaType;
+	ColorSpace m_colorSpace;
 	Texture::ColorMask m_colorMask;
 	bool m_hdr;
-
-	std::unique_ptr<astcenc_image> m_dummyImage;
-	astcenc_context* m_context;
 };
 
 } // namespace cuttlefish

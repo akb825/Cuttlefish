@@ -95,8 +95,30 @@ void PvrtcConverter::process(unsigned int, unsigned int, ThreadData*)
 			return;
 	}
 
-	pvrTexture.Transcode(pixelType, PVRTLVT_UnsignedByteNorm, PVRTLCS_Linear,
-		static_cast<PVRTexLibCompressorQuality>(m_quality));
+	PVRTexLibCompressorQuality quality;
+	switch (m_quality)
+	{
+		case Texture::Quality::Lowest:
+			quality = PVRTLCQ_PVRTCFastest;
+			break;
+		case Texture::Quality::Low:
+			quality = PVRTLCQ_PVRTCLow;
+			break;
+		case Texture::Quality::Normal:
+			quality = PVRTLCQ_PVRTCNormal;
+			break;
+		case Texture::Quality::High:
+			quality = PVRTLCQ_PVRTCHigh;
+			break;
+		case Texture::Quality::Highest:
+			quality = PVRTLCQ_PVRTCBest;
+			break;
+		default:
+			assert(false);
+			return;
+	}
+
+	pvrTexture.Transcode(pixelType, PVRTLVT_UnsignedByteNorm, PVRTLCS_Linear, quality);
 
 	auto textureData = reinterpret_cast<const std::uint8_t*>(pvrTexture.GetTextureDataPointer());
 	data().assign(textureData, textureData + pvrTexture.GetTextureDataSize());

@@ -1214,11 +1214,8 @@ bool Texture::convert(Format format, Type type, Quality quality, Alpha alphaType
 	if (!imagesComplete() || !isFormatValid(format, type))
 		return false;
 
-	if (m_impl->colorSpace == ColorSpace::sRGB && (!hasNativeSRGB(format, type) ||
-		type != Type::UNorm))
-	{
+	if (m_impl->colorSpace == ColorSpace::sRGB && !hasNativeSRGB(format, type))
 		return false;
-	}
 
 	m_impl->format = format;
 	m_impl->type = type;
