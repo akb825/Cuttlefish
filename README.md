@@ -45,8 +45,6 @@ Cuttlefish has been built for and tested on the following platforms:
 * Windows (requires Visual Studio 2015 or later)
 * Mac OS X
 
-> **Note:** Issues have been observed with ASTC encoding with UFLOAT (i.e. HDR ASTC textures) on 32-bit release builds on Visual Studio 2017. Since the ASTC library uses some extreme float values, I suspect this is causing issues with some of the optimizations on that compiler and architecture. I recommend using Visual Studio 2019 or later on Windows.
-
 # Building and Installing
 
 [CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.

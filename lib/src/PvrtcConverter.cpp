@@ -25,6 +25,7 @@
 #if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 #endif
 
 #include <PVRTexLib.hpp>

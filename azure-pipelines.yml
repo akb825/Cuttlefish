@@ -185,7 +185,7 @@ jobs:
         displayName: Publish test results release
   - job: Windows
     pool:
-        vmImage: windows-2019
+        vmImage: vs2017-win2016
     workspace:
         clean: all
     strategy:
