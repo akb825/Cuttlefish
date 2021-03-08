@@ -1,9 +1,6 @@
 [submodule "lib/FreeImage"]
 	path = lib/FreeImage
 	url = https://github.com/WinMerge/freeimage.git
-[submodule "lib/nvidia-texture-tools"]
-	path = lib/nvidia-texture-tools
-	url = https://github.com/castano/nvidia-texture-tools.git
 [submodule "lib/etc2comp"]
 	path = lib/etc2comp
 	url = https://github.com/akb825/etc2comp.git
@@ -16,6 +13,15 @@
 [submodule "lib/PVRTexToolLib"]
 	path = lib/PVRTexToolLib
 	url = https://github.com/akb825/PVRTexToolLib.git
-[submodule "lib/bc7enc"]
-	path = lib/bc7enc
-	url = https://github.com/richgel999/bc7enc.git
+[submodule "lib/bc7enc_rdo"]
+	path = lib/bc7enc_rdo
+	url = https://github.com/richgel999/bc7enc_rdo.git
+[submodule "lib/compressonator"]
+	path = lib/compressonator
+	url = https://github.com/GPUOpen-Tools/compressonator.git
+[submodule "lib/ISPCTextureCompressor"]
+	path = lib/ISPCTextureCompressor
+	url = https://github.com/GameTechDev/ISPCTextureCompressor.git
+[submodule "lib/libsquish"]
+	path = lib/libsquish
+	url = https://github.com/KonajuGames/libsquish.git

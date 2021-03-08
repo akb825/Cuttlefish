@@ -25,17 +25,21 @@ The following software is required to build Cuttlefish:
 * [CMake](https://cmake.org/) 3.1 or later
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
 * [GLM](https://glm.g-truc.net/0.9.8/index.html) (required, included as a submodule)
-* [nvidia-texture-tools](https://github.com/castano/nvidia-texture-tools) (optional, included as a submodule)
-* [bc7enc](https://github.com/richgel999/bc7enc) (optional, included as a submodule)
+* [squish](https://sourceforge.net/projects/libsquish/) (optional, included as a submodule)
+* [Compressonator](https://github.com/GPUOpen-Tools/compressonator) (optional, included as a submodule)
+* [bc7enc_rdo](https://github.com/richgel999/bc7enc_rdo) (optional, included as a submodule)
+* [ispc_texcomp](https://github.com/GameTechDev/ISPCTextureCompressor) (optional, included as a submodule)
 * [etc2comp](https://github.com/google/etc2comp) (optional, included as a submodule)
 * [astc-encoder](https://github.com/ARM-software/astc-encoder) (optional, included as a submodule)
-* [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool/) (optional, included as a submodule)
+* [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool) (optional, included as a submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
 The submodules can be downloaded by running the command
 
 	Cuttlefish$ git submodule update --init
+
+When using the BC6H and BC7 encoders, it's highly recommended to install the [ISPC](https://ispc.github.io) compiler. This will use higher quality encoders that are also faster compared to the fallback used when ISP isn't available.
 
 # Platforms
 
@@ -87,6 +91,7 @@ The following options may be used when running cmake:
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running `make install`.
 * `-DCUTTLEFISH_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `ON`.
+* `-DCUTTLEFISH_ISPC=path`: The path to the ISPC compiler. If unset, ispc will be searched in the `PATH` or default instal location.
 
 ### Enabled Builds
 

@@ -77,7 +77,7 @@ public:
 		if (converter.m_colorSpace == ColorSpace::sRGB)
 			flags |= ASTCENC_FLG_USE_PERCEPTUAL;
 
-		astcenc_preset preset;
+		float preset;
 		switch (converter.m_quality)
 		{
 			case Texture::Quality::Lowest:

@@ -65,7 +65,7 @@ jobs:
             testRunTitle: Linux-$(lib.type)-Debug
             buildConfiguration: $(lib.type)-Debug
         displayName: Publish test results debug
-      - script: rm -r $(Common.TestResultsDirectory)/*
+      - script: rm -rf $(Common.TestResultsDirectory)/*
         displayName: Clear test results
       - task: CMake@1
         inputs:

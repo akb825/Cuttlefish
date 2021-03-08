@@ -295,11 +295,11 @@ INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
-	{Texture::Type::Float, success}}), \
+		{Texture::Type::Float, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
 #else
 #define S3TC_SAVE_DDS_TESTS
@@ -439,11 +439,11 @@ INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
-	{Texture::Type::Float, success}}), \
+		{Texture::Type::Float, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
 #else
 #define S3TC_SAVE_KTX_TESTS
@@ -583,11 +583,11 @@ INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,
 	TextureSaveTestInfo(Texture::Format::BC2, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC3, {{Texture::Type::UNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC4, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC5, {{Texture::Type::UNorm, success}, \
-	{Texture::Type::SNorm, success}}), \
+		{Texture::Type::SNorm, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC6H, {{Texture::Type::UFloat, success}, \
-	{Texture::Type::Float, success}}), \
+		{Texture::Type::Float, success}}), \
 	TextureSaveTestInfo(Texture::Format::BC7, {{Texture::Type::UNorm, success}})
 #else
 #define S3TC_SAVE_PVR_TESTS

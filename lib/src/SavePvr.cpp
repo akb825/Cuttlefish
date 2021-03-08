@@ -364,7 +364,7 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 			return true;
 		case Texture::Format::BC2:
 			if (alphaType == Texture::Alpha::PreMultiplied)
-				pixelFormat = PvrSpecialFormat_DXT2;\
+				pixelFormat = PvrSpecialFormat_DXT2;
 			else
 				pixelFormat = PvrSpecialFormat_BC2;
 			return true;
