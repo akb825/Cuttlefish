@@ -5,10 +5,12 @@ target_link_libraries(cuttlefish PRIVATE cuttlefish_lib)
 
 cfs_set_folder(cuttlefish tools)
 
-find_package(PVRTexLib QUIET)
-if (APPLE AND CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND AND NOT CUTTLEFISH_SHARED)
-	cfs_fixup_mac_dep(cuttlefish "@executable_path/../lib/libPVRTexLib.dylib"
-		"@rpath/libPVRTexLib.dylib")
+if (APPLE AND CUTTLEFISH_BUILD_PVRTC AND NOT CUTTLEFISH_SHARED)
+	find_package(PVRTexLib QUIET)
+	if (PVRTEXLIB_FOUND)
+		cfs_fixup_mac_dep(cuttlefish "@executable_path/../lib/libPVRTexLib.dylib"
+			"@rpath/libPVRTexLib.dylib")
+	endif()
 endif()
 
 if (CUTTLEFISH_INSTALL)

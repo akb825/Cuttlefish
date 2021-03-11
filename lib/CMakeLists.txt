@@ -86,14 +86,17 @@ target_include_directories(cuttlefish_lib
 			${BC7ENC_INCLUDE_DIRS}
 			${ETC_INCLUDE_DIRS}
 			${ASTC_INCLUDE_DIRS}
-			${PVRTEXLIB_INCLUDE_DIRS}
 			glm
 			src)
-target_link_libraries(cuttlefish_lib
-	PRIVATE ${FreeImage_LIBRARIES} ${PVRTEXLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cuttlefish_lib PRIVATE ${FreeImage_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_compile_definitions(cuttlefish_lib PUBLIC ${defines} PRIVATE ${privateDefines})
 
 if (CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
+	# Delay linking to PVRTexLib to here in case CUTTLEFISH_BUILD_PVRTC was toggled and the include
+	# dirs and library variables are still set.
+	target_include_directories(cuttlefish_lib PRIVATE ${PVRTEXLIB_INCLUDE_DIRS})
+	target_link_libraries(cuttlefish_lib PRIVATE ${PVRTEXLIB_LIBRARIES})
+
 	if (WIN32)
 		get_filename_component(pvrTexLibDir ${PVRTEXLIB_LIB} DIRECTORY)
 		set(pvrTexLibDll ${pvrTexLibDir}/PVRTexLib.dll)
