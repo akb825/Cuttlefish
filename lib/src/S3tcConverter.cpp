@@ -33,6 +33,7 @@
 #else
 #include "bc7enc.h"
 #endif
+
 #include "cmp_core.h"
 #include "rgbcx.h"
 #include "squish.h"
@@ -118,11 +119,36 @@ static void packBc2Alpha(std::uint8_t outAlpha[8], std::uint8_t colorBlock[16][4
 	}
 }
 
-#if !CUTTLEFISH_ISPC
+#if CUTTLEFISH_ISPC
+static bool initializeBc7eImpl()
+{
+	ispc::bc7e_compress_block_init();
+	return true;
+}
+
+static void initializeBc7e()
+{
+	static bool initialized = initializeBc7eImpl();
+	CUTTLEFISH_UNUSED(initialized);
+}
+#else
+static bool initializeBc7encImpl()
+{
+	bc7enc_compress_block_init();
+	return true;
+}
+
+static void initializeBc7enc()
+{
+	static bool initialized = initializeBc7encImpl();
+	CUTTLEFISH_UNUSED(initialized);
+}
+
 static bc7enc_compress_block_params createBc7BlockParams(const S3tcConverter& converter)
 {
 	bc7enc_compress_block_params params;
 
+	bc7enc_compress_block_params_init(&params);
 	switch (converter.quality())
 	{
 		case Texture::Quality::Lowest:
@@ -536,7 +562,7 @@ Bc7Converter::Bc7Converter(const Texture& texture, const Image& image, Texture::
 	: S3tcConverter(texture, image, 16, quality), m_params(nullptr)
 {
 #if CUTTLEFISH_ISPC
-	ispc::bc7e_compress_block_init();
+	initializeBc7e();
 	m_params = new ispc::bc7e_compress_block_params;
 	bool perceptual = image.colorSpace() == ColorSpace::sRGB;
 	switch (quality)
@@ -561,7 +587,7 @@ Bc7Converter::Bc7Converter(const Texture& texture, const Image& image, Texture::
 			break;
 	}
 #else
-	bc7enc_compress_block_init();
+	initializeBc7enc();
 	m_params = new bc7enc_compress_block_params(createBc7BlockParams(*this));
 #endif
 }
@@ -583,7 +609,7 @@ void Bc7Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 	// NOTE: would be slightly more optimal to create this ahead of time, but can't forward
 	// declare the type due to how it's declared in bc7enc. The overhead of this is expected
 	// to be very small.
-	bc7enc_compress_block(block, &colorBlock, m_params);
+	bc7enc_compress_block(block, colorBlock, m_params);
 #endif
 }
 
