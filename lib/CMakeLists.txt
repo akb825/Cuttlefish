@@ -88,12 +88,6 @@ if (CUTTLEFISH_BUILD_S3TC)
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/CompressonatorSources.cmake)
 
-	if (APPLE)
-		# Work around horrible platform detection.
-		set_source_files_properties(${compressonatorSources} PROPERTIES
-			COMPILE_DEFINITIONS "__linux__")
-	endif()
-
 	if (NOT EXISTS ${BC7ENC_RDO_DIR})
 		message(FATAL_ERROR
 			"bc7enc_rdo not found. Run 'git submodule update --init' to pull the submodules.")
