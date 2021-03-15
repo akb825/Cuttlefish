@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#if CUTTLEFISH_HAS_ETC
+
 #include "EtcConverter.h"
 #include <cuttlefish/Color.h>
 #include <cassert>
 #include <algorithm>
 #include <cstring>
-
-#if CUTTLEFISH_HAS_ETC
 
 #include <Etc.h>
 

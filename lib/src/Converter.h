@@ -55,6 +55,9 @@ public:
 		assert(m_image->format() == Image::Format::RGBAF);
 	}
 
+	Converter(const Converter&) = delete;
+	Converter& operator=(const Converter&) = delete;
+
 	virtual ~Converter() = default;
 
 	const Image& image() const {return *m_image;}

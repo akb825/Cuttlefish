@@ -22,17 +22,12 @@
 
 #if CUTTLEFISH_HAS_ASTC
 
-struct astcenc_context;
-struct astcenc_image;
-
 namespace cuttlefish
 {
 
 class AstcConverter : public Converter
 {
 public:
-	static const unsigned int blockSize = 16;
-
 	AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
 		unsigned int blockY, Texture::Quality quality);
 	~AstcConverter();
@@ -43,18 +38,14 @@ public:
 	std::unique_ptr<ThreadData> createThreadData() override;
 
 private:
+	struct AstcData;
 	class AstcThreadData;
-	friend class AstcThreadData;
 
 	unsigned int m_blockX;
 	unsigned int m_blockY;
 	unsigned int m_jobsX;
 	unsigned int m_jobsY;
-	Texture::Quality m_quality;
-	Texture::Alpha m_alphaType;
-	ColorSpace m_colorSpace;
-	Texture::ColorMask m_colorMask;
-	unsigned int m_hdr;
+	AstcData* m_astcData;
 };
 
 } // namespace cuttlefish

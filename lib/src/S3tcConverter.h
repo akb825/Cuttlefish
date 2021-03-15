@@ -35,9 +35,6 @@ namespace cuttlefish
 class S3tcConverter : public Converter
 {
 public:
-	static const unsigned int blockDim = 4;
-	static const unsigned int blockPixels = blockDim*blockDim;
-
 	S3tcConverter(const Texture& texture, const Image& image, unsigned int blockSize,
 		Texture::Quality quality);
 

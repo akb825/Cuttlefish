@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#if CUTTLEFISH_HAS_S3TC
+
 #include "S3tcConverter.h"
 #include "Shared.h"
 #include <cuttlefish/Color.h>
 
 #include <cassert>
-
-#if CUTTLEFISH_HAS_S3TC
 
 #if CUTTLEFISH_CLANG || CUTTLEFISH_GCC
 #pragma GCC diagnostic push
@@ -45,6 +45,9 @@
 
 namespace cuttlefish
 {
+
+static const unsigned int blockDim = 4;
+static const unsigned int blockPixels = blockDim*blockDim;
 
 static bool initializeRgbcxImpl()
 {
@@ -89,10 +92,10 @@ static uint32_t getSearchRadius(Texture::Quality quality)
 	return 0;
 }
 
-static void toColorBlock(std::uint8_t outBlock[S3tcConverter::blockPixels][4],
+static void toColorBlock(std::uint8_t outBlock[blockPixels][4],
 	const ColorRGBAf* blockColors)
 {
-	for (unsigned int i = 0; i < S3tcConverter::blockPixels; ++i)
+	for (unsigned int i = 0; i < blockPixels; ++i)
 	{
 		outBlock[i][0] =
 			static_cast<std::uint8_t>(std::round(clamp(blockColors[i].r, 0.0f, 1.0f)*0xFF));
@@ -108,7 +111,7 @@ static void toColorBlock(std::uint8_t outBlock[S3tcConverter::blockPixels][4],
 static void packBc2Alpha(std::uint8_t outAlpha[8], std::uint8_t colorBlock[16][4])
 {
 	const float alphaScale = 15.0f/255.0f;
-	for (unsigned int i = 0; i < S3tcConverter::blockPixels/2; ++i)
+	for (unsigned int i = 0; i < blockPixels/2; ++i)
 	{
 		std::uint8_t alpha0 = colorBlock[i*2][3];
 		std::uint8_t alpha1 = colorBlock[i*2 + 1][3];

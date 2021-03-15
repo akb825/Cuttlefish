@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+#if CUTTLEFISH_HAS_PVRTC
+
 #include "PvrtcConverter.h"
 #include "Shared.h"
 #include <cuttlefish/Color.h>
 #include <cassert>
 #include <cmath>
-
-#if CUTTLEFISH_HAS_PVRTC
 
 #if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
 #pragma GCC diagnostic push

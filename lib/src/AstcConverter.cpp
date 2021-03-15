@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,19 @@
  * limitations under the License.
  */
 
+#if CUTTLEFISH_HAS_ASTC
+
 #include "AstcConverter.h"
 #include <cuttlefish/Color.h>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-
-#if CUTTLEFISH_HAS_ASTC
-
-#if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#elif CUTTLEFISH_MSC
-#pragma warning(push)
-#pragma warning(disable: 4244)
-#endif
+#include <cstring>
+#include <list>
+#include <mutex>
+#include <thread>
 
 #include "astcenc.h"
-#include "astcenc_internal.h"
-
-#if CUTTLEFISH_GCC || CUTTLEFISH_CLANG
-#pragma GCC diagnostic pop
-#elif CUTTLEFISH_MSC
-#pragma warning(pop)
-#endif
 
 // Need to stub out these functions, since they don't work on all compilers. Return true for all,
 // since it will only be called if support was compiled in.
@@ -61,125 +48,190 @@ int cpu_supports_avx2()
 namespace cuttlefish
 {
 
-static const unsigned int maxBlockSize = 12;
+namespace
+{
+
+const unsigned int blockSize = 16;
+const unsigned int maxBlockDim = 12;
+
+class AstcContextManager
+{
+public:
+	static const unsigned int cacheSize;
+
+	astcenc_context* createContext(const astcenc_config& config)
+	{
+		std::lock_guard<std::mutex> lock(m_mutex);
+
+		for (auto it = m_cache.begin(); it != m_cache.end(); ++it)
+		{
+			if (std::memcmp(&config, &it->config, sizeof(astcenc_config)) != 0)
+				continue;
+
+			astcenc_context* context = it->context;
+			it->context = nullptr;
+			m_cache.erase(it);
+			return context;
+		}
+
+		astcenc_context* context = nullptr;
+		astcenc_context_alloc(config, 1, &context);
+		assert(context);
+		return context;
+	}
+
+	void destroyContext(astcenc_context* context, const astcenc_config& config)
+	{
+		std::lock_guard<std::mutex> lock(m_mutex);
+
+		while (m_cache.size() >= cacheSize)
+			m_cache.pop_back();
+
+		m_cache.emplace_front(context, config);
+	}
+
+private:
+	struct ContextInfo
+	{
+		ContextInfo(astcenc_context* _context, const astcenc_config& _config)
+			: context(_context), config(_config)
+		{
+		}
+
+		ContextInfo(const ContextInfo&) = delete;
+		ContextInfo& operator=(const ContextInfo&) = delete;
+
+		~ContextInfo()
+		{
+			astcenc_context_free(context);
+		}
+
+		astcenc_context* context;
+		astcenc_config config;
+	};
+
+	std::list<ContextInfo> m_cache;
+	std::mutex m_mutex;
+};
+
+const unsigned int AstcContextManager::cacheSize = 3*std::thread::hardware_concurrency();
+
+AstcContextManager g_contextManager;
+
+} // namespace
+
+struct AstcConverter::AstcData
+{
+	astcenc_swizzle swizzle;
+	astcenc_config config;
+};
 
 class AstcConverter::AstcThreadData : public Converter::ThreadData
 {
 public:
-	explicit AstcThreadData(AstcConverter& converter)
+	AstcThreadData(unsigned int blockX, unsigned int blockY, const astcenc_config& _config)
+		: config(&_config), context(g_contextManager.createContext(_config))
 	{
-		unsigned int flags = 0;
-		if (converter.m_alphaType == Texture::Alpha::Standard ||
-			converter.m_alphaType == Texture::Alpha::PreMultiplied)
-		{
-			flags |= ASTCENC_FLG_USE_ALPHA_WEIGHT;
-		}
-		if (converter.m_colorSpace == ColorSpace::sRGB)
-			flags |= ASTCENC_FLG_USE_PERCEPTUAL;
-
-		float preset;
-		switch (converter.m_quality)
-		{
-			case Texture::Quality::Lowest:
-				preset = ASTCENC_PRE_FASTEST;
-				break;
-			case Texture::Quality::Low:
-				preset = ASTCENC_PRE_FAST;
-				break;
-			case Texture::Quality::Normal:
-				preset = ASTCENC_PRE_MEDIUM;
-				break;
-			case Texture::Quality::High:
-				preset = ASTCENC_PRE_THOROUGH;
-				break;
-			case Texture::Quality::Highest:
-				preset = ASTCENC_PRE_EXHAUSTIVE;
-				break;
-			default:
-				assert(false);
-				return;
-		}
-
-		astcenc_config config;
-		astcenc_config_init(static_cast<astcenc_profile>(converter.m_hdr), converter.m_blockX,
-			converter.m_blockY, 1, preset, flags, config);
-
-		astcenc_context_alloc(config, 1, &context);
-
-		swizzle.r = converter.m_colorMask.r ? ASTCENC_SWZ_R : ASTCENC_SWZ_0;
-		swizzle.g = converter.m_colorMask.g ? ASTCENC_SWZ_G : ASTCENC_SWZ_0;
-		swizzle.b = converter.m_colorMask.b ? ASTCENC_SWZ_B : ASTCENC_SWZ_0;
-		if (converter.m_colorMask.a)
-		{
-			swizzle.a = converter.m_alphaType == Texture::Alpha::None ?
-				ASTCENC_SWZ_1 : ASTCENC_SWZ_A;
-		}
-		else
-			swizzle.a = ASTCENC_SWZ_0;
-
-		dummyImage.dim_x = converter.m_blockX;
-		dummyImage.dim_y = converter.m_blockY;
+		dummyImage.dim_x = blockX;
+		dummyImage.dim_y = blockY;
 		dummyImage.dim_z = 1;
 		dummyImage.data_type = ASTCENC_TYPE_F32;
 		dummyImage.data = nullptr;
-
-		if (context->config.v_rgb_mean != 0.0f || context->config.v_rgb_stdev != 0.0f ||
-			context->config.v_a_mean != 0.0f || context->config.v_a_stdev != 0.0f)
-		{
-			context->input_averages = m_inputAverages;
-			context->input_variances = m_inputVariances;
-			context->input_alpha_averages = m_inputAlphaAverages;
-			init_compute_averages_and_variances(dummyImage,  context->config.v_rgb_power,
-				context->config.v_a_power, context->config.v_rgba_radius,
-				context->config.a_scale_radius, swizzle, context->arg, context->ag);
-		}
 	}
 
 	~AstcThreadData()
 	{
-		astcenc_context_free(context);
+		g_contextManager.destroyContext(context, *config);
 	}
 
-	astcenc_context* context;
-	astcenc_swizzle swizzle;
 	astcenc_image dummyImage;
-	compress_symbolic_block_buffers tempBuffers;
-
-private:
-	float4 m_inputAverages[maxBlockSize*maxBlockSize];
-	float4 m_inputVariances[maxBlockSize*maxBlockSize];
-	float m_inputAlphaAverages[maxBlockSize*maxBlockSize];
+	const astcenc_config* config;
+	astcenc_context* context;
 };
 
 AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigned int blockX,
 	unsigned int blockY, Texture::Quality quality)
 	: Converter(image), m_blockX(blockX), m_blockY(blockY),
 	m_jobsX((image.width() + blockX - 1)/blockX), m_jobsY((image.height() + blockY - 1)/blockY),
-	m_quality(quality), m_alphaType(texture.alphaType()), m_colorSpace(texture.colorSpace()),
-	m_colorMask(texture.colorMask())
+	m_astcData(new AstcData)
 {
-	if (texture.type() == Texture::Type::UFloat)
+	m_astcData->swizzle.r = texture.colorMask().r ? ASTCENC_SWZ_R : ASTCENC_SWZ_0;
+	m_astcData->swizzle.g = texture.colorMask().g ? ASTCENC_SWZ_G : ASTCENC_SWZ_0;
+	m_astcData->swizzle.b = texture.colorMask().b ? ASTCENC_SWZ_B : ASTCENC_SWZ_0;
+	if (texture.colorMask().a)
 	{
-		if (m_alphaType == Texture::Alpha::None || m_alphaType == Texture::Alpha::PreMultiplied)
-			m_hdr = ASTCENC_PRF_HDR_RGB_LDR_A;
-		else
-			m_hdr = ASTCENC_PRF_HDR;
+		m_astcData->swizzle.a = texture.alphaType() == Texture::Alpha::None ?
+			ASTCENC_SWZ_1 : ASTCENC_SWZ_A;
 	}
 	else
-		m_hdr = ASTCENC_PRF_LDR;
+		m_astcData->swizzle.a = ASTCENC_SWZ_0;
+
+	astcenc_profile profile;
+	if (texture.type() == Texture::Type::UFloat)
+	{
+		if (texture.alphaType() == Texture::Alpha::None ||
+			texture.alphaType() == Texture::Alpha::PreMultiplied)
+		{
+			profile = ASTCENC_PRF_HDR_RGB_LDR_A;
+		}
+		else
+			profile = ASTCENC_PRF_HDR;
+	}
+	else
+		profile = ASTCENC_PRF_LDR;
+
+	unsigned int flags = 0;
+	if (texture.alphaType() == Texture::Alpha::Standard ||
+		texture.alphaType() == Texture::Alpha::PreMultiplied)
+	{
+		flags |= ASTCENC_FLG_USE_ALPHA_WEIGHT;
+	}
+	if (image.colorSpace() == ColorSpace::sRGB)
+		flags |= ASTCENC_FLG_USE_PERCEPTUAL;
+
+	float preset;
+	switch (quality)
+	{
+		case Texture::Quality::Lowest:
+			// NOTE: ASTCENC_PRE_FASTEST currently breaks with the fix applied to prevent
+			// uninitialized memory access.
+			preset = 5.0f;
+			break;
+		case Texture::Quality::Low:
+			preset = ASTCENC_PRE_FAST;
+			break;
+		case Texture::Quality::Normal:
+			preset = ASTCENC_PRE_MEDIUM;
+			break;
+		case Texture::Quality::High:
+			preset = ASTCENC_PRE_THOROUGH;
+			break;
+		case Texture::Quality::Highest:
+			preset = ASTCENC_PRE_EXHAUSTIVE;
+			break;
+		default:
+			assert(false);
+			return;
+	}
+
+	astcenc_config_init(profile, blockX, blockY, 1, preset, flags, m_astcData->config);
+
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
 	data().resize(m_jobsX*m_jobsY*blockSize);
 }
 
 AstcConverter::~AstcConverter()
 {
+	delete m_astcData;
 }
 
 void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadData)
 {
-	ColorRGBAf imageData[maxBlockSize*maxBlockSize];
+	ColorRGBAf imageData[maxBlockDim*maxBlockDim];
+	void* imageRows[maxBlockDim];
 	for (unsigned int j = 0, index = 0; j < m_blockY; ++j)
 	{
+		imageRows[j] = imageData + index;
 		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(
 			std::min(y*m_blockY + j, image().height() - 1)));
 		for (unsigned int i = 0; i < m_blockX; ++i, ++index)
@@ -189,44 +241,17 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 		}
 	}
 
+	auto block = data().data() + (y*m_jobsX + x)*blockSize;
 	auto astcThreadData = static_cast<AstcThreadData*>(threadData);
-	astcenc_image& dummyImage = astcThreadData->dummyImage;
-	astcenc_context* context = astcThreadData->context;
-
-	void* imageDataPtr = imageData;
-	dummyImage.data = &imageDataPtr;
-	imageblock astcBlock;
-	fetch_imageblock(static_cast<astcenc_profile>(m_hdr), dummyImage, &astcBlock, context->bsd, 0,
-		0, 0, astcThreadData->swizzle);
-
-	if (astcThreadData->context->input_averages)
-	{
-		// This assumes that it's going to be a pool of thread jobs, so always make sure there's
-		// exactly one job ready.
-		context->manage_avg_var.reset();
-		context->manage_avg_var.init(1);
-		compute_averages_and_variances(*context, astcThreadData->context->ag);
-	}
-
-	symbolic_compressed_block symbolicBlock;
-	auto block = reinterpret_cast<physical_compressed_block*>(
-		data().data() + (y*m_jobsX + x)*blockSize);
-	compress_block(*context, astcThreadData->dummyImage, &astcBlock, symbolicBlock, *block,
-		&astcThreadData->tempBuffers);
+	astcThreadData->dummyImage.data = imageRows;
+	astcenc_compress_image(astcThreadData->context, astcThreadData->dummyImage,
+		m_astcData->swizzle, block, blockSize, 0);
+	astcenc_compress_reset(astcThreadData->context);
 }
 
 std::unique_ptr<Converter::ThreadData> AstcConverter::createThreadData()
 {
-#if CUTTLEFISH_MSC
-#pragma warning(push)
-#pragma warning(disable: 4316)
-#endif
-
-	return std::unique_ptr<ThreadData>(new AstcThreadData(*this));
-
-#if CUTTLEFISH_MSC
-#pragma warning(pop)
-#endif
+	return std::unique_ptr<ThreadData>(new AstcThreadData(m_blockX, m_blockY, m_astcData->config));
 }
 
 } // namespace cuttlefish
