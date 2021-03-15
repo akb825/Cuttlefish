@@ -193,9 +193,7 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 	switch (quality)
 	{
 		case Texture::Quality::Lowest:
-			// NOTE: ASTCENC_PRE_FASTEST currently breaks with the fix applied to prevent
-			// uninitialized memory access.
-			preset = 5.0f;
+			preset = ASTCENC_PRE_FASTEST;
 			break;
 		case Texture::Quality::Low:
 			preset = ASTCENC_PRE_FAST;
