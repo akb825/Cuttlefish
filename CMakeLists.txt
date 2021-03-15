@@ -15,7 +15,7 @@ set(CUTTLEFISH_BUILD_ASTC ON CACHE BOOL "Build support for ASTC texture compress
 set(CUTTLEFISH_BUILD_PVRTC ON CACHE BOOL "Build support for PVRTC texture compression.")
 
 # Misc options.
-set(CUTTLEFISH_ISPC "" CACHE PATH "Path to the ISPC tool.")
+set(CUTTLEFISH_ISPC_PATH "" CACHE PATH "Path to the ISPC tool.")
 set(CUTTLEFISH_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH
 	"Folder for placing the build output.")
 set(CUTTLEFISH_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH

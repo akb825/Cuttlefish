@@ -5,6 +5,8 @@ variables:
     # NOTE: Can't shorten this line with folded style string since it has a trailing newline, which
     # cmake warns about.
     value: -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location) -DCMAKE_PREFIX_PATH=$(dependency.location)
+  - name: ispc.version
+    value: 1.15.0
   - group: Common
 jobs:
   - job: Linux
@@ -17,13 +19,27 @@ jobs:
             static:
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
+                ispc: 0
             shared:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
+                ispc: 0
+            static_ispc:
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-linux/bin/ispc
+                ispc: 1
+            shared_ispc:
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-linux/bin/ispc
+                ispc: 1
     steps:
       - script: |
             git submodule init
             git submodule update
+            if [ $(ispc) ]; then
+                curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-linux.tar.gz -o ispc.tar.gz
+                tar xzf ispc.tar.gz
+            fi
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
       - script: |
@@ -105,13 +121,26 @@ jobs:
             static:
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
+                ispc: 0
             shared:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
+                ispc: 0
+            static_ispc:
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF
+                ispc: 1
+            shared_ispc:
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON
+                ispc: 1
     steps:
       - script: |
             git submodule init
             git submodule update
+            if [ $(ispc) ]; then
+                brew install ispc
+            fi
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
       - script: |
@@ -194,22 +223,50 @@ jobs:
                 arch: Win32
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
+                ispc: 0
             win32_shared:
                 arch: Win32
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
+                ispc: 0
             win64_static:
                 arch: x64
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF
+                ispc: 0
             win64_shared:
                 arch: x64
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
+                ispc: 0
+            win32_static_ispc:
+                arch: Win32
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
+                ispc: 1
+            win32_shared_ispc:
+                arch: Win32
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
+                ispc: 1
+            win64_static_ispc:
+                arch: x64
+                lib.type: Static
+                cmake.args: -DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
+                ispc: 1
+            win64_shared_ispc:
+                arch: x64
+                lib.type: Shared
+                cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
+                ispc: 1
     steps:
       - bash: |
             git submodule init
             git submodule update
+            if [ $(ispc) ]; then
+                curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-windows.zip -o ispc.zip
+                unzip ispc.zip
+            fi
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
       - bash: |
