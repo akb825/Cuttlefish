@@ -4,7 +4,7 @@ variables:
   - name: cmake.commonArgs
     # NOTE: Can't shorten this line with folded style string since it has a trailing newline, which
     # cmake warns about.
-    value: -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location) -DCMAKE_PREFIX_PATH=$(dependency.location)
+    value: -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location) -DCMAKE_PREFIX_PATH=$(dependency.location) -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/cuttlefish
   - name: ispc.version
     value: 1.15.0
   - group: Common
@@ -28,10 +28,12 @@ jobs:
                 lib.type: Static
                 cmake.args: -DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-linux/bin/ispc
                 ispc: 1
+                artifact:
             shared_ispc:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-linux/bin/ispc
                 ispc: 1
+                artifact: 1
     steps:
       - script: |
             git submodule init
@@ -111,6 +113,16 @@ jobs:
             testRunTitle: Linux-$(lib.type)-Release
             buildConfiguration: (lib.type)-Release
         displayName: Publish test results release
+      - script: |
+            cmake --build Release --target install
+            tar czf cuttlefish-linux.tar.gz cuttlefish
+        workingDirectory: $(Build.BinariesDirectory)
+        condition: eq(variables['artifact'], 1)
+        displayName: Package artifact
+      - publish: $(Build.BinariesDirectory)/cuttlefish-linux.tar.gz
+        condition: eq(variables['artifact'], 1)
+        artifact: Linux
+        displayName: Publish artifact
   - job: Mac
     pool:
         vmImage: macOS-10.14
@@ -134,6 +146,7 @@ jobs:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON
                 ispc: 1
+                artifact: 1
     steps:
       - script: |
             git submodule init
@@ -212,6 +225,16 @@ jobs:
             testRunTitle: Mac-$(lib.type)-Release
             buildConfiguration: (lib.type)-Release
         displayName: Publish test results release
+      - script: |
+            cmake --build Release --target install
+            tar czf cuttlefish-mac.tar.gz cuttlefish
+        workingDirectory: $(Build.BinariesDirectory)
+        condition: eq(variables['artifact'], 1)
+        displayName: Package artifact
+      - publish: $(Build.BinariesDirectory)/cuttlefish-mac.tar.gz
+        condition: eq(variables['artifact'], 1)
+        artifact: Mac
+        displayName: Publish artifact
   - job: Windows
     pool:
         vmImage: vs2017-win2016
@@ -249,6 +272,7 @@ jobs:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
                 ispc: 1
+                artifact: win32
             win64_static_ispc:
                 arch: x64
                 lib.type: Static
@@ -259,6 +283,7 @@ jobs:
                 lib.type: Shared
                 cmake.args: -DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-windows/bin/ispc.exe
                 ispc: 1
+                artifact: win64
     steps:
       - bash: |
             git submodule init
@@ -310,6 +335,16 @@ jobs:
             buildPlatform: $(arch)
             buildConfiguration: $(lib.type)-Release
         displayName: Publish test results
+      - script: |
+            cmake --build . --config Release --target install
+            7z a -tzip cuttlefish-$(artifact).zip cuttlefish
+        workingDirectory: $(Build.BinariesDirectory)
+        condition: ne(variables['artifact'], '')
+        displayName: Package artifact
+      - publish: $(Build.BinariesDirectory)/cuttlefish-$(artifact).zip
+        condition: ne(variables['artifact'], '')
+        artifact: $(artifact)
+        displayName: Publish artifact
     # NOTE: No debug builds since PVRTexTool lib only provided for release runtime.
 
 # vim: ts=4 sts=4 sw=4 et
