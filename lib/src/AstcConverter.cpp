@@ -75,7 +75,7 @@ public:
 		}
 
 		astcenc_context* context = nullptr;
-		astcenc_context_alloc(config, 1, &context);
+		astcenc_context_alloc(&config, 1, &context);
 		assert(context);
 		return context;
 	}
@@ -212,7 +212,7 @@ AstcConverter::AstcConverter(const Texture& texture, const Image& image, unsigne
 			return;
 	}
 
-	astcenc_config_init(profile, blockX, blockY, 1, preset, flags, m_astcData->config);
+	astcenc_config_init(profile, blockX, blockY, 1, preset, flags, &m_astcData->config);
 
 	assert(texture.type() == Texture::Type::UNorm || texture.type() == Texture::Type::UFloat);
 	data().resize(m_jobsX*m_jobsY*blockSize);
@@ -242,7 +242,7 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 	auto block = data().data() + (y*m_jobsX + x)*blockSize;
 	auto astcThreadData = static_cast<AstcThreadData*>(threadData);
 	astcThreadData->dummyImage.data = imageRows;
-	astcenc_compress_image(astcThreadData->context, astcThreadData->dummyImage,
+	astcenc_compress_image(astcThreadData->context, &astcThreadData->dummyImage,
 		m_astcData->swizzle, block, blockSize, 0);
 	astcenc_compress_reset(astcThreadData->context);
 }
