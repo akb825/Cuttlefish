@@ -28,23 +28,6 @@
 
 #include "astcenc.h"
 
-// Need to stub out these functions, since they don't work on all compilers. Return true for all,
-// since it will only be called if support was compiled in.
-int cpu_supports_sse41()
-{
-	return 1;
-}
-
-int cpu_supports_popcnt()
-{
-	return 1;
-}
-
-int cpu_supports_avx2()
-{
-	return 1;
-}
-
 namespace cuttlefish
 {
 
@@ -243,7 +226,7 @@ void AstcConverter::process(unsigned int x, unsigned int y, ThreadData* threadDa
 	auto astcThreadData = static_cast<AstcThreadData*>(threadData);
 	astcThreadData->dummyImage.data = imageRows;
 	astcenc_compress_image(astcThreadData->context, &astcThreadData->dummyImage,
-		m_astcData->swizzle, block, blockSize, 0);
+		&m_astcData->swizzle, block, blockSize, 0);
 	astcenc_compress_reset(astcThreadData->context);
 }
 
