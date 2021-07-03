@@ -569,7 +569,7 @@ Image::Image(const Image& other)
 	}
 }
 
-Image::Image(Image&& other)
+Image::Image(Image&& other) noexcept
 {
 	initializeLib();
 	m_impl = other.m_impl;
@@ -591,8 +591,11 @@ Image& Image::operator=(const Image& other)
 	return *this;
 }
 
-Image& Image::operator=(Image&& other)
+Image& Image::operator=(Image&& other) noexcept
 {
+	if (this == &other)
+		return *this;
+
 	reset();
 	m_impl = other.m_impl;
 	other.m_impl = nullptr;

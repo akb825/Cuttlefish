@@ -777,7 +777,7 @@ Texture::Texture(const Texture& other)
 		m_impl = new Impl(*other.m_impl);
 }
 
-Texture::Texture(Texture&& other)
+Texture::Texture(Texture&& other) noexcept
 	: m_impl(other.m_impl)
 {
 	other.m_impl = nullptr;
@@ -801,8 +801,11 @@ Texture& Texture::operator=(const Texture& other)
 	return *this;
 }
 
-Texture& Texture::operator=(Texture&& other)
+Texture& Texture::operator=(Texture&& other) noexcept
 {
+	if (this == &other)
+		return *this;
+
 	delete m_impl;
 	m_impl = other.m_impl;
 	other.m_impl = nullptr;

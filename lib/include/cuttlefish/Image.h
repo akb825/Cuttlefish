@@ -150,10 +150,10 @@ public:
 
 	/// @cond
 	Image(const Image& other);
-	Image(Image&& other);
+	Image(Image&& other) noexcept;
 
 	Image& operator=(const Image& other);
-	Image& operator=(Image&& other);
+	Image& operator=(Image&& other) noexcept;
 	/// @endcond
 
 	/**

@@ -346,10 +346,10 @@ public:
 
 	/// @cond
 	Texture(const Texture& other);
-	Texture(Texture&& other);
+	Texture(Texture&& other) noexcept;
 
 	Texture& operator=(const Texture& other);
-	Texture& operator=(Texture&& other);
+	Texture& operator=(Texture&& other) noexcept;
 	/// @endcond
 
 	/**
