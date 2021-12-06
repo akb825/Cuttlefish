@@ -125,7 +125,7 @@ jobs:
         displayName: Publish artifact
   - job: Mac
     pool:
-        vmImage: macOS-10.14
+        vmImage: macOS-1015
     workspace:
         clean: all
     strategy:
@@ -237,7 +237,7 @@ jobs:
         displayName: Publish artifact
   - job: Windows
     pool:
-        vmImage: vs2017-win2016
+        vmImage: windows-2019
     workspace:
         clean: all
     strategy:
