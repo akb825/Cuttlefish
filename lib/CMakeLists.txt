@@ -30,7 +30,7 @@ else()
 endif()
 
 function(get_ispc_arch outArch outTargets outTargetNames arch singleTarget)
-	# Supports both CUTTLEFISH_ARCH and CMAKE_MACOSX_ARCHITECTURES values.
+	# Supports both CUTTLEFISH_ARCH and CMAKE_OSX_ARCHITECTURES values.
 	if (arch STREQUAL "x86" OR arch STREQUAL "i366")
 		set(${outArch} x86 PARENT_SCOPE)
 		if (singleTarget)
@@ -72,7 +72,8 @@ if (NOT FreeImage_FOUND)
 			"FreeImage not found. Run 'git submodule update --init' to pull the submodules.")
 	endif()
 	include(${CMAKE_CURRENT_LIST_DIR}/FreeImageSources.cmake)
-	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1)
+	# NOTE: FreeImage doesn't include the libPNG Neon functions.
+	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1 PNG_ARM_NEON_OPT=0)
 endif()
 
 if (CUTTLEFISH_BUILD_S3TC)
@@ -158,7 +159,7 @@ if (ispcSources)
 
 			list(APPEND ispcTargetObjFiles
 				"${CMAKE_CURRENT_BINARY_DIR}/$(CURRENT_ARCH)/${baseName}.o")
-			foreach (arch ${CMAKE_MACOSX_ARCHITECTURES})
+			foreach (arch ${CMAKE_OSX_ARCHITECTURES})
 				set(objPath ${CMAKE_CURRENT_BINARY_DIR}/${arch}/${baseName}.o)
 				get_ispc_arch(ispcArch ispcTarget ispcTargetName ${arch} ON)
 				add_custom_command(OUTPUT ${objPath} ${headerPath}
