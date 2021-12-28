@@ -113,6 +113,7 @@ The following options may be used when running cmake:
 * `-DCUTTLEFISH_INSTALL_PVRTEXLIB=ON|OFF`: Include the PVRTextTool library with the installation. This allows the installation to be used for machines that don't have PVRTexTool installed, and can avoid adjusting the `PATH` environment variable on some platforms. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_SET_RPATH=ON|OFF`: Set rpath during install for the library and tool on installation. Set to `OFF` if including in another project that wants to control the rpath. Default is `ON`.
 * `-DPVRTEXLIB_ROOT=directory`: The location of the PVRTexTool library platform subdirectories. If the PVRTexTool library is not installed to the standard location on this machine, this variable can be set to tell CMake where to look for the library. The given folder must contain a subdirectory for the current platform (one of `OSX_x86`, `Linux_x86_64`, `Linux_x86_32`, `Windows_x86_64`, or `Windows_x86_32`) that contains the library files.
+* `-DCMAKE_OSX_DEPLOYMENT_TARGET=version`: Minimum version of macOS to target when building for Mac. Defaults to 10.13, which is the minimum required for the PVRTexTool library.
 
 Once you have built and installed Cuttlefish, you can find the library by calling `find_package(Cuttlefish CONFIG)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
 
