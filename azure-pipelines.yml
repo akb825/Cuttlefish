@@ -37,7 +37,7 @@ jobs:
     steps:
       - script: |
             git submodule update --init
-            if [ $(ispc) ]; then
+            if [ $(ispc) -eq 1 ]; then
                 curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-linux.tar.gz -o ispc.tar.gz
                 tar xzf ispc.tar.gz
             fi
@@ -149,7 +149,7 @@ jobs:
     steps:
       - script: |
             git submodule update --init
-            if [ $(ispc) ]; then
+            if [ $(ispc) -eq 1 ]; then
                 brew install ispc
             fi
         displayName: Download submodules
@@ -285,7 +285,7 @@ jobs:
     steps:
       - bash: |
             git submodule update --init
-            if [ $(ispc) ]; then
+            if [ $(ispc) -eq 1 ]; then
                 curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-windows.zip -o ispc.zip
                 unzip ispc.zip
             fi
