@@ -235,7 +235,7 @@ jobs:
         displayName: Publish artifact
   - job: Windows
     pool:
-        vmImage: windows-latest
+        vmImage: windows-2019
     workspace:
         clean: all
     strategy:
