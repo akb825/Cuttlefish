@@ -235,7 +235,7 @@ jobs:
         displayName: Publish artifact
   - job: Windows
     pool:
-        vmImage: windows-2019
+        vmImage: windows-latest
     workspace:
         clean: all
     strategy:
@@ -300,7 +300,7 @@ jobs:
         workingDirectory: $(Build.BinariesDirectory)
       - script: |
             cmake .. -DCMAKE_INSTALL_PREFIX=$(dependency.location) -Dgtest_force_shared_crt=ON ^
-                -A $(arch) -T v140
+                -A $(arch) -T v141
             cmake --build . --config Release
             cmake --build . --config Release --target install
         displayName: Build gtest
@@ -308,7 +308,7 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.commonArgs) $(cmake.args) -A $(arch) -T v140 $(Build.SourcesDirectory)
+            cmakeArgs: $(cmake.commonArgs) $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
         inputs:
