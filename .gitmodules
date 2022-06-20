@@ -1,6 +1,6 @@
 [submodule "lib/FreeImage"]
 	path = lib/FreeImage
-	url = https://github.com/WinMerge/freeimage.git
+	url = https://github.com/akb825/freeimage.git
 [submodule "lib/etc2comp"]
 	path = lib/etc2comp
 	url = https://github.com/akb825/etc2comp.git
@@ -18,7 +18,7 @@
 	url = https://github.com/richgel999/bc7enc_rdo.git
 [submodule "lib/compressonator"]
 	path = lib/compressonator
-	url = https://github.com/GPUOpen-Tools/compressonator.git
+	url = https://github.com/akb825/compressonator.git
 [submodule "lib/ISPCTextureCompressor"]
 	path = lib/ISPCTextureCompressor
 	url = https://github.com/GameTechDev/ISPCTextureCompressor.git
