@@ -90,7 +90,7 @@ The following options may be used when running cmake:
 
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running `make install`.
-* `-DCUTTLEFISH_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `ON`.
+* `-DCUTTLEFISH_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
 * `-DCUTTLEFISH_ISPC_PATH=path`: The path to the ISPC compiler. If unset, ispc will be searched in the `PATH` or default instal location.
 
 ### Enabled Builds

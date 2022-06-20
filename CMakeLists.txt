@@ -2,7 +2,14 @@ cmake_minimum_required(VERSION 3.1)
 project(Cuttlefish)
 
 # Build options
-set(CUTTLEFISH_SHARED ON CACHE BOOL "Build Cuttlefish using shared libraries.")
+# Use if since BUILD_SHARED_LIBS defaults to unset.
+if (BUILD_SHARED_LIBS)
+	set(CUTTLEFISH_SHARED_DEFAULT ON)
+else()
+	set(CUTTLEFISH_SHARED_DEFAULT OFF)
+endif()
+set(CUTTLEFISH_SHARED ${CUTTLEFISH_SHARED_DEFAULT} CACHE BOOL
+	"Build Cuttlefish using shared libraries.")
 
 # Options for disabling portions of the build.
 set(CUTTLEFISH_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
