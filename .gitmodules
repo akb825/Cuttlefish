@@ -1,27 +1,36 @@
 [submodule "lib/FreeImage"]
 	path = lib/FreeImage
 	url = https://github.com/akb825/freeimage.git
+	shallow = true
 [submodule "lib/etc2comp"]
 	path = lib/etc2comp
 	url = https://github.com/akb825/etc2comp.git
+	shallow = true
 [submodule "lib/astc-encoder"]
 	path = lib/astc-encoder
 	url = https://github.com/ARM-software/astc-encoder.git
+	shallow = true
 [submodule "lib/glm"]
 	path = lib/glm
 	url = https://github.com/g-truc/glm.git
+	shallow = true
 [submodule "lib/PVRTexToolLib"]
 	path = lib/PVRTexToolLib
 	url = https://github.com/akb825/PVRTexToolLib.git
+	shallow = true
 [submodule "lib/bc7enc_rdo"]
 	path = lib/bc7enc_rdo
 	url = https://github.com/richgel999/bc7enc_rdo.git
+	shallow = true
 [submodule "lib/compressonator"]
 	path = lib/compressonator
 	url = https://github.com/akb825/compressonator.git
+	shallow = true
 [submodule "lib/ISPCTextureCompressor"]
 	path = lib/ISPCTextureCompressor
 	url = https://github.com/GameTechDev/ISPCTextureCompressor.git
+	shallow = true
 [submodule "lib/libsquish"]
 	path = lib/libsquish
 	url = https://github.com/KonajuGames/libsquish.git
+	shallow = true
