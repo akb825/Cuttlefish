@@ -23,6 +23,6 @@ namespace cuttlefish
 {
 
 bool isValidForDds(Texture::Format format, Texture::Type type);
-Texture::SaveResult saveDds(const Texture& texture, const char* fileName);
+Texture::SaveResult saveDds(const Texture& texture, std::ostream& stream);
 
 } // namespace cuttlefish

@@ -23,6 +23,6 @@ namespace cuttlefish
 {
 
 bool isValidForPvr(Texture::Format format, Texture::Type type);
-Texture::SaveResult savePvr(const Texture& texture, const char* fileName);
+Texture::SaveResult savePvr(const Texture& texture, std::ostream& stream);
 
 } // namespace cuttlefish
