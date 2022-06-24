@@ -688,66 +688,71 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::BC1_RGB:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_S3TC_DXT1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_S3TC_DXT1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+					info.internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 				return true;
 			}
 			return false;
 		case Texture::Format::BC1_RGBA:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				return true;
 			}
 			return false;
 		case Texture::Format::BC2:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 				return true;
 			}
 			return false;
 		case Texture::Format::BC3:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+					info.internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 				return true;
 			}
 			return false;
 		case Texture::Format::BC4:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RED;
+			info.format = 0;
+			info.baseInternalFormat = GL_RED;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat =info.baseInternalFormat =  GL_COMPRESSED_RED_RGTC1;
+					info.internalFormat = GL_COMPRESSED_RED_RGTC1;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RED_RGTC1;
+					info.internalFormat = GL_COMPRESSED_SIGNED_RED_RGTC1;
 					return true;
 				default:
 					return false;
@@ -755,14 +760,15 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::BC5:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RG;
+			info.format = 0;
+			info.baseInternalFormat = GL_RG;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RG_RGTC2;
+					info.internalFormat = GL_COMPRESSED_RG_RGTC2;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RG_RGTC2;
+					info.internalFormat = GL_COMPRESSED_SIGNED_RG_RGTC2;
 					return true;
 				default:
 					return false;
@@ -770,14 +776,15 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::BC6H:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			switch (type)
 			{
 				case Texture::Type::UFloat:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
+					info.internalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
 					return true;
 				case Texture::Type::Float:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
+					info.internalFormat = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
 					return true;
 				default:
 					return false;
@@ -785,76 +792,82 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::BC7:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM;
+					info.internalFormat = GL_COMPRESSED_RGBA_BPTC_UNORM;
 				return true;
 			}
 			return false;
 		case Texture::Format::ETC1:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
-				info.internalFormat = info.baseInternalFormat = GL_ETC1_RGB8_OES;
+				info.internalFormat = GL_ETC1_RGB8_OES;
 				return true;
 			}
 			return false;
 		case Texture::Format::ETC2_R8G8B8:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ETC2;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ETC2;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB8_ETC2;
+					info.internalFormat = GL_COMPRESSED_RGB8_ETC2;
 				return true;
 			}
 			return false;
 		case Texture::Format::ETC2_R8G8B8A1:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+					info.internalFormat = GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+					info.internalFormat = GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 				return true;
 			}
 			return false;
 		case Texture::Format::ETC2_R8G8B8A8:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC;
+					info.internalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC;
 				return true;
 			}
 			return false;
 		case Texture::Format::EAC_R11:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RED;
+			info.format = 0;
+			info.baseInternalFormat = GL_RED;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_R11_EAC;
+					info.internalFormat = GL_COMPRESSED_R11_EAC;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_R11_EAC;
+					info.internalFormat = GL_COMPRESSED_SIGNED_R11_EAC;
 					return true;
 				default:
 					return false;
@@ -862,14 +875,15 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::EAC_R11G11:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RG;
+			info.format = 0;
+			info.baseInternalFormat = GL_RG;
 			switch (type)
 			{
 				case Texture::Type::UNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RG11_EAC;
+					info.internalFormat = GL_COMPRESSED_RG11_EAC;
 					return true;
 				case Texture::Type::SNorm:
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SIGNED_RG11_EAC;
+					info.internalFormat = GL_COMPRESSED_SIGNED_RG11_EAC;
 					return true;
 				default:
 					return false;
@@ -877,260 +891,280 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 		case Texture::Format::ASTC_4x4:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_5x4:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_5x4_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_5x5:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_5x5_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_6x5:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_6x5_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_6x6:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_6x6_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_8x5:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x5_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_8x6:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x6_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_8x8:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_10x5:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x5_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_10x6:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x6_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_10x8:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x8_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_10x10:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_10x10_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_12x10:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_12x10_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::ASTC_12x12:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm || type == Texture::Type::UFloat)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
+					info.internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
+					info.internalFormat = GL_COMPRESSED_RGBA_ASTC_12x12_KHR;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC1_RGB_2BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+					info.internalFormat = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC1_RGBA_2BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC1_RGB_4BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGB;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGB;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+					info.internalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC1_RGBA_4BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC2_RGBA_2BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
+					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
 				return true;
 			}
 			return false;
 		case Texture::Format::PVRTC2_RGBA_4BPP:
 			info.type = 0;
 			info.typeSize = 1;
-			info.format = GL_RGBA;
+			info.format = 0;
+			info.baseInternalFormat = GL_RGBA;
 			if (type == Texture::Type::UNorm)
 			{
 				if (colorSpace == ColorSpace::sRGB)
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG;
+					info.internalFormat = GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG;
 				else
-					info.internalFormat = info.baseInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
+					info.internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
 				return true;
 			}
 			return false;
