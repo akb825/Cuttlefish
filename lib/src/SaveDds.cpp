@@ -18,7 +18,7 @@
 #include "Shared.h"
 #include <cassert>
 #include <cstring>
-#include <fstream>
+#include <ostream>
 
 namespace cuttlefish
 {
@@ -253,7 +253,7 @@ struct DdsHeaderDxt10
 };
 
 template <typename T>
-static bool write(std::ofstream& stream, const T& value)
+static bool write(std::ostream& stream, const T& value)
 {
 	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
 	return stream.good();
@@ -569,16 +569,12 @@ bool isValidForDds(Texture::Format format, Texture::Type type)
 	return getDdsFormat(format, type, ColorSpace::Linear) != DdsDxt10Format_UNKNOWN;
 }
 
-Texture::SaveResult saveDds(const Texture& texture, const char* fileName)
+Texture::SaveResult saveDds(const Texture& texture, std::ostream& stream)
 {
 	DdsDxt10Format ddsFormat = getDdsFormat(texture.format(), texture.type(),
 		texture.colorSpace());
 	if (ddsFormat == DdsDxt10Format_UNKNOWN)
 		return Texture::SaveResult::Unsupported;
-
-	std::ofstream stream(fileName, std::ofstream::binary);
-	if (!stream.is_open())
-		return Texture::SaveResult::WriteError;
 
 	if (!write(stream, magicNumber))
 		return Texture::SaveResult::WriteError;

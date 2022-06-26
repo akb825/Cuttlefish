@@ -23,6 +23,6 @@ namespace cuttlefish
 {
 
 bool isValidForKtx(Texture::Format format, Texture::Type type);
-Texture::SaveResult saveKtx(const Texture& texture, const char* fileName);
+Texture::SaveResult saveKtx(const Texture& texture, std::ostream& stream);
 
 } // namespace cuttlefish

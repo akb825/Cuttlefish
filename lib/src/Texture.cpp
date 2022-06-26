@@ -26,6 +26,8 @@
 #include <cstring>
 #include <thread>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #if CUTTLEFISH_MSC
 #include <intrin.h>
@@ -1321,17 +1323,42 @@ Texture::SaveResult Texture::save(const char* fileName, FileType fileType)
 	if (fileType == FileType::Auto)
 		fileType = Texture::fileType(fileName);
 
+	std::ofstream stream(fileName, std::ofstream::binary);
+	if (!stream.is_open())
+		return SaveResult::WriteError;
+	return save(stream, fileType);
+}
+
+Texture::SaveResult Texture::save(std::ostream& stream, Texture::FileType fileType) {
+	if (!converted()) return SaveResult::Invalid;
+
 	switch (fileType)
 	{
 		case FileType::DDS:
-			return saveDds(*this, fileName);
+			return saveDds(*this, stream);
 		case FileType::KTX:
-			return saveKtx(*this, fileName);
+			return saveKtx(*this, stream);
 		case FileType::PVR:
-			return savePvr(*this, fileName);
+			return savePvr(*this, stream);
 		default:
 			return SaveResult::UnknownFormat;
 	}
+}
+
+Texture::SaveResult Texture::save(std::vector<std::uint8_t>& out, Texture::FileType fileType) {
+	std::stringstream stream(std::stringstream::in | std::stringstream::out | std::stringstream::binary);
+
+	SaveResult ret = save(stream, fileType);
+
+	if (ret == SaveResult::Success) {
+		stream.seekg(0, std::stringstream::end);
+		auto stream_size = stream.tellg();
+		assert(stream_size > 0);
+		stream.seekg(0, std::stringstream::beg);
+		out.resize(std::vector<std::uint8_t>::size_type(stream_size));
+		stream.read(reinterpret_cast<char *>(out.data()), stream_size);
+	}
+	return ret;
 }
 
 } // namespace cuttlefish

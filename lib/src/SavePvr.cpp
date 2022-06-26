@@ -18,7 +18,7 @@
 #include "Shared.h"
 #include <cassert>
 #include <cstring>
-#include <fstream>
+#include <sstream>
 
 #define PVR_GENERIC_FORMAT(channel0, bits0, channel1, bits1, channel2, bits2, channel3, bits3) \
 	(((uint64_t)(channel0) | ((uint64_t)(channel1) << 8) | ((uint64_t)(channel2) << 16) | \
@@ -470,7 +470,7 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 }
 
 template <typename T>
-static bool write(std::ofstream& stream, const T& value)
+static bool write(std::ostream& stream, const T& value)
 {
 	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
 	return stream.good();
@@ -482,7 +482,7 @@ bool isValidForPvr(Texture::Format format, Texture::Type)
 	return getPixelFormat(pixelFormat, format, Texture::Alpha::Standard);
 }
 
-Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
+Texture::SaveResult savePvr(const Texture& texture, std::ostream& stream)
 {
 	static_assert(sizeof(0U) == sizeof(std::uint32_t), "unexpected integer size");
 	static_assert(sizeof(unsigned int) == sizeof(std::uint32_t), "unexpected integer size");
@@ -490,10 +490,6 @@ Texture::SaveResult savePvr(const Texture& texture, const char* fileName)
 	std::uint64_t pixelFormat;
 	if (!getPixelFormat(pixelFormat, texture.format(), texture.alphaType()))
 		return Texture::SaveResult::Unsupported;
-
-	std::ofstream stream(fileName, std::ofstream::binary);
-	if (!stream.is_open())
-		return Texture::SaveResult::WriteError;
 
 	const std::uint32_t version = FOURCC('P', 'V', 'R', 3);
 	if (!write(stream, version))

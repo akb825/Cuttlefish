@@ -17,7 +17,7 @@
 #include "SaveKtx.h"
 #include <cassert>
 #include <cstring>
-#include <fstream>
+#include <ostream>
 
 #define GL_BYTE                           0x1400
 #define GL_UNSIGNED_BYTE                  0x1401
@@ -1180,7 +1180,7 @@ static bool getFormatInfo(FormatInfo& info, Texture::Format format, Texture::Typ
 }
 
 template <typename T>
-static bool write(std::ofstream& stream, const T& value)
+static bool write(std::ostream& stream, const T& value)
 {
 	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
 	return stream.good();
@@ -1192,7 +1192,7 @@ bool isValidForKtx(Texture::Format format, Texture::Type type)
 	return getFormatInfo(info, format, type, ColorSpace::Linear);
 }
 
-Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
+Texture::SaveResult saveKtx(const Texture& texture, std::ostream& stream)
 {
 	static_assert(sizeof(0U) == sizeof(std::uint32_t), "unexpected integer size");
 	static_assert(sizeof(unsigned int) == sizeof(std::uint32_t), "unexpected integer size");
@@ -1201,12 +1201,7 @@ Texture::SaveResult saveKtx(const Texture& texture, const char* fileName)
 	if (!getFormatInfo(info, texture.format(), texture.type(), texture.colorSpace()))
 		return Texture::SaveResult::Unsupported;
 
-	std::ofstream stream(fileName, std::ofstream::binary);
-	if (!stream.is_open())
-		return Texture::SaveResult::WriteError;
-
-	stream.write(header, sizeof(header));
-	if (!stream.good())
+	if (!write(stream, header))
 		return Texture::SaveResult::WriteError;
 
 	if (!write(stream, endianness))
