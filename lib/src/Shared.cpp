@@ -23,14 +23,17 @@ namespace cuttlefish
 void readStreamData(std::vector<std::uint8_t>& outData, std::istream& stream)
 {
 	// Try to get the full size of the data by seeking.
-	if (!stream.seekg(0, std::ios_base::end))
+	stream.seekg(0, std::ios_base::end);
+	std::istream::pos_type pos = stream.tellg();
+	if (pos < 0)
 	{
-		// Fall back to reading bytes if we can't seek.
+		// Fall back to reading bytes if we can't seek. Clear the stream bits in case the seek
+		// set a fail bit.
 		stream.clear();
-		outData.clear();
 
 		constexpr std::size_t bufferSize = 4096;
 		char buffer[bufferSize];
+		outData.clear();
 		do
 		{
 			stream.read(buffer, bufferSize);
@@ -42,13 +45,12 @@ void readStreamData(std::vector<std::uint8_t>& outData, std::istream& stream)
 		} while (true);
 		return;
 	}
-
-	auto size = static_cast<std::size_t>(stream.tellg());
 	stream.seekg(0, std::ios_base::beg);
 
 	// Resize will zero-initialize the vector. Theoretically calling reserve() and using
 	// std::istreambuf_iterator to populate the data would have the fewest data writes, but is
 	// more function call overhead and slower in practice.
+	auto size = static_cast<std::size_t>(pos);
 	outData.resize(size);
 	stream.read(reinterpret_cast<char*>(outData.data()), size);
 }

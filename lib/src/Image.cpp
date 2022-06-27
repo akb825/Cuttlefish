@@ -725,6 +725,14 @@ bool Image::load(const char* fileName, ColorSpace colorSpace)
 
 bool Image::load(std::istream& stream, ColorSpace colorSpace)
 {
+	// Seeking is needed to detect the file type.
+	if (stream.tellg() < 0)
+	{
+		std::vector<std::uint8_t> data;
+		readStreamData(data, stream);
+		return load(data.data(), data.size(), colorSpace);
+	}
+
 	reset();
 
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromHandle(&istreamIO, &stream);
