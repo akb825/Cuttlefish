@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,39 @@
 
 #include <cuttlefish/Image.h>
 
+#include "Shared.h"
 #include <cuttlefish/Color.h>
 #include <FreeImage.h>
 #include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <cmath>
+#include <cstdio>
+#include <istream>
 #include <limits>
+#include <ostream>
+#include <sstream>
 
 namespace cuttlefish
 {
 
-static std::atomic<unsigned int> initializeCount(0);
-static void initializeLib()
+namespace
+{
+
+std::atomic<unsigned int> initializeCount(0);
+void initializeLib()
 {
 	if (initializeCount++ == 0)
 		FreeImage_Initialise();
 }
 
-static void shutdownLib()
+void shutdownLib()
 {
 	if (--initializeCount == 0)
 		FreeImage_DeInitialise();
 }
 
-static Image::Format getFormat(FIBITMAP* image)
+Image::Format getFormat(FIBITMAP* image)
 {
 	switch (FreeImage_GetImageType(image))
 	{
@@ -93,8 +101,8 @@ static Image::Format getFormat(FIBITMAP* image)
 	}
 }
 
-static FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bpp,
-	unsigned int& redMask, unsigned int& greenMask, unsigned int& blueMask)
+FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bpp, unsigned int& redMask,
+	unsigned int& greenMask, unsigned int& blueMask)
 {
 	bpp = 0;
 	redMask = 0;
@@ -151,60 +159,143 @@ static FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bp
 	}
 }
 
-static double toDoubleNorm(std::uint8_t value)
+unsigned int readIStream(void* buffer, unsigned int size, unsigned int count, fi_handle handle)
+{
+	auto stream = reinterpret_cast<std::istream*>(handle);
+	stream->read(reinterpret_cast<char*>(buffer), size*count);
+	return static_cast<unsigned int>(stream->gcount());
+}
+
+unsigned int writeIStream(void*, unsigned int, unsigned int, fi_handle)
+{
+	return 0;
+}
+
+int seekIStream(fi_handle handle, long offset, int origin)
+{
+	auto stream = reinterpret_cast<std::istream*>(handle);
+	std::ios_base::seekdir dir;
+	switch (origin)
+	{
+		case SEEK_SET:
+			dir = std::ios_base::beg;
+			break;
+		case SEEK_CUR:
+			dir = std::ios_base::cur;
+			break;
+		case SEEK_END:
+			dir = std::ios_base::end;
+			break;
+		default:
+			return -1;
+	}
+	stream->seekg(offset, dir);
+	return stream->good() ? 0 : -1;
+}
+
+long tellIStream(fi_handle handle)
+{
+	auto stream = reinterpret_cast<std::istream*>(handle);
+	return static_cast<long>(stream->tellg());
+}
+
+FreeImageIO istreamIO{&readIStream, &writeIStream, &seekIStream, tellIStream};
+
+unsigned int readOStream(void*, unsigned int, unsigned int, fi_handle)
+{
+	return 0;
+}
+
+unsigned int writeOStream(void* buffer, unsigned int size, unsigned int count, fi_handle handle)
+{
+	auto stream = reinterpret_cast<std::ostream*>(handle);
+	stream->write(reinterpret_cast<char*>(buffer), size*count);
+	return count*size;
+}
+
+int seekOStream(fi_handle handle, long offset, int origin)
+{
+	auto stream = reinterpret_cast<std::ostream*>(handle);
+	std::ios_base::seekdir dir;
+	switch (origin)
+	{
+		case SEEK_SET:
+			dir = std::ios_base::beg;
+			break;
+		case SEEK_CUR:
+			dir = std::ios_base::cur;
+			break;
+		case SEEK_END:
+			dir = std::ios_base::end;
+			break;
+		default:
+			return -1;
+	}
+	stream->seekp(offset, dir);
+	return stream->good() ? 0 : -1;
+}
+
+long tellOStream(fi_handle handle)
+{
+	auto stream = reinterpret_cast<std::ostream*>(handle);
+	return static_cast<long>(stream->tellp());
+}
+
+FreeImageIO ostreamIO{&readOStream, &writeOStream, &seekOStream, tellOStream};
+
+double toDoubleNorm(std::uint8_t value)
 {
 	return value/255.0;
 }
 
-static double toDoubleNorm(std::uint16_t value)
+double toDoubleNorm(std::uint16_t value)
 {
 	return value/65535.0;
 }
 
-static double toDoubleNorm5(unsigned int value)
+double toDoubleNorm5(unsigned int value)
 {
 	return value/31.0;
 }
 
-static double toDoubleNorm6(unsigned int value)
+double toDoubleNorm6(unsigned int value)
 {
 	return value/63.0;
 }
 
-static double clamp(double d)
+double clamp(double d)
 {
 	return std::max(std::min(d, 1.0), 0.0);
 }
 
 template <typename T>
-static T clamp(T v)
+T clamp(T v)
 {
 	return std::max(std::min(v, std::numeric_limits<T>::max()), std::numeric_limits<T>::lowest());
 }
 
 template <typename T>
-static T fromDoubleNorm(double d)
+T fromDoubleNorm(double d)
 {
 	return static_cast<T>(std::round(clamp(d)*std::numeric_limits<T>::max()));
 }
 
-static std::uint8_t fromDoubleNorm5(double d)
+std::uint8_t fromDoubleNorm5(double d)
 {
 	return static_cast<std::uint8_t>(std::round(clamp(d)*31));
 }
 
-static std::uint8_t fromDoubleNorm6(double d)
+std::uint8_t fromDoubleNorm6(double d)
 {
 	return static_cast<std::uint8_t>(std::round(clamp(d)*63));
 }
 
-static void* getScanlineImpl(FIBITMAP* image, unsigned int height, unsigned int y)
+void* getScanlineImpl(FIBITMAP* image, unsigned int height, unsigned int y)
 {
 	return FreeImage_GetScanLine(image, height - y - 1);
 }
 
-static bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanline,
-	unsigned int x)
+bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanline, unsigned int x)
 {
 	switch (format)
 	{
@@ -441,6 +532,8 @@ static bool setPixelImpl(Image::Format format, void* scanline, unsigned int x,
 	}
 }
 
+} // namespace
+
 struct Image::Impl
 {
 	static Impl* create(FIBITMAP* image, ColorSpace colorSpace)
@@ -539,6 +632,12 @@ Image::Image(const char* fileName, ColorSpace colorSpace)
 	load(fileName, colorSpace);
 }
 
+Image::Image(std::istream& stream, ColorSpace colorSpace)
+	: Image()
+{
+	load(stream, colorSpace);
+}
+
 Image::Image(const void* data, std::size_t size, ColorSpace colorSpace)
 	: Image()
 {
@@ -624,6 +723,18 @@ bool Image::load(const char* fileName, ColorSpace colorSpace)
 	return m_impl != nullptr;
 }
 
+bool Image::load(std::istream& stream, ColorSpace colorSpace)
+{
+	reset();
+
+	FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromHandle(&istreamIO, &stream);
+	if (format == FIF_UNKNOWN)
+		return false;
+
+	m_impl = Impl::create(FreeImage_LoadFromHandle(format, &istreamIO, &stream), colorSpace);
+	return m_impl != nullptr;
+}
+
 bool Image::load(const void* data, std::size_t size, ColorSpace colorSpace)
 {
 	reset();
@@ -654,6 +765,30 @@ bool Image::save(const char* fileName)
 		return false;
 
 	return FreeImage_Save(format, m_impl->image, fileName) != false;
+}
+
+bool Image::save(std::ostream& stream, const char* fileName)
+{
+	if (!m_impl)
+		return false;
+
+	FREE_IMAGE_FORMAT format = FreeImage_GetFIFFromFilename(fileName);
+	if (format == FIF_UNKNOWN)
+		return false;
+
+	return FreeImage_SaveToHandle(format, m_impl->image, &ostreamIO, &stream) != false;
+}
+
+bool Image::save(std::vector<std::uint8_t>& outData, const char* fileName)
+{
+	// Implementations of stringstream typically don't differentiate between text and binary, but
+	// the standard doesn't guarantee this.
+	std::stringstream stream(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+	if (!save(stream, fileName))
+		return false;
+
+	readStreamData(outData, stream);
+	return true;
 }
 
 bool Image::initialize(Format format, unsigned int width, unsigned int height,

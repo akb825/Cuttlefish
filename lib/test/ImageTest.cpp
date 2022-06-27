@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #include <cuttlefish/Image.h>
 #include <gtest/gtest.h>
 #include <cmath>
+#include <sstream>
 
 // Handle different versions of gtest.
 #ifndef INSTANTIATE_TEST_SUITE_P
@@ -155,6 +156,50 @@ TEST_P(ImageTest, Initialize)
 
 	image.reset();
 	EXPECT_FALSE(image.isValid());
+}
+
+TEST(ImageSaveTest, SaveLoadStream)
+{
+	Image image;
+	EXPECT_FALSE(image.isValid());
+	EXPECT_TRUE(image.initialize(Image::Format::RGBA8, 10, 15));
+	EXPECT_TRUE(image.isValid());
+	EXPECT_EQ(Image::Format::RGBA8, image.format());
+	EXPECT_EQ(10U, image.width());
+	EXPECT_EQ(15U, image.height());
+
+	// Implementations of stringstream typically don't differentiate between text and binary, but
+	// the standard doesn't guarantee this.
+	std::stringstream stream(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+	EXPECT_TRUE(image.save(stream, "png"));
+
+	Image otherImage;
+	EXPECT_TRUE(otherImage.load(stream));
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_EQ(image.format(), otherImage.format());
+	EXPECT_EQ(image.width(), otherImage.width());
+	EXPECT_EQ(image.height(), otherImage.height());
+}
+
+TEST(ImageSaveTest, SaveLoadBuffer)
+{
+	Image image;
+	EXPECT_FALSE(image.isValid());
+	EXPECT_TRUE(image.initialize(Image::Format::RGBA8, 10, 15));
+	EXPECT_TRUE(image.isValid());
+	EXPECT_EQ(Image::Format::RGBA8, image.format());
+	EXPECT_EQ(10U, image.width());
+	EXPECT_EQ(15U, image.height());
+
+	std::vector<std::uint8_t> data;
+	EXPECT_TRUE(image.save(data, "png"));
+
+	Image otherImage;
+	EXPECT_TRUE(otherImage.load(data.data(), data.size()));
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_EQ(image.format(), otherImage.format());
+	EXPECT_EQ(image.width(), otherImage.width());
+	EXPECT_EQ(image.height(), otherImage.height());
 }
 
 TEST_P(ImageTest, GetSetPixel)

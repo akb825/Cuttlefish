@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,17 @@
 #include "SaveDds.h"
 #include "SaveKtx.h"
 #include "SavePvr.h"
+#include "Shared.h"
+
 #include <cuttlefish/Color.h>
+
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstring>
+#include <fstream>
 #include <thread>
 #include <vector>
-#include <fstream>
 #include <sstream>
 
 #if CUTTLEFISH_MSC
@@ -1329,8 +1333,10 @@ Texture::SaveResult Texture::save(const char* fileName, FileType fileType)
 	return save(stream, fileType);
 }
 
-Texture::SaveResult Texture::save(std::ostream& stream, Texture::FileType fileType) {
-	if (!converted()) return SaveResult::Invalid;
+Texture::SaveResult Texture::save(std::ostream& stream, Texture::FileType fileType)
+{
+	if (!converted())
+		return SaveResult::Invalid;
 
 	switch (fileType)
 	{
@@ -1345,18 +1351,17 @@ Texture::SaveResult Texture::save(std::ostream& stream, Texture::FileType fileTy
 	}
 }
 
-Texture::SaveResult Texture::save(std::vector<std::uint8_t>& out, Texture::FileType fileType) {
-	std::stringstream stream(std::stringstream::in | std::stringstream::out | std::stringstream::binary);
+Texture::SaveResult Texture::save(std::vector<std::uint8_t>& outData, Texture::FileType fileType)
+{
+	// Implementations of stringstream typically don't differentiate between text and binary, but
+	// the standard doesn't guarantee this.
+	std::stringstream stream(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 
 	SaveResult ret = save(stream, fileType);
-
-	if (ret == SaveResult::Success) {
-		stream.seekg(0, std::stringstream::end);
-		auto stream_size = stream.tellg();
-		assert(stream_size > 0);
-		stream.seekg(0, std::stringstream::beg);
-		out.resize(std::vector<std::uint8_t>::size_type(stream_size));
-		stream.read(reinterpret_cast<char *>(out.data()), stream_size);
+	if (ret == SaveResult::Success)
+	{
+		readStreamData(outData, stream);
+		assert(!outData.empty());
 	}
 	return ret;
 }

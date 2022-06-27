@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -467,13 +467,6 @@ static bool getPixelFormat(std::uint64_t& pixelFormat, Texture::Format format,
 	}
 	assert(false);
 	return false;
-}
-
-template <typename T>
-static bool write(std::ostream& stream, const T& value)
-{
-	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
-	return stream.good();
 }
 
 bool isValidForPvr(Texture::Format format, Texture::Type)

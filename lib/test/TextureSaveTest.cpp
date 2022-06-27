@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,6 +234,35 @@ TEST_P(TextureSaveSpecialPvrTest, Save)
 			Texture::FileType::PVR));
 		EXPECT_EQ(typeInfo.second, texture.save(nullFile, Texture::FileType::PVR));
 	}
+}
+
+TEST(TextureSaveTest, SaveVector)
+{
+	// Also implicitly tests saving to a stream.
+	Texture texture(Texture::Dimension::Dim2D, 16, 16);
+	Image image(Image::Format::RGBAF, 16, 16);
+	for (unsigned int y = 0; y < image.height(); ++y)
+	{
+		for (unsigned int x = 0; x < image.width(); ++x)
+			EXPECT_TRUE(image.setPixel(x, y, ColorRGBAd{0.0, 0.0, 0.0, 1.0}));
+	};
+	EXPECT_TRUE(texture.setImage(image));
+	EXPECT_TRUE(texture.convert(Texture::Format::R8G8B8A8, Texture::Type::UNorm));
+
+	std::size_t ddsHeaderSize = 148;
+	std::size_t ktxHeaderSize = 68;
+	std::size_t pvrHeaderSize = 52;
+	std::size_t dataSize = texture.width()*texture.height()*Texture::blockSize(texture.format());
+
+	std::vector<std::uint8_t> data;
+	EXPECT_EQ(success, texture.save(data, Texture::FileType::DDS));
+	EXPECT_EQ(ddsHeaderSize + dataSize, data.size());
+
+	EXPECT_EQ(success, texture.save(data, Texture::FileType::KTX));
+	EXPECT_EQ(ktxHeaderSize + dataSize, data.size());
+
+	EXPECT_EQ(success, texture.save(data, Texture::FileType::PVR));
+	EXPECT_EQ(pvrHeaderSize + dataSize, data.size());
 }
 
 INSTANTIATE_TEST_SUITE_P(TextureSaveTestTypes,

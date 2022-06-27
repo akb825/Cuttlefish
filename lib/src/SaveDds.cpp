@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,13 +251,6 @@ struct DdsHeaderDxt10
 	std::uint32_t arraySize;
 	std::uint32_t miscFlags2;
 };
-
-template <typename T>
-static bool write(std::ostream& stream, const T& value)
-{
-	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
-	return stream.good();
-}
 
 static DdsDxt10Format getDdsFormat(Texture::Format format, Texture::Type type,
 	ColorSpace colorSpace)

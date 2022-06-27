@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 #pragma once
 
 #include <cstdint>
+#include <iosfwd>
+#include <ostream>
+#include <vector>
 
 #define FOURCC(a, b, c, d) ((std::uint32_t)(a) | ((std::uint32_t)(b) << 8) | \
 	((std::uint32_t)(c) << 16) | ((std::uint32_t)(d) << 24 ))
@@ -32,5 +35,14 @@ inline float clamp(float v, float minVal, float maxVal)
 		return maxVal;
 	return v;
 }
+
+template <typename T>
+bool write(std::ostream& stream, const T& value)
+{
+	stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+	return stream.good();
+}
+
+void readStreamData(std::vector<std::uint8_t>& outData, std::istream& stream);
 
 } // namespace cuttlefish

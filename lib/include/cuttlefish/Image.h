@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #include <cuttlefish/Color.h>
 #include <cstddef>
 #include <cstdint>
+#include <iosfwd>
+#include <vector>
 
 namespace cuttlefish
 {
@@ -127,6 +129,14 @@ public:
 	Image(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
+	 * @brief Loads an image from a stream.
+	 * @param stream The stream to read from. This must be opened in binary mode!
+	 * @param colorSpace The color space of the image.
+	 * @remark The image will be invalid if it failed to load.
+	 */
+	Image(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
+
+	/**
 	 * @brief Loads an image from data.
 	 * @param data The data to load from.
 	 * @param size The size of the data.
@@ -174,6 +184,14 @@ public:
 	bool load(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
+	 * @brief Loads an image from a stream.
+	 * @param stream The stream to load from. This must be opened in binary mode!
+	 * @param colorSpace The color space of the image.
+	 * @return False if the image couldn't be loaded.
+	 */
+	bool load(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
+
+	/**
 	 * @brief Loads an image from data.
 	 * @param data The data to load from.
 	 * @param size The size of the data.
@@ -195,6 +213,36 @@ public:
 	 * @return False if the image couldn't be saved.
 	 */
 	bool save(const char* fileName);
+
+	/**
+	 * @brief Saves an image to byte vector.
+	 *
+	 * Nearly all image file formats, such as png, jpeg, etc., are supported. This will use the
+	 * default parameters for settings like compression, and is intended for the most common use
+	 * cases. For more intricate use cases where finer levels of control are needed, you will need
+	 * to extract the raw image data and use a dedicated image library.
+	 *
+	 * @remark You should ensure that the image's pixel format is supported by the file format.
+	 * @param stream The stream to save the image to. This must be opened in binary mode!
+	 * @param extension The file extension used to determine the file format.
+	 * @return False if the image couldn't be saved.
+	 */
+	bool save(std::ostream& stream, const char* extension);
+
+	/**
+	 * @brief Saves an image to a stream.
+	 *
+	 * Nearly all image file formats, such as png, jpeg, etc., are supported. This will use the
+	 * default parameters for settings like compression, and is intended for the most common use
+	 * cases. For more intricate use cases where finer levels of control are needed, you will need
+	 * to extract the raw image data and use a dedicated image library.
+	 *
+	 * @remark You should ensure that the image's pixel format is supported by the file format.
+	 * @param[out] outData The byte vector to save the image to. The contents will be overwritten.
+	 * @param extension The file extension used to determine the file format.
+	 * @return False if the image couldn't be saved.
+	 */
+	bool save(std::vector<std::uint8_t>& outData, const char* extension);
 
 	/**
 	 * @brief Initializes an empty image.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -606,14 +606,6 @@ public:
 	 */
 	const void* data(CubeFace face, unsigned int mipLevel = 0, unsigned int depth = 0) const;
 
-    /**
-     * @brief Saves a texture to an ostream.
-     * @param out An ostream object to write data to. This must be opened in binary mode!
-     * @param fileType The type of the file to save.
-     * @return False if the texture hasn't been converted or the data couldn't be written.
-     */
-    SaveResult save(std::ostream& out, FileType fileType);
-
 	/**
 	 * @brief Saves a texture to a file.
 	 * @param fileName The name of the file to save to.
@@ -622,13 +614,22 @@ public:
 	 */
 	SaveResult save(const char* fileName, FileType fileType = FileType::Auto);
 
-    /**
-     * @brief Saves a texture to a std::vector<char>.
-     * @param out A std::vector<std::uint8_t> to store the data to. This buffer will be resized and overwritten.
+	/**
+     * @brief Saves a texture to a stream.
+     * @param stream The stream to write data to. This must be opened in binary mode!
      * @param fileType The type of the file to save.
      * @return False if the texture hasn't been converted or the data couldn't be written.
      */
-    SaveResult save(std::vector<std::uint8_t>& out, FileType fileType);
+    SaveResult save(std::ostream& stream, FileType fileType);
+
+    /**
+     * @brief Saves a texture to a byte vector.
+     * @param[out] outData The byte vector to write data to. The contents will be overwritten.
+     * @param fileType The type of the file to save.
+     * @return False if the texture hasn't been converted or the data couldn't be written.
+     */
+    SaveResult save(std::vector<std::uint8_t>& outData, FileType fileType);
+
 private:
 	struct Impl;
 	Impl* m_impl;
