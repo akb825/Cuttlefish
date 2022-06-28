@@ -110,7 +110,9 @@ if (CUTTLEFISH_BUILD_S3TC)
 
 	if (CUTTLEFISH_ARCH MATCHES "^x86")
 		list(APPEND privateDefines SQUISH_USE_SSE=2)
-	elseif (CUTTLEFISH_ARCH MATCHES "^arm")
+	elseif (CUTTLEFISH_ARCH MATCHES "^powerpc" OR CUTTLEFISH_ARCH MATCHES "^ppc")
+		list(APPEND privateDefines SQUISH_USE_SSE=0 SQUISH_USE_ALTIVEC=1)
+	else()
 		list(APPEND privateDefines SQUISH_USE_SSE=0)
 	endif()
 
