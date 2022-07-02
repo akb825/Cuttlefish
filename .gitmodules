@@ -24,7 +24,7 @@
 	shallow = true
 [submodule "lib/compressonator"]
 	path = lib/compressonator
-	url = https://github.com/akb825/compressonator.git
+	url = https://github.com/GPUOpen-Tools/compressonator.git
 	shallow = true
 [submodule "lib/ISPCTextureCompressor"]
 	path = lib/ISPCTextureCompressor
