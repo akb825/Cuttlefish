@@ -126,5 +126,5 @@ function (cfs_fixup_mac_dep target old new)
 	endif()
 
 	add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-		"${old}" "${new}" -add_rpath "$<TARGET_FILE_DIR:${target}>" "$<TARGET_FILE:${target}>")
+		"${old}" "${new}" "$<TARGET_FILE:${target}>")
 endfunction()

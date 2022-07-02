@@ -10,6 +10,7 @@ set(ASTC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/astc-encoder)
 set(ispcSources)
 set(defines)
 set(privateDefines)
+set(extraLibraries)
 
 if (CUTTLEFISH_ISPC_PATH)
 	set(ISPC ${CUTTLEFISH_ISPC_PATH} CACHE FILEPATH "Path to the ISPC compiler." FORCE)
@@ -108,14 +109,6 @@ if (CUTTLEFISH_BUILD_S3TC)
 		message(WARNING "ISPC not found, falling back to lower quality BC6H and BC7 encoders.")
 	endif()
 
-	if (CUTTLEFISH_ARCH MATCHES "^x86")
-		list(APPEND privateDefines SQUISH_USE_SSE=2)
-	elseif (CUTTLEFISH_ARCH MATCHES "^powerpc" OR CUTTLEFISH_ARCH MATCHES "^ppc")
-		list(APPEND privateDefines SQUISH_USE_SSE=0 SQUISH_USE_ALTIVEC=1)
-	else()
-		list(APPEND privateDefines SQUISH_USE_SSE=0)
-	endif()
-
 	list(APPEND defines CUTTLEFISH_HAS_S3TC=1)
 endif()
 
@@ -153,19 +146,35 @@ if (ispcSources)
 	foreach (source ${ispcSources})
 		get_filename_component(baseName ${source} NAME_WLE)
 		set(headerPath ${CMAKE_CURRENT_BINARY_DIR}/${baseName}_ispc.h)
-		if (APPLE AND CTTULEFISH_ARCH STREQUAL "multi")
+		if (APPLE AND CUTTLEFISH_ARCH STREQUAL "multi")
 			if (CMAKE_VERSION VERSION_LESS "3.20.0")
 				message(FATAL_ERROR
 					"CMake 3.20 or higher required for universal binaries with BTPC support.")
 			endif()
+			if (NOT CMAKE_GENERATOR STREQUAL "Xcode")
+				message(FATAL_ERROR "Universal binaries can only be created with Xcode generator.")
+			endif()
 
 			list(APPEND ispcTargetObjFiles
 				"${CMAKE_CURRENT_BINARY_DIR}/$(CURRENT_ARCH)/${baseName}.o")
+			set(first ON)
 			foreach (arch ${CMAKE_OSX_ARCHITECTURES})
-				set(objPath ${CMAKE_CURRENT_BINARY_DIR}/${arch}/${baseName}.o)
+				set(outputDir ${CMAKE_CURRENT_BINARY_DIR}/${arch})
+				set(objPath ${outputDir}/${baseName}.o)
+
+				# Only output the header for the first architecture.
+				if (first)
+					set(headerArgs -h ${headerPath})
+					set(first OFF)
+				else()
+					set(headerPath)
+					set(headerArgs)
+				endif()
+
 				get_ispc_arch(ispcArch ispcTarget ispcTargetName ${arch} ON)
 				add_custom_command(OUTPUT ${objPath} ${headerPath}
-					COMMAND ${ISPC} -O3 ${source} -o ${objPath} -h ${headerPath} --arch=${ispcArch}
+					COMMAND ${CMAKE_COMMAND} -E make_directory ${outputDir}
+					COMMAND ${ISPC} -O3 ${source} -o ${objPath} ${headerArgs} --arch=${ispcArch}
 						--target=${ispcTarget} --opt=disable-assertions --pic -woff
 					MAIN_DEPENDENCY ${source})
 				list(APPEND ispcObjFiles ${objPath})
@@ -194,14 +203,15 @@ if (ispcSources)
 					--target=${ispcCommandTargets} --opt=disable-assertions --pic -woff
 				MAIN_DEPENDENCY ${source})
 			list(APPEND ispcObjFiles ${objPaths})
-			list(APPEND ispcTargetObjFiles ${objPaths})
 		endif()
 	endforeach()
 
-	if (APPLE AND CTTULEFISH_ARCH STREQUAL "multi")
+	if (APPLE AND CUTTLEFISH_ARCH STREQUAL "multi")
 		add_custom_target(cuttlefish_ispc_build DEPENDS ${ispcObjFiles})
 		add_library(cuttlefish_ispc OBJECT IMPORTED)
-		set_property(TARGET cuttlefish_ispc IMPORTED_OBJECTS ${ispcCommandTargets})
+		set_property(TARGET cuttlefish_ispc PROPERTY IMPORTED_OBJECTS ${ispcTargetObjFiles})
+		add_dependencies(cuttlefish_ispc cuttlefish_ispc_build)
+		list(APPEND extraLibraries cuttlefish_ispc)
 
 		cfs_set_folder(cuttlefish_ispc_build libs/internal)
 		cfs_set_folder(cuttlefish_ispc libs/internal)
@@ -240,18 +250,9 @@ target_include_directories(cuttlefish_lib
 			${ASTC_INCLUDE_DIRS}
 			glm
 			src)
-target_link_libraries(cuttlefish_lib PRIVATE ${FreeImage_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cuttlefish_lib PRIVATE ${FreeImage_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+	${extraLibraries})
 target_compile_definitions(cuttlefish_lib PUBLIC ${defines} PRIVATE ${privateDefines})
-
-# Special per-architecture defines for XCode.
-if (CUTTLEFISH_ARCH STREQUAL "multi")
-	set_target_properties(cuttlefish_lib PROPERTIES
-		XCODE_ATTRIBUTE_GCC_PREPROCESSOR_DEFINITIONS "$(CUTTLEFISH_FLAGS_$(CURRENT_ARCH))"
-		XCODE_ATTRIBUTE_CUTTLEFISH_FLAGS_i386 "SQUISH_USE_SSE=2"
-		XCODE_ATTRIBUTE_CUTTLEFISH_FLAGS_x86_64 "SQUISH_USE_SSE=2"
-		XCODE_ATTRIBUTE_CUTTLEFISH_FLAGS_arm "SQUISH_USE_SSE=0"
-		XCODE_ATTRIBUTE_CUTTLEFISH_FLAGS_arm64 "SQUISH_USE_SSE=0")
-endif()
 
 if (CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
 	# Delay linking to PVRTexLib to here in case CUTTLEFISH_BUILD_PVRTC was toggled and the include

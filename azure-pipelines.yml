@@ -2,11 +2,12 @@ trigger:
   - master
 variables:
   - name: cmake.commonArgs
-    # NOTE: Can't shorten this line with folded style string since it has a trailing newline, which
-    # cmake warns about.
-    value: -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location) -DCMAKE_PREFIX_PATH=$(dependency.location) -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/cuttlefish
+    value: >-
+        -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
+        -DCMAKE_PREFIX_PATH=$(dependency.location)
+        -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/cuttlefish
   - name: ispc.version
-    value: 1.16.1
+    value: 1.18.0
   - group: Common
 jobs:
   - job: Linux
@@ -49,8 +50,7 @@ jobs:
             git checkout $(gtest.version)
             mkdir build
             cd build
-            cmake .. -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=$(dependency.location)
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(dependency.location)
             cmake --build . -j $(cores.count)
             cmake --build . --target install
         displayName: Build gtest
@@ -131,26 +131,31 @@ jobs:
         matrix:
             static:
                 lib.type: Static
-                cmake.args: -DCUTTLEFISH_SHARED=OFF
+                cmake.args: -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
                 ispc: 0
             shared:
                 lib.type: Shared
-                cmake.args: -DCUTTLEFISH_SHARED=ON
+                cmake.args: -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
                 ispc: 0
             static_ispc:
                 lib.type: Static
-                cmake.args: -DCUTTLEFISH_SHARED=OFF
+                cmake.args: >-
+                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
             shared_ispc:
                 lib.type: Shared
-                cmake.args: -DCUTTLEFISH_SHARED=ON
+                cmake.args: >-
+                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
                 artifact: 1
     steps:
       - script: |
             git submodule update --init
             if [ $(ispc) -eq 1 ]; then
-                brew install ispc
+                curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-macOS.tar.gz -o ispc.tar.gz
+                tar xzf ispc.tar.gz
             fi
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
@@ -160,7 +165,7 @@ jobs:
             git checkout $(gtest.version)
             mkdir build
             cd build
-            cmake .. -DCMAKE_BUILD_TYPE=Release \
+            cmake .. -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" \
                 -DCMAKE_INSTALL_PREFIX=$(dependency.location)
             cmake --build . -j $(cores.count)
             cmake --build . --target install
@@ -168,19 +173,18 @@ jobs:
         workingDirectory: $(Build.BinariesDirectory)
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake debug
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . -j $(cores.count)
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Debug
         displayName: Build debug
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . --target test
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Debug --target RUN_TESTS
         displayName: Run tests debug
         continueOnError: true
         timeoutInMinutes: 5
@@ -197,20 +201,13 @@ jobs:
         displayName: Clear test results
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Release $(cmake.commonArgs) $(cmake.args)
-                $(Build.SourcesDirectory)
-        displayName: Run CMake release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . -j $(cores.count)
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Release
         displayName: Build release
       - task: CMake@1
         inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . --target test
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Release --target RUN_TESTS
         displayName: Run tests release
         continueOnError: true
         timeoutInMinutes: 5
@@ -223,8 +220,13 @@ jobs:
             testRunTitle: Mac-$(lib.type)-Release
             buildConfiguration: (lib.type)-Release
         displayName: Publish test results release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON $(Build.SourcesDirectory)
+        displayName: Fixup install path
       - script: |
-            cmake --build Release --target install
+            cmake --build . --config Release --target install
             tar czf cuttlefish-mac.tar.gz cuttlefish
         workingDirectory: $(Build.BinariesDirectory)
         condition: eq(variables['artifact'], 1)
@@ -318,7 +320,7 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release --target run_tests
+            cmakeArgs: --build . --config Release --target RUN_TESTS
         displayName: Run tests
         continueOnError: true
         timeoutInMinutes: 5

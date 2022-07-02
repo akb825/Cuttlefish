@@ -41,19 +41,21 @@ The submodules can be downloaded by running the command
 
 When using the BC6H and BC7 encoders, it's highly recommended to install the [ISPC](https://ispc.github.io) compiler. This will use higher quality encoders that are also faster compared to the fallback used when ISP isn't available.
 
+> **Note:** Use the `CUTTLEFISH_ISPC_PATH` CMake variable when ISPC isn't visible on the system `PATH`.
+
 # Platforms
 
 Cuttlefish has been built for and tested on the following platforms:
 
 * Linux (GCC and LLVM clang)
 * Windows (requires Visual Studio 2015 or later)
-* Mac OS X
+* macOS
 
 # Building and Installing
 
 [CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
 
-## Linux/Mac OS X
+## Linux/macOS
 
 To create a release build, execute the following commands:
 
@@ -69,6 +71,14 @@ The tests can be run by running the command:
 The library and tool may then be installed by running the command:
 
 	Cuttlefish/build$ sudo make install
+
+### macOS Universal Binary
+
+To create a universal binary on macOS, set the `CMAKE_OSX_ARCHITECTURES` variable. For example, for an x86_64/arm64 universal binary, add the argument `-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64`. Building a universal binary requires creating an Xcode project with the `-GXcode` argument to CMake.
+
+> **Note:** when installing ISPC through homebrew not all targets are supported. For example, when installing on an ARM CPU (e.g. M1), only ARM targets are supported. Download from the [ISPC website](https://ispc.github.io) to get a version that supports both x86 and ARM targets.
+
+> **Note:** when creating an install package using shared libraries with Xcode, add the `-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON` option when running CMake. This avoids CMake breaking the code signature, which will make the executable unrunnable. The executables won't run in the build directory, however.
 
 ## Windows
 
@@ -113,7 +123,7 @@ The following options may be used when running cmake:
 * `-DCUTTLEFISH_INSTALL_PVRTEXLIB=ON|OFF`: Include the PVRTextTool library with the installation. This allows the installation to be used for machines that don't have PVRTexTool installed, and can avoid adjusting the `PATH` environment variable on some platforms. Default is `ON`.
 * `-DCUTTLEFISH_INSTALL_SET_RPATH=ON|OFF`: Set rpath during install for the library and tool on installation. Set to `OFF` if including in another project that wants to control the rpath. Default is `ON`.
 * `-DPVRTEXLIB_ROOT=directory`: The location of the PVRTexTool library platform subdirectories. If the PVRTexTool library is not installed to the standard location on this machine, this variable can be set to tell CMake where to look for the library. The given folder must contain a subdirectory for the current platform (one of `OSX_x86`, `Linux_x86_64`, `Linux_x86_32`, `Windows_x86_64`, or `Windows_x86_32`) that contains the library files.
-* `-DCMAKE_OSX_DEPLOYMENT_TARGET=version`: Minimum version of macOS to target when building for Mac. Defaults to 10.13, which is the minimum required for the PVRTexTool library.
+* `-DCMAKE_OSX_DEPLOYMENT_TARGET=version`: Minimum version of macOS to target when building for Mac. Defaults to 10.14, which is the minimum required for the PVRTexTool library.
 
 Once you have built and installed Cuttlefish, you can find the library by calling `find_package(Cuttlefish CONFIG)` within your CMake files. Libraries and include directories can be accessed through the `Cuttlefish_LIBRARIES` and `Cuttlefish_INCLUDE_DIRS` CMake variables.
 
@@ -125,7 +135,6 @@ Once you have built and installed Cuttlefish, you can find the library by callin
 
 Since external libraries perform the compression for compressed texture formats, there are threading limitations for some of these formats:
 
-* Multiple textures using BC6H or ASTC formats may not be converted in parallel. (multiple threads may still be used within the same texture)
 * PVRTC formats will always use the same number of threads as logical cores available. (even if you explicitly request one thread)
 
 ## Texture file format limitations

@@ -9,6 +9,7 @@ set(squishSources
 	${SQUISH_DIR}/colourfit.h
 	${SQUISH_DIR}/colourset.cpp
 	${SQUISH_DIR}/colourset.h
+	${SQUISH_DIR}/config.h
 	${SQUISH_DIR}/maths.cpp
 	${SQUISH_DIR}/maths.h
 	${SQUISH_DIR}/rangefit.cpp

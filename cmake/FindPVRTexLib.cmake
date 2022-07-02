@@ -34,6 +34,11 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
       PATHS ${PVRTEXLIB_ROOT}/OSX_x86
       NO_DEFAULT_PATH
     )
+  ELSE()
+    find_library(PVRTEXLIB_LIB PVRTexLib
+      PATHS ${PVRTEXLIB_ROOT}/macOS
+      NO_DEFAULT_PATH
+    )
   ENDIF()
 
   SET( USE_PTHREAD TRUE )
@@ -49,9 +54,20 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       PATHS ${PVRTEXLIB_ROOT}/Linux_x86_32
       NO_DEFAULT_PATH
     )
+  ELSEIF (${CUTTLEFISH_ARCH} STREQUAL "arm")
+  	# Assume anybody running this will have hardware float support.
+    find_library(PVRTEXLIB_LIB PVRTexLib
+      PATHS ${PVRTEXLIB_ROOT}/Linux_armv7hf
+      NO_DEFAULT_PATH
+    )
   ELSEIF (${CUTTLEFISH_ARCH} STREQUAL "arm64")
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/Linux_armv8_64
+      NO_DEFAULT_PATH
+    )
+  ELSEIF (${CUTTLEFISH_ARCH} STREQUAL "riscv64")
+    find_library(PVRTEXLIB_LIB PVRTexLib
+      PATHS ${PVRTEXLIB_ROOT}/Linux_riscv64
       NO_DEFAULT_PATH
     )
   ENDIF()
