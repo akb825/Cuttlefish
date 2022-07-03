@@ -6,8 +6,6 @@ variables:
         -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON -DCMAKE_FIND_ROOT_PATH=$(dependency.location)
         -DCMAKE_PREFIX_PATH=$(dependency.location)
         -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/cuttlefish
-  - name: ispc.version
-    value: 1.18.0
   - group: Common
 jobs:
   - job: Linux
