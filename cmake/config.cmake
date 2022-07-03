@@ -119,12 +119,3 @@ function(cfs_setup_filters)
 		endif()
 	endforeach()
 endfunction()
-
-function (cfs_fixup_mac_dep target old new)
-	if (NOT APPLE)
-		return()
-	endif()
-
-	add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-		"${old}" "${new}" "$<TARGET_FILE:${target}>")
-endfunction()

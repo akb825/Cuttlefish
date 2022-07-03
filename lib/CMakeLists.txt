@@ -268,10 +268,6 @@ if (CUTTLEFISH_BUILD_PVRTC AND PVRTEXLIB_FOUND)
 	elseif (APPLE)
 		add_custom_command(TARGET cuttlefish_lib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
 			${PVRTEXLIB_LIB} $<TARGET_FILE_DIR:cuttlefish_lib>)
-		if (CUTTLEFISH_SHARED)
-			cfs_fixup_mac_dep(cuttlefish_lib "@executable_path/../lib/libPVRTexLib.dylib"
-				"@rpath/libPVRTexLib.dylib")
-		endif()
 	endif()
 endif()
 
