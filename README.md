@@ -24,15 +24,15 @@ The following software is required to build Cuttlefish:
 
 * [CMake](https://cmake.org/) 3.1 or later
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
-* [GLM](https://glm.g-truc.net/0.9.8/index.html) (required, included as a submodule)
+* [GLM](https://glm.g-truc.net/0.9.9/index.html) (required, included as a submodule)
 * [squish](https://sourceforge.net/projects/libsquish/) (optional, included as a submodule)
 * [Compressonator](https://github.com/GPUOpen-Tools/compressonator) (optional, included as a submodule)
 * [bc7enc_rdo](https://github.com/richgel999/bc7enc_rdo) (optional, included as a submodule)
 * [ispc_texcomp](https://github.com/GameTechDev/ISPCTextureCompressor) (optional, included as a submodule)
 * [etc2comp](https://github.com/google/etc2comp) (optional, included as a submodule)
 * [astc-encoder](https://github.com/ARM-software/astc-encoder) (optional, included as a submodule)
-* [PVRTexTools](https://community.imgtec.com/developers/powervr/tools/pvrtextool) (optional, included as a submodule)
-* [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
+* [PVRTexTool](https://developer.imaginationtech.com/pvrtextool/) (optional, included as a submodule)
+* [doxygen](https://doxygen.nl/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
 The submodules can be downloaded by running the command
