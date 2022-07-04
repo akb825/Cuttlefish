@@ -129,22 +129,28 @@ jobs:
         matrix:
             static:
                 lib.type: Static
-                cmake.args: -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                cmake.args: >-
+                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                 ispc: 0
             shared:
                 lib.type: Shared
-                cmake.args: -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                cmake.args: >-
+                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                 ispc: 0
             static_ispc:
                 lib.type: Static
                 cmake.args: >-
                     -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                     -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
             shared_ispc:
                 lib.type: Shared
                 cmake.args: >-
                     -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                     -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
                 artifact: 1

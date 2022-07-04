@@ -34,8 +34,8 @@ set(CUTTLEFISH_INSTALL_PVRTEXLIB ON CACHE BOOL
 	"Include the PVRTexTool library with the installation.")
 set(CUTTLEFISH_INSTALL_SET_RPATH ON CACHE BOOL "Set rpath for library and tool on installation.")
 
-# PVRTexTool library requires 10.14 or higher.
-if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+if (APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+	# PVRTexTool library requires 10.14 or higher.
 	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14 CACHE STRING "Minimum macOS deployment version." FORCE)
 endif()
 
