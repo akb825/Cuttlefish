@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ class PvrtcConverter : public Converter
 public:
 	static const unsigned int blockDim = 4;
 
-	PvrtcConverter(const Texture& texture, const Image& image, Texture::Quality quality);
+	PvrtcConverter(const Texture& texture, const Image& image, Texture::Quality quality,
+		unsigned int threadCount);
 
 	unsigned int jobsX() const override {return 1;}
 	unsigned int jobsY() const override {return 1;}
@@ -40,6 +41,7 @@ public:
 private:
 	Texture::Format m_format;
 	Texture::Quality m_quality;
+	unsigned int m_threadCount;
 	bool m_premultipliedAlpha;
 };
 

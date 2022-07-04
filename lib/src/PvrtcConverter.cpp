@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,12 @@
 namespace cuttlefish
 {
 
-PvrtcConverter::PvrtcConverter(const Texture& texture, const Image& image, Texture::Quality quality)
+PvrtcConverter::PvrtcConverter(const Texture& texture, const Image& image, Texture::Quality quality,
+	unsigned int threadCount)
 	: Converter(image)
 	, m_format(texture.format())
 	, m_quality(quality)
+	, m_threadCount(threadCount)
 	, m_premultipliedAlpha(texture.alphaType() == Texture::Alpha::PreMultiplied)
 {
 }
@@ -119,7 +121,8 @@ void PvrtcConverter::process(unsigned int, unsigned int, ThreadData*)
 			return;
 	}
 
-	pvrTexture.Transcode(pixelType, PVRTLVT_UnsignedByteNorm, PVRTLCS_Linear, quality);
+	pvrTexture.Transcode(pixelType, PVRTLVT_UnsignedByteNorm, PVRTLCS_Linear, quality,
+		m_threadCount);
 
 	auto textureData = reinterpret_cast<const std::uint8_t*>(pvrTexture.GetTextureDataPointer());
 	data().assign(textureData, textureData + pvrTexture.GetTextureDataSize());

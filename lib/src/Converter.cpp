@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,10 @@ namespace cuttlefish
 {
 
 static std::unique_ptr<Converter> createConverter(const Texture& texture, const Image& image,
-	Texture::Quality quality)
+	Texture::Quality quality, unsigned int threadCount)
 {
 	(void)quality;
+	(void)threadCount;
 	switch (texture.format())
 	{
 		case Texture::Format::R4G4:
@@ -493,7 +494,10 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 		case Texture::Format::PVRTC2_RGBA_2BPP:
 		case Texture::Format::PVRTC2_RGBA_4BPP:
 			if (texture.type() == Texture::Type::UNorm)
-				return std::unique_ptr<Converter>(new PvrtcConverter(texture, image, quality));
+			{
+				return std::unique_ptr<Converter>(new PvrtcConverter(texture, image, quality,
+					threadCount));
+			}
 			return nullptr;
 #endif //CUTTLEFISH_HAS_PVRTC
 		default:
@@ -522,7 +526,7 @@ bool Converter::convert(const Texture& texture, MipImageList& images, MipTexture
 			textureData[mip][d].resize(images[mip][d].size());
 			for (unsigned int f = 0; f < images[mip][d].size(); ++f)
 			{
-				auto converter = createConverter(texture, images[mip][d][f], quality);
+				auto converter = createConverter(texture, images[mip][d][f], quality, threadCount);
 				if (!converter)
 				{
 					// If the converter can't be created, should only do so for the first one.

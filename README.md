@@ -131,12 +131,6 @@ Once you have built and installed Cuttlefish, you can find the library by callin
 
 # Limitations
 
-## Threading limitations
-
-Since external libraries perform the compression for compressed texture formats, there are threading limitations for some of these formats:
-
-* PVRTC formats will always use the same number of threads as logical cores available. (even if you explicitly request one thread)
-
 ## Texture file format limitations
 
 Some texture file formats have limitations for what texture formats are used. The following formats are *not* supported:
