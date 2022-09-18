@@ -1,4 +1,4 @@
-# Copyright 2017 Aaron Barany
+# Copyright 2017-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,12 +51,13 @@ function(cfs_install_library)
 	endif()
 
 	install(TARGETS ${ARGS_TARGET} EXPORT ${moduleName}Targets
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		RUNTIME DESTINATION bin
-		INCLUDES DESTINATION include)
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include COMPONENT dev)
-	install(FILES ${exportPath} DESTINATION include/cuttlefish COMPONENT dev)
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+		COMPONENT dev)
+	install(FILES ${exportPath} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cuttlefish COMPONENT dev)
 
 	include(CMakePackageConfigHelpers)
 	set(versionPath ${CUTTLEFISH_EXPORTS_DIR}/${moduleName}ConfigVersion.cmake)
@@ -73,7 +74,7 @@ function(cfs_install_library)
 		"set(${moduleName}_LIBRARIES ${ARGS_TARGET})\n"
 		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
 
-	set(configPackageDir lib/cmake/Cuttlefish)
+	set(configPackageDir ${CMAKE_INSTALL_LIBDIR}/cmake/Cuttlefish)
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
 	install(FILES ${configPath} ${versionPath} DESTINATION ${configPackageDir} COMPONENT dev)

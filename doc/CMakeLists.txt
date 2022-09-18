@@ -27,5 +27,5 @@ add_custom_target(doc ALL DEPENDS ${outputFile})
 cfs_set_folder(doc "")
 
 if (CUTTLEFISH_INSTALL)
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc/cuttlefish)
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif()
