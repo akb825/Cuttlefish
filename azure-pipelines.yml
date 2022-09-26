@@ -36,6 +36,8 @@ jobs:
     steps:
       - script: |
             git submodule update --init
+            sudo apt-get update
+            sudo apt-get -y install doxygen
             if [ $(ispc) -eq 1 ]; then
                 curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-linux.tar.gz -o ispc.tar.gz
                 tar xzf ispc.tar.gz
@@ -157,6 +159,7 @@ jobs:
     steps:
       - script: |
             git submodule update --init
+            brew install doxygen
             if [ $(ispc) -eq 1 ]; then
                 curl -L https://github.com/ispc/ispc/releases/download/v$(ispc.version)/ispc-v$(ispc.version)-macOS.tar.gz -o ispc.tar.gz
                 tar xzf ispc.tar.gz
