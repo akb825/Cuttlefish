@@ -14,7 +14,9 @@
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 11)
+# Code should compile with C++11, but set to 14 for dependencies. Compiling on older targets will
+# fall back to the the latest version.
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (APPLE AND CMAKE_OSX_ARCHITECTURES)
@@ -76,20 +78,13 @@ enable_testing()
 if (CUTTLEFISH_INSTALL AND CUTTLEFISH_INSTALL_SET_RPATH)
 	if (APPLE)
 		set(CMAKE_INSTALL_RPATH "@executable_path;@executable_path/../${CMAKE_INSTALL_LIBDIR}")
-		set(MACOSX_RPATH ON)
 	else()
 		set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 	endif()
 endif()
 
-function(cfs_set_folder target folderName)
-	if (CUTTLEFISH_ROOT_FOLDER AND folderName)
-		set_property(TARGET ${target} PROPERTY FOLDER ${CUTTLEFISH_ROOT_FOLDER}/${folderName})
-	elseif (NOT CUTTLEFISH_ROOT_FOLDER AND folderName)
-		set_property(TARGET ${target} PROPERTY FOLDER ${folderName})
-	else()
-		set_property(TARGET ${target} PROPERTY FOLDER ${CUTTLEFISH_ROOT_FOLDER})
-	endif()
+function(cfs_set_folder target)
+	set_property(TARGET ${target} PROPERTY FOLDER ${CUTTLEFISH_ROOT_FOLDER})
 endfunction()
 
 function(cfs_setup_filters)

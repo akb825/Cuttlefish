@@ -12,29 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function(cfs_install_library)
-	set(options)
-	set(oneValueArgs TARGET)
-	set(multiValueArgs)
-	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-	set(moduleName Cuttlefish)
-
-	set_property(TARGET ${ARGS_TARGET} PROPERTY VERSION ${CUTTLEFISH_VERSION})
-	set_property(TARGET ${ARGS_TARGET} PROPERTY DEBUG_POSTFIX d)
+function(cfs_install_library target name)
+	set_target_properties(${target} PROPERTIES
+		VERSION ${CUTTLEFISH_VERSION}
+		DEBUG_POSTFIX d
+		EXPORT_NAME ${name}
+		SOVERSION ${CUTTLEFISH_MAJOR_VERSION}.${CUTTLEFISH_MINOR_VERSION})
+	add_library(Cuttlefish::${name} ALIAS ${target})
 
 	set(interfaceIncludes
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-	set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+	set_property(TARGET ${target} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 		${interfaceIncludes})
 
 	set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/cuttlefish/Export.h)
-	set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
+	set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES
 		${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
 	if (CUTTLEFISH_SHARED)
 		if (MSVC)
-			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
+			set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS
 				CUTTLEFISH_BUILD)
 			configure_file(${CUTTLEFISH_SOURCE_DIR}/cmake/templates/WindowsExport.h ${exportPath}
 				COPYONLY)
@@ -50,7 +47,7 @@ function(cfs_install_library)
 		return()
 	endif()
 
-	install(TARGETS ${ARGS_TARGET} EXPORT ${moduleName}Targets
+	install(TARGETS ${target} EXPORT ${target}Targets
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -59,23 +56,21 @@ function(cfs_install_library)
 		COMPONENT dev)
 	install(FILES ${exportPath} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cuttlefish COMPONENT dev)
 
-	include(CMakePackageConfigHelpers)
-	set(versionPath ${CUTTLEFISH_EXPORTS_DIR}/${moduleName}ConfigVersion.cmake)
-	write_basic_package_version_file(${versionPath}
-		VERSION ${CUTTLEFISH_VERSION}
-		COMPATIBILITY SameMajorVersion)
+	export(EXPORT ${target}Targets FILE ${CUTTLEFISH_EXPORTS_DIR}/${target}-targets.cmake)
+	install(EXPORT ${target}Targets NAMESPACE Cuttlefish:: FILE ${target}-targets.cmake
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cuttlefish)
+endfunction()
 
-	export(EXPORT ${moduleName}Targets
-		FILE ${CUTTLEFISH_EXPORTS_DIR}/${moduleName}Targets.cmake)
+function(cfs_install_executable target name)
+	set_target_properties(${target} PROPERTIES EXPORT_NAME ${name})
+	add_executable(Cuttlefish::${name} ALIAS ${target})
 
-	set(configPath ${CUTTLEFISH_EXPORTS_DIR}/${moduleName}Config.cmake)
-	file(WRITE ${configPath}
-		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake)\n"
-		"set(${moduleName}_LIBRARIES ${ARGS_TARGET})\n"
-		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
+	if (NOT CUTTLEFISH_INSTALL)
+		return()
+	endif()
 
-	set(configPackageDir ${CMAKE_INSTALL_LIBDIR}/cmake/Cuttlefish)
-	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
-		DESTINATION ${configPackageDir})
-	install(FILES ${configPath} ${versionPath} DESTINATION ${configPackageDir} COMPONENT dev)
+	install(TARGETS ${target} EXPORT ${target}Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+	export(EXPORT ${target}Targets FILE ${CUTTLEFISH_EXPORTS_DIR}/${target}-targets.cmake)
+	install(EXPORT ${target}Targets NAMESPACE Cuttlefish:: FILE ${target}-targets.cmake
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cuttlefish)
 endfunction()

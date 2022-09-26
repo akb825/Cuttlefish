@@ -1,13 +1,10 @@
 file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(cuttlefish ${sources})
 
-target_link_libraries(cuttlefish PRIVATE cuttlefish_lib)
+target_link_libraries(cuttlefish PRIVATE Cuttlefish::lib)
 
-cfs_set_folder(cuttlefish tools)
-
-if (CUTTLEFISH_INSTALL)
-	install(TARGETS cuttlefish RUNTIME DESTINATION bin COMPONENT tool)
-endif()
+cfs_set_folder(cuttlefish)
+cfs_install_executable(cuttlefish tool)
 
 set(testPath ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set(cuttlefishPath $<TARGET_FILE:cuttlefish>)

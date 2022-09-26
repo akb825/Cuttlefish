@@ -68,8 +68,8 @@ if (CUTTLEFISH_OUTPUT_DIR)
 endif()
 
 set(CUTTLEFISH_MAJOR_VERSION 2)
-set(CUTTLEFISH_MINOR_VERSION 6)
-set(CUTTLEFISH_PATCH_VERSION 2)
+set(CUTTLEFISH_MINOR_VERSION 7)
+set(CUTTLEFISH_PATCH_VERSION 0)
 set(CUTTLEFISH_VERSION ${CUTTLEFISH_MAJOR_VERSION}.${CUTTLEFISH_MINOR_VERSION}.${CUTTLEFISH_PATCH_VERSION})
 
 set(CUTTLEFISH_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -81,6 +81,27 @@ include(cmake/install.cmake)
 add_subdirectory(lib)
 if (CUTTLEFISH_BUILD_TOOL)
 	add_subdirectory(tool)
+endif()
+
+if (CUTTLEFISH_INSTALL)
+	include(CMakePackageConfigHelpers)
+	set(versionPath ${CUTTLEFISH_EXPORTS_DIR}/CuttlefishConfigVersion.cmake)
+	write_basic_package_version_file(${versionPath}
+		VERSION ${CUTTLEFISH_VERSION}
+		COMPATIBILITY SameMajorVersion)
+
+	set(configPath ${CUTTLEFISH_EXPORTS_DIR}/CuttlefishConfig.cmake)
+	set(configLines
+		"include(\${CMAKE_CURRENT_LIST_DIR}/cuttlefish_lib-targets.cmake)\n"
+		"set(Cuttlefish_LIBRARIES Cuttlefish::lib)\n"
+		"get_target_property(Cuttlefish_INCLUDE_DIRS Cuttlefish::lib INTERFACE_INCLUDE_DIRECTORIES)\n")
+	if (CUTTLEFISH_BUILD_TOOL)
+		list(APPEND configLines "include(\${CMAKE_CURRENT_LIST_DIR}/cuttlefish-targets.cmake)\n")
+	endif()
+	file(WRITE ${configPath} ${configLines})
+
+	install(FILES ${configPath} ${versionPath} DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cuttlefish
+		COMPONENT dev)
 endif()
 
 # Documentation. (populated by built libraries)

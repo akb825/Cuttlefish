@@ -174,8 +174,8 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_flush.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_getimage.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_jpeg.c
+	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_lerc.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_luv.c
-	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_lzma.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_lzw.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_next.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_ojpeg.c
@@ -191,6 +191,7 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_tile.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_version.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_warning.c
+	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_webp.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_write.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_zip.c
 	${FREEIMAGE_DIR}/Source/ZLib/adler32.c
@@ -332,12 +333,78 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmThread/IlmThreadPool.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IlmThread/IlmThreadSemaphore.cpp
 	${FREEIMAGE_DIR}/Source/OpenEXR/IexMath/IexMathFloatExc.cpp
-	${FREEIMAGE_DIR}/Source/LibRawLite/internal/dcraw_common.cpp
-	${FREEIMAGE_DIR}/Source/LibRawLite/internal/dcraw_fileio.cpp
-	${FREEIMAGE_DIR}/Source/LibRawLite/internal/demosaic_packs.cpp
-	${FREEIMAGE_DIR}/Source/LibRawLite/src/libraw_c_api.cpp
-	${FREEIMAGE_DIR}/Source/LibRawLite/src/libraw_cxx.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/canon_600.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/crx.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/decoders_dcraw.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/decoders_libraw.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/decoders_libraw_dcrdefs.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/dng.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/fp_dng.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/fuji_compressed.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/generic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/kodak_decoders.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/load_mfbacks.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/smal.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/unpack.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/decoders/unpack_thumb.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/aahd_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/ahd_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/dcb_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/dht_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/misc_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/demosaic/xtrans_demosaic.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/integration/dngsdk_glue.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/integration/rawspeed_glue.cpp
 	${FREEIMAGE_DIR}/Source/LibRawLite/src/libraw_datastream.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/adobepano.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/canon.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/ciff.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/cr3_parser.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/epson.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/exif_gps.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/fuji.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/hasselblad_model.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/identify.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/identify_tools.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/kodak.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/leica.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/makernotes.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/mediumformat.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/minolta.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/misc_parsers.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/nikon.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/normalize_model.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/olympus.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/p1.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/pentax.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/samsung.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/sony.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/metadata/tiff.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/aspect_ratio.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/dcraw_process.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/mem_image.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/postprocessing_aux.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/postprocessing_utils.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/postprocessing/postprocessing_utils_dcrdefs.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/preprocessing/ext_preprocess.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/preprocessing/raw2image.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/preprocessing/subtract_black.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/tables/cameralist.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/tables/colorconst.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/tables/colordata.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/tables/wblists.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/curves.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/decoder_info.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/init_close_utils.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/open.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/phaseone_processing.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/read_utils.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/thumb_utils.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/utils_dcraw.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/utils/utils_libraw.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/write/file_write.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/x3f/x3f_parse_process.cpp
+	${FREEIMAGE_DIR}/Source/LibRawLite/src/x3f/x3f_utils_patched.cpp
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dec/alpha_dec.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dec/buffer_dec.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dec/frame_dec.c
@@ -358,6 +425,7 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cost.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cost_mips32.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cost_mips_dsp_r2.c
+	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cost_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cost_sse2.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/cpu.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/dec.c
@@ -393,6 +461,7 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/lossless_msa.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/lossless_neon.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/lossless_sse2.c
+	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/lossless_sse41.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/rescaler.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/rescaler_mips32.c
 	${FREEIMAGE_DIR}/Source/LibWebP/src/dsp/rescaler_mips_dsp_r2.c
@@ -475,17 +544,12 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRGlueJxr.c
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRGluePFC.c
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib/JXRMeta.c
-	)
+)
 
-set(FreeImage_INCLUDE_DIRS
+set(freeImageIncludeDirs
 	${FREEIMAGE_DIR}/Source
-	${FREEIMAGE_DIR}/Source/Metadata
-	${FREEIMAGE_DIR}/Source/FreeImageToolkit
 	${FREEIMAGE_DIR}/Source/LibJPEG
-	${FREEIMAGE_DIR}/Source/LibPNG
-	${FREEIMAGE_DIR}/Source/LibTIFF4
 	${FREEIMAGE_DIR}/Source/ZLib
-	${FREEIMAGE_DIR}/Source/LibOpenJPEG
 	${FREEIMAGE_DIR}/Source/OpenEXR
 	${FREEIMAGE_DIR}/Source/OpenEXR/Half
 	${FREEIMAGE_DIR}/Source/OpenEXR/Iex
@@ -503,12 +567,4 @@ set(FreeImage_INCLUDE_DIRS
 	${FREEIMAGE_DIR}/Source/LibJXR/common/include
 	${FREEIMAGE_DIR}/Source/LibJXR/image/sys
 	${FREEIMAGE_DIR}/Source/LibJXR/jxrgluelib
-	CACHE PATH "" FORCE)
-
-set(FreeImage_LIBRARIES "" CACHE PATH "" FORCE)
-
-if (WIN32)
-	add_definitions(-DFREEIMAGE_LIB -DOPJ_STATIC -DLIBRAW_NODLL)
-else()
-	add_definitions(-D__ANSI__)
-endif()
+)
