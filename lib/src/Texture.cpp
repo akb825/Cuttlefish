@@ -47,35 +47,43 @@
 namespace cuttlefish
 {
 
-static const auto formatCount = static_cast<unsigned int>(Texture::Format::PVRTC2_RGBA_4BPP) + 1;
-static const auto typeCount = static_cast<unsigned int>(Texture::Type::Float) + 1;
-static const Image emptyImage;
+namespace
+{
+
+const auto formatCount = static_cast<unsigned int>(Texture::Format::PVRTC2_RGBA_4BPP) + 1;
+const auto typeCount = static_cast<unsigned int>(Texture::Type::Float) + 1;
 
 #if CUTTLEFISH_HAS_S3TC
-static const bool hasS3tc = true;
+const bool hasS3tc = true;
 #else
-static const bool hasS3tc = false;
+const bool hasS3tc = false;
 #endif
 
 #if CUTTLEFISH_HAS_ETC
-static const bool hasEtc = true;
+const bool hasEtc = true;
 #else
-static const bool hasEtc = false;
+const bool hasEtc = false;
 #endif
 
 #if CUTTLEFISH_HAS_ASTC
-static const bool hasAstc = true;
+const bool hasAstc = true;
 #else
-static const bool hasAstc = false;
+const bool hasAstc = false;
 #endif
 
 #if CUTTLEFISH_HAS_PVRTC
-static const bool hasPvrtc = true;
+const bool hasPvrtc = true;
 #else
-static const bool hasPvrtc = false;
+const bool hasPvrtc = false;
 #endif
 
-static inline std::uint32_t clz(std::uint32_t x)
+const Image& emptyImage()
+{
+	static const Image image;
+	return image;
+}
+
+inline std::uint32_t clz(std::uint32_t x)
 {
 #if CUTTLEFISH_MSC
 	if (!x)
@@ -90,6 +98,8 @@ static inline std::uint32_t clz(std::uint32_t x)
 #error Need to implement clz for current compiler.
 #endif
 }
+
+} // namespace
 
 using FaceImageList = std::vector<Image>;
 using DepthImageList = std::vector<FaceImageList>;
@@ -759,35 +769,23 @@ Texture::FileType Texture::fileType(const char* fileName)
 	return FileType::Auto;
 }
 
-Texture::Texture()
-	: m_impl(nullptr)
-{
-}
+Texture::Texture() = default;
 
-Texture::~Texture()
-{
-	delete m_impl;
-}
+Texture::~Texture() = default;
 
 Texture::Texture(Dimension dimension, unsigned int width, unsigned int height, unsigned int depth,
 	unsigned int mipLevels, ColorSpace colorSpace)
-	: m_impl(nullptr)
 {
 	initialize(dimension, width, height, depth, mipLevels, colorSpace);
 }
 
 Texture::Texture(const Texture& other)
-	: m_impl(nullptr)
 {
 	if (other.m_impl)
-		m_impl = new Impl(*other.m_impl);
+		m_impl.reset(new Impl(*other.m_impl));
 }
 
-Texture::Texture(Texture&& other) noexcept
-	: m_impl(other.m_impl)
-{
-	other.m_impl = nullptr;
-}
+Texture::Texture(Texture&& other) noexcept = default;
 
 Texture& Texture::operator=(const Texture& other)
 {
@@ -799,7 +797,7 @@ Texture& Texture::operator=(const Texture& other)
 		if (m_impl)
 			*m_impl = *other.m_impl;
 		else
-			m_impl = new Impl(*other.m_impl);
+			m_impl.reset(new Impl(*other.m_impl));
 	}
 	else
 		reset();
@@ -807,16 +805,7 @@ Texture& Texture::operator=(const Texture& other)
 	return *this;
 }
 
-Texture& Texture::operator=(Texture&& other) noexcept
-{
-	if (this == &other)
-		return *this;
-
-	delete m_impl;
-	m_impl = other.m_impl;
-	other.m_impl = nullptr;
-	return *this;
-}
+Texture& Texture::operator=(Texture&& other) noexcept = default;
 
 bool Texture::isValid() const
 {
@@ -836,7 +825,7 @@ bool Texture::initialize(Dimension dimension, unsigned int width, unsigned int h
 	if (width == 0 || height == 0 || (dimension == Dimension::Dim3D && depth == 0))
 		return false;
 
-	m_impl = new Impl;
+	m_impl.reset(new Impl);
 	m_impl->dimension = dimension;
 	m_impl->colorSpace = colorSpace;
 	m_impl->width = width;
@@ -859,8 +848,7 @@ bool Texture::initialize(Dimension dimension, unsigned int width, unsigned int h
 
 void Texture::reset()
 {
-	delete m_impl;
-	m_impl = nullptr;
+	m_impl.reset();
 }
 
 Texture::Dimension Texture::dimension() const
@@ -931,7 +919,7 @@ const Image& Texture::getImage(unsigned int mipLevel, unsigned int depth) const
 {
 	// This will implicitly check if m_impl is present and mipLevel is in range. (depth would be 0)
 	if (depth >= Texture::depth(mipLevel) || m_impl->faces != 1)
-		return emptyImage;
+		return emptyImage();
 
 	return m_impl->images[mipLevel][depth][0];
 }
@@ -940,7 +928,7 @@ const Image& Texture::getImage(CubeFace face, unsigned int mipLevel, unsigned in
 {
 	// This will implicitly check if m_impl is present and mipLevel is in range. (depth would be 0)
 	if (depth >= Texture::depth(mipLevel) || (m_impl->faces != 6 && face != CubeFace::PosX))
-		return emptyImage;
+		return emptyImage();
 
 	return m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)];
 }

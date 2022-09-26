@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,12 +185,14 @@ static void printHelp(const char* name)
 	          << "                                       the maximum between width and height" << std::endl
 	          << "                                   h: the height in pixels or po2 value" << std::endl
 	          << "                                   filter: the resizing filter, is one of:" << std::endl
-	          << "                                     box, linear, cubic, catmull-rom (default)" << std::endl;
+	          << "                                     box, linear, cubic, b-spline," << std::endl
+	          << "                                     catmull-rom (default)" << std::endl;
 	std::cout << "  -m, --mipmap [levels] [filter] generate mipmaps:" << std::endl
 	          << "                                   levels: the number of mipmap levels, or all" << std::endl
 	          << "                                     all levels if not specified" << std::endl
 	          << "                                   filter: the filter to use for resizing:" << std::endl
-	          << "                                     box, linear, cubic, catmull-rom (default)" << std::endl;
+	          << "                                     box, linear, cubic, b-spline," << std::endl
+	          << "                                     catmull-rom (default)" << std::endl;
 	std::cout << "      --flipx                    flip the images in the X direction" << std::endl;
 	std::cout << "      --flipy                    flip the images in the Y direction" << std::endl;
 	std::cout << "      --rotate degrees           rotate by an angle" << std::endl
@@ -452,6 +454,12 @@ static bool readFilter(Image::ResizeFilter& filter, int& i, int argc, const char
 	else if (strcasecmp(argv[i + 1], "catmull-rom") == 0)
 	{
 		filter = Image::ResizeFilter::CatmullRom;
+		++i;
+		return true;
+	}
+	else if (strcasecmp(argv[i + 1], "b-spline") == 0)
+	{
+		filter = Image::ResizeFilter::BSpline;
 		++i;
 		return true;
 	}

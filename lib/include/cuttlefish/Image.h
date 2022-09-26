@@ -27,6 +27,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
+#include <memory>
 #include <vector>
 
 namespace cuttlefish
@@ -76,10 +77,11 @@ public:
 	 */
 	enum class ResizeFilter
 	{
-		Box,       ///< Averages all pixels in the box.
-		Linear,    ///< Linear sampling.
-		Cubic,     ///< Cubic curve sampling.
-		CatmullRom ///< Catmull-Rom curve fitting.
+		Box,        ///< Averages all pixels in the box.
+		Linear,     ///< Linear sampling.
+		Cubic,      ///< Cubic curve sampling.
+		CatmullRom, ///< Catmull-Rom curve fitting.
+		BSpline     ///< B-Spline curve fitting.
 	};
 
 	/**
@@ -126,7 +128,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
+	explicit Image(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from a stream.
@@ -134,7 +136,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
+	explicit Image(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from data.
@@ -452,7 +454,7 @@ public:
 
 private:
 	struct Impl;
-	Impl* m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 /**

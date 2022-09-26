@@ -20,7 +20,6 @@
 #include <cuttlefish/Color.h>
 #include <FreeImage.h>
 #include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -35,17 +34,23 @@ namespace cuttlefish
 namespace
 {
 
-std::atomic<unsigned int> initializeCount(0);
-void initializeLib()
+class FreeImageInitialize
 {
-	if (initializeCount++ == 0)
+public:
+	FreeImageInitialize()
+	{
 		FreeImage_Initialise();
-}
+	}
 
-void shutdownLib()
-{
-	if (--initializeCount == 0)
+	~FreeImageInitialize()
+	{
 		FreeImage_DeInitialise();
+	}
+};
+
+void freeImageInitialize()
+{
+	static FreeImageInitialize initializer;
 }
 
 Image::Format getFormat(FIBITMAP* image)
@@ -420,8 +425,7 @@ bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanli
 	}
 }
 
-static bool setPixelImpl(Image::Format format, void* scanline, unsigned int x,
-	const ColorRGBAd& color)
+bool setPixelImpl(Image::Format format, void* scanline, unsigned int x, const ColorRGBAd& color)
 {
 	switch (format)
 	{
@@ -604,6 +608,9 @@ struct Image::Impl
 			FreeImage_Unload(image);
 	}
 
+	Impl(const Impl& other) = delete;
+	Impl& operator=(const Impl& other) = delete;
+
 	FIBITMAP* image;
 	Format format;
 	ColorSpace colorSpace;
@@ -621,9 +628,8 @@ struct Image::Impl
 };
 
 Image::Image()
-	: m_impl(nullptr)
 {
-	initializeLib();
+	freeImageInitialize();
 }
 
 Image::Image(const char* fileName, ColorSpace colorSpace)
@@ -650,30 +656,19 @@ Image::Image(Format format, unsigned int width, unsigned int height, ColorSpace 
 	initialize(format, width, height, colorSpace);
 }
 
-Image::~Image()
-{
-	shutdownLib();
-	delete m_impl;
-}
+Image::~Image() = default;
 
 Image::Image(const Image& other)
-	: m_impl(nullptr)
 {
-	initializeLib();
 	if (other.m_impl)
 	{
 		FIBITMAP* image = FreeImage_Clone(other.m_impl->image);
 		if (image)
-			m_impl = Impl::create(image, other.m_impl->colorSpace);
+			m_impl.reset(Impl::create(image, other.m_impl->colorSpace));
 	}
 }
 
-Image::Image(Image&& other) noexcept
-{
-	initializeLib();
-	m_impl = other.m_impl;
-	other.m_impl = nullptr;
-}
+Image::Image(Image&& other) noexcept = default;
 
 Image& Image::operator=(const Image& other)
 {
@@ -685,21 +680,12 @@ Image& Image::operator=(const Image& other)
 	{
 		FIBITMAP* image = FreeImage_Clone(other.m_impl->image);
 		if (image)
-			m_impl = Impl::create(image, other.m_impl->colorSpace);
+			m_impl.reset(Impl::create(image, other.m_impl->colorSpace));
 	}
 	return *this;
 }
 
-Image& Image::operator=(Image&& other) noexcept
-{
-	if (this == &other)
-		return *this;
-
-	reset();
-	m_impl = other.m_impl;
-	other.m_impl = nullptr;
-	return *this;
-}
+Image& Image::operator=(Image&& other) noexcept = default;
 
 bool Image::isValid() const
 {
@@ -719,7 +705,7 @@ bool Image::load(const char* fileName, ColorSpace colorSpace)
 	if (format == FIF_UNKNOWN)
 		return false;
 
-	m_impl = Impl::create(FreeImage_Load(format, fileName), colorSpace);
+	m_impl.reset(Impl::create(FreeImage_Load(format, fileName), colorSpace));
 	return m_impl != nullptr;
 }
 
@@ -739,7 +725,7 @@ bool Image::load(std::istream& stream, ColorSpace colorSpace)
 	if (format == FIF_UNKNOWN)
 		return false;
 
-	m_impl = Impl::create(FreeImage_LoadFromHandle(format, &istreamIO, &stream), colorSpace);
+	m_impl.reset(Impl::create(FreeImage_LoadFromHandle(format, &istreamIO, &stream), colorSpace));
 	return m_impl != nullptr;
 }
 
@@ -758,7 +744,7 @@ bool Image::load(const void* data, std::size_t size, ColorSpace colorSpace)
 		return false;
 	}
 
-	m_impl = Impl::create(FreeImage_LoadFromMemory(format, memoryStream), colorSpace);
+	m_impl.reset(Impl::create(FreeImage_LoadFromMemory(format, memoryStream), colorSpace));
 	FreeImage_CloseMemory(memoryStream);
 	return m_impl != nullptr;
 }
@@ -809,15 +795,14 @@ bool Image::initialize(Format format, unsigned int width, unsigned int height,
 	if (type == FIT_UNKNOWN)
 		return false;
 
-	m_impl = Impl::create(FreeImage_AllocateT(type, width, height, bpp, redMask, greenMask,
-		blueMask), colorSpace);
+	m_impl.reset(Impl::create(FreeImage_AllocateT(type, width, height, bpp, redMask, greenMask,
+		blueMask), colorSpace));
 	return m_impl != nullptr;
 }
 
 void Image::reset()
 {
-	delete m_impl;
-	m_impl = nullptr;
+	m_impl.reset();
 }
 
 Image::Format Image::format() const
@@ -972,69 +957,70 @@ Image Image::convert(Format format) const
 	switch (format)
 	{
 		case Format::Gray8:
-			image.m_impl = Impl::create(FreeImage_ConvertTo8Bits(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGB5:
-			image.m_impl = Impl::create(FreeImage_ConvertTo16Bits555(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertTo16Bits555(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGB565:
-			image.m_impl = Impl::create(FreeImage_ConvertTo16Bits565(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertTo16Bits565(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGB8:
-			image.m_impl = Impl::create(FreeImage_ConvertTo24Bits(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertTo24Bits(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGB16:
-			image.m_impl = Impl::create(FreeImage_ConvertToRGB16(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToRGB16(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGBF:
-			image.m_impl = Impl::create(FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGBA8:
-			image.m_impl = Impl::create(FreeImage_ConvertTo32Bits(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertTo32Bits(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGBA16:
-			image.m_impl = Impl::create(FreeImage_ConvertToRGBA16(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGBAF:
-			image.m_impl = Impl::create(FreeImage_ConvertToRGBAF(m_impl->image),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::Int16:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_INT16),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_INT16), m_impl->colorSpace));
 			break;
 		case Format::UInt16:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT16),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_UINT16), m_impl->colorSpace));
 			break;
 		case Format::Int32:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_INT32),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_INT32), m_impl->colorSpace));
 			break;
 		case Format::UInt32:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT32),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_UINT32), m_impl->colorSpace));
 			break;
 		case Format::Float:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_FLOAT),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_FLOAT), m_impl->colorSpace));
 			break;
 		case Format::Double:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE), m_impl->colorSpace));
 			break;
 		case Format::Complex:
-			image.m_impl = Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_COMPLEX),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_ConvertToType(m_impl->image, FIT_COMPLEX), m_impl->colorSpace));
 			break;
-		default:
+		case Format::Invalid:
 			break;
 	}
 
@@ -1098,6 +1084,9 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 		case ResizeFilter::CatmullRom:
 			fiFilter = FILTER_CATMULLROM;
 			break;
+		case ResizeFilter::BSpline:
+			fiFilter = FILTER_BSPLINE;
+			break;
 	}
 
 	switch (m_impl->format)
@@ -1109,8 +1098,8 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 		case Format::Complex:
 			break;
 		default:
-			image.m_impl = Impl::create(FreeImage_Rescale(m_impl->image, width, height, fiFilter),
-				m_impl->colorSpace);
+			image.m_impl.reset(Impl::create(
+				FreeImage_Rescale(m_impl->image, width, height, fiFilter), m_impl->colorSpace));
 			break;
 	}
 
@@ -1269,8 +1258,8 @@ Image Image::rotate(RotateAngle angle) const
 			break;
 	}
 
-	image.m_impl = Impl::create(FreeImage_Rotate(m_impl->image, degrees, nullptr),
-		m_impl->colorSpace);
+	image.m_impl.reset(Impl::create(FreeImage_Rotate(m_impl->image, degrees, nullptr),
+		m_impl->colorSpace));
 	if (!image)
 	{
 		// Fallback behavior

@@ -26,6 +26,7 @@
 #include <cuttlefish/Image.h>
 
 #include <iosfwd>
+#include <memory>
 #include <vector>
 
 namespace cuttlefish
@@ -632,7 +633,7 @@ public:
 
 private:
 	struct Impl;
-	Impl* m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 } // cuttlefish
