@@ -55,22 +55,17 @@ jobs:
             cmake --build . --target install
         displayName: Build gtest
         workingDirectory: $(Build.BinariesDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Debug
+            cd Debug
+            cmake -DCMAKE_BUILD_TYPE=Debug $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.count)
         displayName: Build debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . --target test
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest
         displayName: Run tests debug
+        workingDirectory: $(Build.BinariesDirectory)/Debug
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -84,23 +79,17 @@ jobs:
         displayName: Publish test results debug
       - script: rm -rf $(Common.TestResultsDirectory)/*
         displayName: Clear test results
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Release $(cmake.commonArgs) $(cmake.args)
-                $(Build.SourcesDirectory)
-        displayName: Run CMake release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Release
+            cd Release
+            cmake -DCMAKE_BUILD_TYPE=Release $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.count)
         displayName: Build release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . --target test
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest
         displayName: Run tests release
+        workingDirectory: $(Build.BinariesDirectory)/Release
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -115,16 +104,16 @@ jobs:
       - script: |
             cmake --build Release --target install
             tar czf cuttlefish-linux.tar.gz cuttlefish
+        displayName: Package artifact
         workingDirectory: $(Build.BinariesDirectory)
         condition: eq(variables['artifact'], 1)
-        displayName: Package artifact
       - publish: $(Build.BinariesDirectory)/cuttlefish-linux.tar.gz
         condition: eq(variables['artifact'], 1)
         artifact: Linux
         displayName: Publish artifact
   - job: Mac
     pool:
-        vmImage: macOS-latest
+        vmImage: macos-latest
     workspace:
         clean: all
     strategy:
@@ -132,26 +121,26 @@ jobs:
             static:
                 lib.type: Static
                 cmake.args: >-
-                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
                     -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                 ispc: 0
             shared:
                 lib.type: Shared
                 cmake.args: >-
-                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
                     -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                 ispc: 0
             static_ispc:
                 lib.type: Static
                 cmake.args: >-
-                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -GXcode -DCUTTLEFISH_SHARED=OFF -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
                     -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                     -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
             shared_ispc:
                 lib.type: Shared
                 cmake.args: >-
-                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64
+                    -GXcode -DCUTTLEFISH_SHARED=ON -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
                     -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14
                     -DCUTTLEFISH_ISPC_PATH=$(Build.SourcesDirectory)/ispc-v$(ispc.version)-macOS/bin/ispc
                 ispc: 1
@@ -174,25 +163,22 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" \
                 -DCMAKE_INSTALL_PREFIX=$(dependency.location)
-            cmake --build . -j $(cores.count)
+            cmake --build . -j $(cores.mac.count)
             cmake --build . --target install
         displayName: Build gtest
         workingDirectory: $(Build.BinariesDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
+      - script: |
+            cmake $(cmake.commonArgs) $(cmake.args) $(Build.SourcesDirectory)
         displayName: Run CMake
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Debug
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            cmake --build . --config Debug
         displayName: Build debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Debug --target RUN_TESTS
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest -C Debug
         displayName: Run tests debug
+        workingDirectory: $(Build.BinariesDirectory)
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -206,16 +192,14 @@ jobs:
         displayName: Publish test results debug
       - script: rm -r $(Common.TestResultsDirectory)/*
         displayName: Clear test results
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release
+      - script: |
+            cmake --build . --config Release
         displayName: Build release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release --target RUN_TESTS
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest -C Release
         displayName: Run tests release
+        workingDirectory: $(Build.BinariesDirectory)
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -227,17 +211,16 @@ jobs:
             testRunTitle: Mac-$(lib.type)-Release
             buildConfiguration: (lib.type)-Release
         displayName: Publish test results release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON $(Build.SourcesDirectory)
+      - script: |
+            cmake -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON $(Build.SourcesDirectory)
         displayName: Fixup install path
+        workingDirectory: $(Build.BinariesDirectory)
       - script: |
             cmake --build . --config Release --target install
             tar czf cuttlefish-mac.tar.gz cuttlefish
+        displayName: Package artifact
         workingDirectory: $(Build.BinariesDirectory)
         condition: eq(variables['artifact'], 1)
-        displayName: Package artifact
       - publish: $(Build.BinariesDirectory)/cuttlefish-mac.tar.gz
         condition: eq(variables['artifact'], 1)
         artifact: Mac
@@ -316,20 +299,17 @@ jobs:
             cmake --build . --config Release --target install
         displayName: Build gtest
         workingDirectory: $(Build.BinariesDirectory)/googletest-code/build
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.commonArgs) $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
+      - script: |
+            cmake $(cmake.commonArgs) $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
+        workingDirectory: $(Build.BinariesDirectory)
         displayName: Run CMake
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Debug
+      - script: |
+            cmake --build . --config Debug
+        workingDirectory: $(Build.BinariesDirectory)
         displayName: Build debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Debug --target RUN_TESTS
+      - script: |
+            ctest -C Debug
+        workingDirectory: $(Build.BinariesDirectory)
         displayName: Run tests debug
         continueOnError: true
         timeoutInMinutes: 5
@@ -346,15 +326,13 @@ jobs:
       - bash: rm -r *
         displayName: Clear test results
         workingDirectory: $(Common.TestResultsDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release
+      - script: |
+            cmake --build . --config Release
+        workingDirectory: $(Build.BinariesDirectory)
         displayName: Build release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release --target RUN_TESTS
+      - script: |
+            ctest -C Release
+        workingDirectory: $(Build.BinariesDirectory)
         displayName: Run tests release
         continueOnError: true
         timeoutInMinutes: 5
