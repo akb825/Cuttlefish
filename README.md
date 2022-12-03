@@ -1,5 +1,7 @@
 # Introduction
 
+[![Cuttlefish](https://github.com/akb825/Cuttlefish/actions/workflows/main.yml/badge.svg)](https://github.com/akb825/Cuttlefish/actions/workflows/main.yml)
+
 Cuttlefish is a texture conversion library and tool. A command line tool is provided for most texture conversion needs, such as running manually or part of an asset conversion pipeline. The library may be used to integrate more advanced texture generation within other software.
 
 Features include:
@@ -15,8 +17,6 @@ Features include:
 	* ASTC
 	* PVRTC
 * Save the output texture in DDS, KTX, or PVR format.
-
-[![Build Status](https://dev.azure.com/akb825/DeepSea/_apis/build/status/akb825.Cuttlefish?branchName=master)](https://dev.azure.com/akb825/DeepSea/_build/latest?definitionId=1&branchName=master)
 
 # Dependencies
 
