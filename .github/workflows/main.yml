@@ -13,7 +13,7 @@ env:
     -DCUTTLEFISH_FORCE_INTERNAL_FREEIMAGE=ON
     -DCMAKE_FIND_ROOT_PATH=${{ github.workspace }}/dependencies
     -DCMAKE_PREFIX_PATH=${{ github.workspace }}/dependencies
-    -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/cuttlefish
+    -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/build/cuttlefish
   cores_count: '2'
   cores_mac_count: '3'
   dependency_location: "${{ github.workspace }}/dependencies"
@@ -66,10 +66,8 @@ jobs:
       working-directory: "${{ github.workspace }}"
     - name: Build debug
       run: |-
-        mkdir Debug
-        cd Debug
-        echo "ispc_version: $ispc_version"
-        echo "ISPC_VERSION: $ISPC_VERSION"
+        mkdir -p build/Debug
+        cd build/Debug
         cmake -DCMAKE_BUILD_TYPE=Debug ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} \
           ${{ github.workspace }}
         cmake --build . -j ${{ env.cores_count }}
@@ -78,7 +76,7 @@ jobs:
       continue-on-error: true
       timeout-minutes: 5
       run: ctest
-      working-directory: "${{ github.workspace }}/Debug"
+      working-directory: "${{ github.workspace }}/build/Debug"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
@@ -89,8 +87,8 @@ jobs:
       working-directory: "${{ env.test_results_location }}"
     - name: Build release
       run: |-
-        mkdir Release
-        cd Release
+        mkdir -p build/Release
+        cd build/Release
         cmake -DCMAKE_BUILD_TYPE=Release ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} \
           ${{ github.workspace }}
         cmake --build . -j ${{ env.cores_count }}
@@ -99,7 +97,7 @@ jobs:
       continue-on-error: true
       timeout-minutes: 5
       run: ctest
-      working-directory: "${{ github.workspace }}/Release"
+      working-directory: "${{ github.workspace }}/build/Release"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
@@ -110,13 +108,13 @@ jobs:
       run: |-
         cmake --build Release --target install
         tar czf cuttlefish-linux.tar.gz cuttlefish
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact == 1
       uses: actions/upload-artifact@v2
       with:
         name: Linux
-        path: "${{ github.workspace }}/cuttlefish-linux.tar.gz"
+        path: "${{ github.workspace }}/build/cuttlefish-linux.tar.gz"
   Mac:
     runs-on: macos-latest
     strategy:
@@ -169,16 +167,19 @@ jobs:
         cmake --build . --target install
       working-directory: "${{ github.workspace }}"
     - name: Run CMake
-      run: cmake ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} ${{ github.workspace }}
+      run: |-
+        mkdir build
+        cd build
+        cmake ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} ${{ github.workspace }}
       working-directory: "${{ github.workspace }}"
     - name: Build debug
       run: cmake --build . --config Debug
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Run tests debug
       continue-on-error: true
       timeout-minutes: 5
       run: ctest -C Debug
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/composite@v2
       with:
@@ -189,12 +190,12 @@ jobs:
       working-directory: "${{ env.test_results_location }}"
     - name: Build release
       run: cmake --build . --config Release
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Run tests release
       continue-on-error: true
       timeout-minutes: 5
       run: ctest -C Release
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/composite@v2
       with:
@@ -202,19 +203,19 @@ jobs:
         junit_files: "${{ env.test_results_location }}/*.xml"
     - name: Fixup install path
       run: cmake -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON ${{ github.workspace }}
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Package artifact
       if: matrix.artifact == 1
       run: |-
         cmake --build . --config Release --target install
         tar czf cuttlefish-mac.tar.gz cuttlefish
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact == 1
       uses: actions/upload-artifact@v2
       with:
         name: Mac
-        path: "${{ github.workspace }}/cuttlefish-mac.tar.gz"
+        path: "${{ github.workspace }}/build/cuttlefish-mac.tar.gz"
   Windows:
     runs-on: windows-latest
     strategy:
@@ -285,18 +286,20 @@ jobs:
         cmake --build . --config Release --target install
       working-directory: "${{ github.workspace }}/googletest-code/build"
     - name: Run CMake
-      run: >-
+      run: |-
+        mkdir build
+        cd build
         cmake ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} -A ${{ matrix.arch }} -T v141 `
           ${{ github.workspace }}
       working-directory: "${{ github.workspace }}"
     - name: Build debug
       run: cmake --build . --config Debug
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Run tests debug
       continue-on-error: true
       timeout-minutes: 5
       run: ctest -C Debug
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/composite@v2
       with:
@@ -309,12 +312,12 @@ jobs:
       working-directory: "${{ env.test_results_location }}"
     - name: Build release
       run: cmake --build . --config Release
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Run tests release
       continue-on-error: true
       timeout-minutes: 5
       run: ctest -C Release
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/composite@v2
       with:
@@ -326,12 +329,12 @@ jobs:
       run: |-
         cmake --build . --config Release --target install
         7z a -tzip cuttlefish-${{ matrix.artifact }}.zip cuttlefish
-      working-directory: "${{ github.workspace }}"
+      working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact != ''
       uses: actions/upload-artifact@v2
       with:
         name: "${{ matrix.artifact }}"
-        path: "${{ github.workspace }}/cuttlefish-${{ matrix.artifact }}.zip"
+        path: "${{ github.workspace }}/build/cuttlefish-${{ matrix.artifact }}.zip"
 
 # vim: ts=2 sts=2 sw=2 et
