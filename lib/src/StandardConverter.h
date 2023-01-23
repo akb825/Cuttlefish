@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@
 #include <cuttlefish/Config.h>
 
 #include "Converter.h"
+#include "HalfFloat.h"
 #include "Shared.h"
 #include <cuttlefish/Color.h>
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <limits>
 
@@ -38,18 +40,6 @@
 
 namespace cuttlefish
 {
-
-template <typename T>
-inline T toFloat(float f)
-{
-	return f;
-}
-
-template <>
-inline std::uint16_t toFloat<std::uint16_t>(float f)
-{
-	return glm::packHalf(glm::vec1(f)).x;
-}
 
 template <typename T, unsigned int C>
 class StandardConverter : public Converter
@@ -200,23 +190,23 @@ public:
 	}
 };
 
-template <typename T, unsigned int C>
-class FloatConverter : public StandardConverter<T, C>
+template <unsigned int C>
+class FloatConverter : public StandardConverter<float, C>
 {
 public:
-	using StandardConverter<T, C>::batchSize;
+	using StandardConverter<float, C>::batchSize;
 	using typename Converter::ThreadData;
 	using Converter::data;
 	using Converter::image;
 
 	explicit FloatConverter(const Image& image)
-		: StandardConverter<T, C>(image)
+		: StandardConverter<float, C>(image)
 	{
 	}
 
 	void process(unsigned int x, unsigned int, ThreadData*) override
 	{
-		T* curData = reinterpret_cast<T*>(data().data()) + x*batchSize*C;
+		float* curData = reinterpret_cast<float*>(data().data()) + x*batchSize*C;
 		unsigned int row = x*batchSize/image().width();
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 		for (unsigned int i = 0; i < batchSize; ++i)
@@ -232,10 +222,86 @@ public:
 
 			unsigned int col = (x*batchSize + i) % image().width();
 			for (unsigned int c = 0; c < C; ++c)
-				curData[i*C + c] = toFloat<T>(scanline[col*4 + c]);
+				curData[i*C + c] = scanline[col*4 + c];
 		}
 	}
 };
+
+CUTTLEFISH_START_HALF_FLOAT()
+template <unsigned int C>
+class HalfConverter : public StandardConverter<std::uint16_t, C>
+{
+public:
+	using StandardConverter<std::uint16_t, C>::batchSize;
+	using typename Converter::ThreadData;
+	using Converter::data;
+	using Converter::image;
+
+	explicit HalfConverter(const Image& image)
+		: StandardConverter<std::uint16_t, C>(image)
+	{
+	}
+
+	void process(unsigned int x, unsigned int, ThreadData*) override
+	{
+		std::uint16_t* curData = reinterpret_cast<std::uint16_t*>(data().data()) + x*batchSize*C;
+		unsigned int row = x*batchSize/image().width();
+		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
+
+		if (hasHardwareHalfFloat)
+		{
+			for (unsigned int i = 0; i < batchSize; ++i)
+			{
+				unsigned int curRow = (x*batchSize + i)/image().width();
+				if (curRow != row)
+				{
+					if (curRow >= image().height())
+						break;
+					row = curRow;
+					scanline = reinterpret_cast<const float*>(image().scanline(row));
+				}
+
+				unsigned int col = (x*batchSize + i) % image().width();
+				switch (C)
+				{
+					case 1:
+						packHardwareHalfFloat1(curData + i*C, scanline + col*4);
+						break;
+					case 2:
+						packHardwareHalfFloat2(curData + i*C, scanline + col*4);
+						break;
+					case 3:
+						packHardwareHalfFloat3(curData + i*C, scanline + col*4);
+						break;
+					case 4:
+						packHardwareHalfFloat4(curData + i*C, scanline + col*4);
+						break;
+					default:
+						assert(false);
+				}
+			}
+		}
+		else
+		{
+			for (unsigned int i = 0; i < batchSize; ++i)
+			{
+				unsigned int curRow = (x*batchSize + i)/image().width();
+				if (curRow != row)
+				{
+					if (curRow >= image().height())
+						break;
+					row = curRow;
+					scanline = reinterpret_cast<const float*>(image().scanline(row));
+				}
+
+				unsigned int col = (x*batchSize + i) % image().width();
+				for (unsigned int c = 0; c < C; ++c)
+					curData[i*C + c] = glm::packHalf(glm::vec1(scanline[col*4 + c])).x;
+			}
+		}
+	}
+};
+CUTTLEFISH_END_HALF_FLOAT()
 
 class R4G4Converter : public StandardConverter<std::uint8_t, 1>
 {

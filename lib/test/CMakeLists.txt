@@ -7,7 +7,10 @@ find_package(Threads)
 file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(cuttlefish_lib_test ${sources})
 
-target_include_directories(cuttlefish_lib_test PRIVATE ${GTEST_INCLUDE_DIRS})
+target_include_directories(cuttlefish_lib_test PRIVATE
+	${GTEST_INCLUDE_DIRS}
+	${CMAKE_CURRENT_SOURCE_DIR}/../src
+	${CMAKE_CURRENT_SOURCE_DIR}/../glm)
 target_link_libraries(cuttlefish_lib_test PRIVATE
 	Cuttlefish::lib	
 	${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

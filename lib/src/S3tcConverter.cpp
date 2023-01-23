@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 #if CUTTLEFISH_HAS_S3TC
 
 #include "S3tcConverter.h"
+
+#include "HalfFloat.h"
 #include "Shared.h"
 #include <cuttlefish/Color.h>
 
@@ -524,18 +526,27 @@ Bc6HConverter::~Bc6HConverter()
 		DestroyOptionsBC6(m_compressonatorOptions);
 }
 
+CUTTLEFISH_START_HALF_FLOAT()
 void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 #if CUTTLEFISH_ISPC
 	if (m_ispcTexcompSettings)
 	{
 		std::uint16_t colorBlock[blockPixels][4];
-		for (unsigned int i = 0; i < blockPixels; ++i)
+		if (hasHardwareHalfFloat)
 		{
-			for (unsigned int j = 0; j < 4; ++j)
+			for (unsigned int i = 0; i < blockPixels; ++i)
+				packHardwareHalfFloat4(colorBlock[i], reinterpret_cast<float*>(blockColors + i));
+		}
+		else
+		{
+			for (unsigned int i = 0; i < blockPixels; ++i)
 			{
-				colorBlock[i][j] =
-					glm::packHalf(glm::vec1(reinterpret_cast<float*>(blockColors + i)[j])).x;
+				for (unsigned int j = 0; j < 4; ++j)
+				{
+					colorBlock[i][j] =
+						glm::packHalf(glm::vec1(reinterpret_cast<float*>(blockColors + i)[j])).x;
+				}
 			}
 		}
 
@@ -548,19 +559,27 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 
 	assert(m_compressonatorOptions);
 	std::uint16_t colorBlock[blockPixels][3];
-	for (unsigned int i = 0; i < blockPixels; ++i)
+	if (hasHardwareHalfFloat)
 	{
-		for (unsigned int j = 0; j < 3; ++j)
+		for (unsigned int i = 0; i < blockPixels; ++i)
+			packHardwareHalfFloat3(colorBlock[i], reinterpret_cast<float*>(blockColors + i));
+	}
+	else
+	{
+		for (unsigned int i = 0; i < blockPixels; ++i)
 		{
-			colorBlock[i][j] =
-				glm::packHalf(glm::vec1(reinterpret_cast<float*>(blockColors + i)[j])).x;
+			for (unsigned int j = 0; j < 3; ++j)
+			{
+				colorBlock[i][j] =
+					glm::packHalf(glm::vec1(reinterpret_cast<float*>(blockColors + i)[j])).x;
+			}
 		}
 	}
 
 	CompressBlockBC6(reinterpret_cast<std::uint16_t*>(colorBlock), 3*blockDim,
 		reinterpret_cast<std::uint8_t*>(block), m_compressonatorOptions);
 }
-
+CUTTLEFISH_END_HALF_FLOAT()
 
 Bc7Converter::Bc7Converter(const Texture& texture, const Image& image, Texture::Quality quality)
 	: S3tcConverter(texture, image, 16, quality), m_params(nullptr)

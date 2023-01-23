@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 1>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 1>(image));
+					return std::unique_ptr<Converter>(new HalfConverter<1>(image));
 				default:
 					return nullptr;
 			}
@@ -227,7 +227,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 2>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 2>(image));
+					return std::unique_ptr<Converter>(new HalfConverter<2>(image));
 				default:
 					return nullptr;
 			}
@@ -245,7 +245,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 3>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 3>(image));
+					return std::unique_ptr<Converter>(new HalfConverter<3>(image));
 				default:
 					return nullptr;
 			}
@@ -263,7 +263,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int16_t, 4>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<std::uint16_t, 4>(image));
+					return std::unique_ptr<Converter>(new HalfConverter<4>(image));
 				default:
 					return nullptr;
 			}
@@ -277,7 +277,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 1>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<float, 1>(image));
+					return std::unique_ptr<Converter>(new FloatConverter<1>(image));
 				default:
 					return nullptr;
 			}
@@ -291,7 +291,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 2>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<float, 2>(image));
+					return std::unique_ptr<Converter>(new FloatConverter<2>(image));
 				default:
 					return nullptr;
 			}
@@ -305,7 +305,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 3>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<float, 3>(image));
+					return std::unique_ptr<Converter>(new FloatConverter<3>(image));
 				default:
 					return nullptr;
 			}
@@ -319,7 +319,7 @@ static std::unique_ptr<Converter> createConverter(const Texture& texture, const 
 				case Texture::Type::Int:
 					return std::unique_ptr<Converter>(new IntConverter<std::int32_t, 4>(image));
 				case Texture::Type::Float:
-					return std::unique_ptr<Converter>(new FloatConverter<float, 4>(image));
+					return std::unique_ptr<Converter>(new FloatConverter<4>(image));
 				default:
 					return nullptr;
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,42 @@
 #define CUTTLEFISH_64BIT 1
 #else
 #define CUTTLEFISH_64BIT 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 64-bit x86.
+ */
+#if defined(__x86_64__) || defined(_M_AMD64)
+#define CUTTLEFISH_X86_64 1
+#else
+#define CUTTLEFISH_X86_64 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 32-bit x86.
+ */
+#if defined(__i386__) || defined(_M_IX86)
+#define CUTTLEFISH_X86_32 1
+#else
+#define CUTTLEFISH_X86_32 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 64-bit ARM.
+ */
+#if defined(__arm64__) || defined(__aarch64__)
+#define CUTTLEFISH_ARM_64 1
+#else
+#define CUTTLEFISH_ARM_64 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 32-bit ARM.
+ */
+#if defined(__arm__) || defined(_M_ARM)
+#define CUTTLEFISH_ARM_32 1
+#else
+#define CUTTLEFISH_ARM_32 0
 #endif
 
 /**
