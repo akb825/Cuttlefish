@@ -19,7 +19,6 @@ set(astcSources
 	${ASTC_DIR}/Source/astcenc_partition_tables.cpp
 	${ASTC_DIR}/Source/astcenc_percentile_tables.cpp
 	${ASTC_DIR}/Source/astcenc_pick_best_endpoint_format.cpp
-	${ASTC_DIR}/Source/astcenc_platform_isa_detection.cpp
 	${ASTC_DIR}/Source/astcenc_quantization.cpp
 	${ASTC_DIR}/Source/astcenc_symbolic_physical.cpp
 	${ASTC_DIR}/Source/astcenc_weight_align.cpp
