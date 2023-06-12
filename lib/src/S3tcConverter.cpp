@@ -110,6 +110,24 @@ static void toColorBlock(std::uint8_t outBlock[blockPixels][4],
 	}
 }
 
+CUTTLEFISH_START_HALF_FLOAT()
+#if CUTTLEFISH_ISPC
+static void packHalfFloatBlockHardware(std::uint16_t colorBlock[blockPixels][4],
+	const ColorRGBAf* blockColors)
+{
+	for (unsigned int i = 0; i < blockPixels; ++i)
+		packHardwareHalfFloat4(colorBlock[i], reinterpret_cast<const float*>(blockColors + i));
+}
+#endif
+
+static void packHalfFloatBlockHardware(std::uint16_t colorBlock[blockPixels][3],
+	const ColorRGBAf* blockColors)
+{
+	for (unsigned int i = 0; i < blockPixels; ++i)
+		packHardwareHalfFloat3(colorBlock[i], reinterpret_cast<const float*>(blockColors + i));
+}
+CUTTLEFISH_END_HALF_FLOAT()
+
 static void packBc2Alpha(std::uint8_t outAlpha[8], std::uint8_t colorBlock[16][4])
 {
 	const float alphaScale = 15.0f/255.0f;
@@ -526,7 +544,6 @@ Bc6HConverter::~Bc6HConverter()
 		DestroyOptionsBC6(m_compressonatorOptions);
 }
 
-CUTTLEFISH_START_HALF_FLOAT()
 void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 {
 #if CUTTLEFISH_ISPC
@@ -534,10 +551,7 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 	{
 		std::uint16_t colorBlock[blockPixels][4];
 		if (hasHardwareHalfFloat)
-		{
-			for (unsigned int i = 0; i < blockPixels; ++i)
-				packHardwareHalfFloat4(colorBlock[i], reinterpret_cast<float*>(blockColors + i));
-		}
+			packHalfFloatBlockHardware(colorBlock, blockColors);
 		else
 		{
 			for (unsigned int i = 0; i < blockPixels; ++i)
@@ -560,10 +574,7 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 	assert(m_compressonatorOptions);
 	std::uint16_t colorBlock[blockPixels][3];
 	if (hasHardwareHalfFloat)
-	{
-		for (unsigned int i = 0; i < blockPixels; ++i)
-			packHardwareHalfFloat3(colorBlock[i], reinterpret_cast<float*>(blockColors + i));
-	}
+		packHalfFloatBlockHardware(colorBlock, blockColors);
 	else
 	{
 		for (unsigned int i = 0; i < blockPixels; ++i)
@@ -579,7 +590,6 @@ void Bc6HConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 	CompressBlockBC6(reinterpret_cast<std::uint16_t*>(colorBlock), 3*blockDim,
 		reinterpret_cast<std::uint8_t*>(block), m_compressonatorOptions);
 }
-CUTTLEFISH_END_HALF_FLOAT()
 
 Bc7Converter::Bc7Converter(const Texture& texture, const Image& image, Texture::Quality quality)
 	: S3tcConverter(texture, image, 16, quality), m_params(nullptr)

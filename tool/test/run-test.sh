@@ -8,5 +8,5 @@ exitCode=$3
 realExitCode=$?
 if [ $exitCode != $realExitCode ]; then
 	echo "got exit code $realExitCode; expected $exitCode"
-	exit -1
+	exit 1
 fi
