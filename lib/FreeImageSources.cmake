@@ -173,6 +173,7 @@ set(freeImageSources
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_fax3sm.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_flush.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_getimage.c
+	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_hash_set.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_jpeg.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_lerc.c
 	${FREEIMAGE_DIR}/Source/LibTIFF4/tif_luv.c

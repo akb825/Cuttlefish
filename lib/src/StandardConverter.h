@@ -41,46 +41,6 @@
 namespace cuttlefish
 {
 
-CUTTLEFISH_START_HALF_FLOAT()
-
-template <unsigned int C>
-inline void packStandardHalfFloatBlockHardware(std::uint16_t* curData, unsigned int x,
-	unsigned int row, unsigned int batchSize, const float* scanline, const Image& image)
-{
-	for (unsigned int i = 0; i < batchSize; ++i)
-	{
-		unsigned int curRow = (x*batchSize + i)/image.width();
-		if (curRow != row)
-		{
-			if (curRow >= image.height())
-				break;
-			row = curRow;
-			scanline = reinterpret_cast<const float*>(image.scanline(row));
-		}
-
-		unsigned int col = (x*batchSize + i) % image.width();
-		switch (C)
-		{
-			case 1:
-				packHardwareHalfFloat1(curData + i*C, scanline + col*4);
-				break;
-			case 2:
-				packHardwareHalfFloat2(curData + i*C, scanline + col*4);
-				break;
-			case 3:
-				packHardwareHalfFloat3(curData + i*C, scanline + col*4);
-				break;
-			case 4:
-				packHardwareHalfFloat4(curData + i*C, scanline + col*4);
-				break;
-			default:
-				assert(false);
-		}
-	}
-}
-
-CUTTLEFISH_END_HALF_FLOAT()
-
 template <typename T, unsigned int C>
 class StandardConverter : public Converter
 {
@@ -288,7 +248,7 @@ public:
 		const float* scanline = reinterpret_cast<const float*>(image().scanline(row));
 
 		if (hasHardwareHalfFloat)
-			packStandardHalfFloatBlockHardware<C>(curData, x, row, batchSize, scanline, image());
+			processHardware(x, curData, row, scanline);
 		else
 		{
 			for (unsigned int i = 0; i < batchSize; ++i)
@@ -308,7 +268,51 @@ public:
 			}
 		}
 	}
+
+private:
+	void processHardware(unsigned int x, std::uint16_t* curData, unsigned int row,
+		const float* scanline);
 };
+
+CUTTLEFISH_START_HALF_FLOAT()
+
+template <unsigned int C>
+void HalfConverter<C>::processHardware(unsigned int x, std::uint16_t* curData, unsigned int row,
+	const float* scanline)
+{
+	for (unsigned int i = 0; i < batchSize; ++i)
+	{
+		unsigned int curRow = (x*batchSize + i)/image().width();
+		if (curRow != row)
+		{
+			if (curRow >= image().height())
+				break;
+			row = curRow;
+			scanline = reinterpret_cast<const float*>(image().scanline(row));
+		}
+
+		unsigned int col = (x*batchSize + i) % image().width();
+		switch (C)
+		{
+			case 1:
+				packHardwareHalfFloat1(curData + i*C, scanline + col*4);
+				break;
+			case 2:
+				packHardwareHalfFloat2(curData + i*C, scanline + col*4);
+				break;
+			case 3:
+				packHardwareHalfFloat3(curData + i*C, scanline + col*4);
+				break;
+			case 4:
+				packHardwareHalfFloat4(curData + i*C, scanline + col*4);
+				break;
+			default:
+				assert(false);
+		}
+	}
+}
+
+CUTTLEFISH_END_HALF_FLOAT()
 
 class R4G4Converter : public StandardConverter<std::uint8_t, 1>
 {

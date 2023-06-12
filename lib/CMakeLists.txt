@@ -77,7 +77,8 @@ if (CUTTLEFISH_FORCE_INTERNAL_FREEIMAGE OR NOT FreeImage_FOUND)
 	include(${CMAKE_CURRENT_LIST_DIR}/FreeImageSources.cmake)
 	list(APPEND externalSources ${freeImageSources})
 	# NOTE: FreeImage doesn't include the libPNG Neon functions.
-	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1 PNG_ARM_NEON_OPT=0 FREEIMAGE_LIB)
+	list(APPEND privateDefines DISABLE_PERF_MEASUREMENT=1 PNG_ARM_NEON_OPT=0 FREEIMAGE_LIB
+		_LARGEFILE64_SOURCE=1)
 	if (WIN32)
 		list(APPEND privateDefines OPJ_STATIC LIBRAW_NODLL)
 	else()
