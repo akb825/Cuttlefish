@@ -238,7 +238,7 @@ static void printHelp(const char* name)
 	          << "                          encoded: alpha is an encoded value rather than " << std::endl
 	          << "                            opacity; this will avoid weighting the colors during" << std::endl
 	          << "                            compression for some formats" << std::endl;
-	std::cout << "  -Q, --quaility q      the quality of compression; may be: lowest, low," << std::endl
+	std::cout << "  -Q, --quality q       the quality of compression; may be: lowest, low," << std::endl
 	          << "                        normal (default), high, highest; lower qualities are" << std::endl
 	          << "                        faster to convert" << std::endl;
 	std::cout << "  -o, --output file (*) the output file for the texture" << std::endl;
