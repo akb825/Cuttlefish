@@ -29,17 +29,10 @@ find_path(
 )
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  IF (${CUTTLEFISH_ARCH} STREQUAL "x86_64")
-    find_library(PVRTEXLIB_LIB PVRTexLib
-      PATHS ${PVRTEXLIB_ROOT}/OSX_x86
-      NO_DEFAULT_PATH
-    )
-  ELSE()
     find_library(PVRTEXLIB_LIB PVRTexLib
       PATHS ${PVRTEXLIB_ROOT}/macOS
       NO_DEFAULT_PATH
     )
-  ENDIF()
 
   SET( USE_PTHREAD TRUE )
 

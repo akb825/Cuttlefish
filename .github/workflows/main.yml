@@ -41,7 +41,7 @@ jobs:
           artifact: 1
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: |-
         git submodule update --init
@@ -143,7 +143,7 @@ jobs:
           artifact: 1
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: |-
         git submodule update --init
@@ -257,7 +257,7 @@ jobs:
           artifact: win64
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download submodules
       run: |-
         git submodule update --init
