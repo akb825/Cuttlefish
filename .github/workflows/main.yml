@@ -111,7 +111,7 @@ jobs:
       working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact == 1
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Linux
         path: "${{ github.workspace }}/build/cuttlefish-linux.tar.gz"
@@ -212,7 +212,7 @@ jobs:
       working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact == 1
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Mac
         path: "${{ github.workspace }}/build/cuttlefish-mac.tar.gz"
@@ -332,7 +332,7 @@ jobs:
       working-directory: "${{ github.workspace }}/build"
     - name: Publish artifact
       if: matrix.artifact != ''
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: "${{ matrix.artifact }}"
         path: "${{ github.workspace }}/build/cuttlefish-${{ matrix.artifact }}.zip"
