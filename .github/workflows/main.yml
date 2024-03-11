@@ -18,7 +18,7 @@ env:
   cores_mac_count: '3'
   dependency_location: "${{ github.workspace }}/dependencies"
   gtest_version: release-1.12.1
-  ispc_version: 1.18.0
+  ispc_version: 1.23.0
   test_results_location: "${{ github.workspace }}/test-results"
 jobs:
   Linux:
@@ -149,9 +149,9 @@ jobs:
         git submodule update --init
         brew install doxygen
         if [ ${{ matrix.ispc }} -eq 1 ]; then
-            curl -L https://github.com/ispc/ispc/releases/download/v${{ env.ispc_version }}/ispc-v${{ env.ispc_version }}-macOS.tar.gz -o ispc.tar.gz
+            curl -L https://github.com/ispc/ispc/releases/download/v${{ env.ispc_version }}/ispc-v${{ env.ispc_version }}-macOS.universal.tar.gz -o ispc.tar.gz
             tar xzf ispc.tar.gz
-            mv ispc-v${{ env.ispc_version }}-macOS /tmp/ispc
+            mv ispc-v${{ env.ispc_version }}-macOS.universal /tmp/ispc
         fi
       working-directory: "${{ github.workspace }}"
     - name: Build gtest
@@ -181,7 +181,7 @@ jobs:
       run: ctest -C Debug
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Debug)
         junit_files: "${{ env.test_results_location }}/*.xml"
@@ -197,7 +197,7 @@ jobs:
       run: ctest -C Release
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Release)
         junit_files: "${{ env.test_results_location }}/*.xml"
@@ -301,7 +301,7 @@ jobs:
       run: ctest -C Debug
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
       with:
         check_name: >-
           Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Debug)
@@ -319,7 +319,7 @@ jobs:
       run: ctest -C Release
       working-directory: "${{ github.workspace }}/build"
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
       with:
         check_name: >-
           Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Release)
