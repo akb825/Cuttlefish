@@ -989,8 +989,7 @@ Image Image::convert(Format format) const
 				FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace));
 			break;
 		case Format::RGBAF:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace));
+			// Fall back to generic conversion because FreeImage_ConvertToRGBAF clamps to [0,1]
 			break;
 		case Format::Int16:
 			image.m_impl.reset(Impl::create(
