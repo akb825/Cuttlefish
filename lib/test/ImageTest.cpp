@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,6 +128,12 @@ static bool shouldDivide(Image::Format format)
 	}
 }
 
+static double getHeight(const Image& image, unsigned int x, unsigned int y)
+{
+	return (x - image.width()/2.0)/(image.width()/2.0)*
+		(y - image.height()/2.0)/(image.height()/2.0);
+}
+
 TEST(ColorTest, SRGBConversion)
 {
 	EXPECT_DOUBLE_EQ(0.0, linearToSRGB(0.0));
@@ -234,6 +240,231 @@ TEST_P(ImageTest, GetSetPixel)
 	}
 }
 
+TEST(ImageConvertTest, PreserveHDR)
+{
+	const double epsilon = 1e-6;
+
+	ColorRGBAd color;
+	color.r = -1.2;
+	color.g = 3.4;
+	color.b = 0.25;
+	color.a = -0.5;
+	double grayscale = toGrayscale(color.r, color.g, color.b);
+
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBAF, 1, 1));
+	EXPECT_TRUE(image.setPixel(0, 0, color));
+
+	Image otherImage = image.convert(Image::Format::RGBF);
+	EXPECT_TRUE(otherImage.isValid());
+	ColorRGBAd convertedColor;
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+	EXPECT_NEAR(color.b, convertedColor.b, epsilon);
+
+	// Use other image to convert back to RGBAF to ensure it doesn't early-out the conversion.
+	otherImage = otherImage.convert(Image::Format::RGBAF);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+	EXPECT_NEAR(color.b, convertedColor.b, epsilon);
+
+	// This should early-out for the conversion.
+	otherImage = image.convert(Image::Format::RGBAF);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+	EXPECT_NEAR(color.b, convertedColor.b, epsilon);
+	EXPECT_NEAR(color.a, convertedColor.a, epsilon);
+
+	otherImage = image.convert(Image::Format::Float);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+	otherImage = image.convert(Image::Format::Double);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+	otherImage = image.convert(Image::Format::Complex);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+}
+
+TEST(ImageConvertTest, LDRToHDRConversions)
+{
+	const double epsilon = 1e-2;
+
+	ColorRGBAd color;
+	color.r = 0.25;
+	color.g = 0.5;
+	color.b = 0.75;
+	color.a = 1.0;
+	double grayscale = toGrayscale(color.r, color.g, color.b);
+
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::RGBA8, 1, 1));
+	EXPECT_TRUE(image.setPixel(0, 0, color));
+
+	Image otherImage = image.convert(Image::Format::RGBAF);
+	EXPECT_TRUE(otherImage.isValid());
+	ColorRGBAd convertedColor;
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+	EXPECT_NEAR(color.b, convertedColor.b, epsilon);
+	EXPECT_NEAR(color.a, convertedColor.a, epsilon);
+
+	otherImage = image.convert(Image::Format::RGBF);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+	EXPECT_NEAR(color.b, convertedColor.b, epsilon);
+
+	otherImage = image.convert(Image::Format::Float);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+	otherImage = image.convert(Image::Format::Double);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+	otherImage = image.convert(Image::Format::Complex);
+	EXPECT_TRUE(otherImage.isValid());
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	EXPECT_NEAR(color.g, convertedColor.g, epsilon);
+}
+
+TEST(ImageConvertTest, IntegerHDRConversions)
+{
+	ColorRGBAd color;
+	color.r = 15;
+	color.g = color.b = color.a = 0;
+
+	std::vector<Image::Format> srcFormats =
+	{
+		Image::Format::Int16,
+		Image::Format::UInt16,
+		Image::Format::Int32,
+		Image::Format::UInt32
+	};
+
+	std::vector<Image::Format> dstFormats =
+	{
+		Image::Format::RGBF,
+		Image::Format::RGBAF,
+		Image::Format::Float,
+		Image::Format::Double
+	};
+
+	for (Image::Format srcFormat : srcFormats)
+	{
+		Image image;
+		EXPECT_TRUE(image.initialize(srcFormat, 1, 1));
+		EXPECT_TRUE(image.setPixel(0, 0, color));
+
+		for (Image::Format dstFormat : dstFormats)
+		{
+			Image otherImage = image.convert(dstFormat);
+			EXPECT_TRUE(otherImage.isValid());
+			ColorRGBAd convertedColor;
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_EQ(color.r, convertedColor.r);
+
+			otherImage = otherImage.convert(srcFormat);
+			EXPECT_TRUE(otherImage.isValid());
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_EQ(color.r, convertedColor.r);
+		}
+	}
+}
+
+TEST(ImageConvertTest, GrayscaleConversions)
+{
+	const double epsilon = 1.5e-2;
+
+	ColorRGBAd color;
+	color.r = 0.25;
+	color.g = 0.5;
+	color.b = 0.75;
+	color.a = 1.0;
+	double grayscale = toGrayscale(color.r, color.g, color.b);
+
+	std::vector<Image::Format> srcFormats =
+	{
+		Image::Format::RGB5,
+		Image::Format::RGB565,
+		Image::Format::RGB8,
+		Image::Format::RGB16,
+		Image::Format::RGBF,
+		Image::Format::RGBA8,
+		Image::Format::RGBA16,
+		Image::Format::RGBAF
+	};
+
+	std::vector<Image::Format> dstFormats =
+	{
+		Image::Format::Gray8,
+		Image::Format::Gray16,
+		Image::Format::Float,
+		Image::Format::Double
+	};
+
+	for (Image::Format srcFormat : srcFormats)
+	{
+		Image image;
+		EXPECT_TRUE(image.initialize(srcFormat, 1, 1));
+		EXPECT_TRUE(image.setPixel(0, 0, color));
+
+		for (Image::Format dstFormat : dstFormats)
+		{
+			Image otherImage = image.convert(dstFormat);
+			EXPECT_TRUE(otherImage.isValid());
+			ColorRGBAd convertedColor;
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+			otherImage = image.convert(dstFormat, false);
+			EXPECT_TRUE(otherImage.isValid());
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+		}
+	}
+
+	// Complex shouldn't convert to grayscale.
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::Complex, 1, 1));
+	EXPECT_TRUE(image.setPixel(0, 0, color));
+
+	for (Image::Format dstFormat : dstFormats)
+	{
+		Image otherImage = image.convert(dstFormat);
+		EXPECT_TRUE(otherImage.isValid());
+		ColorRGBAd convertedColor;
+		EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+		EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+	}
+
+	// UInt16 should be treated as an integer type, not grayscale.
+	EXPECT_TRUE(image.initialize(Image::Format::RGBA8, 1, 1));
+	EXPECT_TRUE(image.setPixel(0, 0, color));
+	Image otherImage = image.convert(Image::Format::UInt16);
+	EXPECT_TRUE(otherImage.isValid());
+	ColorRGBAd convertedColor;
+	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+	EXPECT_EQ(0, convertedColor.r);
+}
+
 TEST(ResizeFallbackTest, Box)
 {
 	Image floatImage;
@@ -246,7 +477,8 @@ TEST(ResizeFallbackTest, Box)
 		for (unsigned int x = 0; x < floatImage.width(); ++x)
 		{
 			ColorRGBAd color;
-			color = getTestColor(floatImage, x, y, true);
+			// Don't normalize colors to ensure HDR is preserved.
+			color = getTestColor(floatImage, x, y, false);
 			EXPECT_TRUE(floatImage.setPixel(x, y, color));
 			EXPECT_TRUE(doubleImage.setPixel(x, y, color));
 		}
@@ -303,7 +535,8 @@ TEST(ResizeFallbackTest, Linear)
 		for (unsigned int x = 0; x < floatImage.width(); ++x)
 		{
 			ColorRGBAd color;
-			color = getTestColor(floatImage, x, y, true);
+			// Don't normalize colors to ensure HDR is preserved.
+			color = getTestColor(floatImage, x, y, false);
 			EXPECT_TRUE(floatImage.setPixel(x, y, color));
 			EXPECT_TRUE(doubleImage.setPixel(x, y, color));
 		}
@@ -780,12 +1013,6 @@ TEST_P(ImageSRGBColorTest, Grayscale)
 	}
 }
 
-static double getHeight(const Image& image, unsigned int x, unsigned int y)
-{
-	return (x - image.width()/2.0)/(image.width()/2.0)*
-		(y - image.height()/2.0)/(image.height()/2.0);
-}
-
 TEST(NormalMapTest, CreateNormalMap)
 {
 	Image image;
@@ -984,14 +1211,15 @@ INSTANTIATE_TEST_SUITE_P(ImageTestTypes,
 		ImageTestInfo(Image::Format::RGB16, 1/65535.0, 3),
 		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
 		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
+		ImageTestInfo(Image::Format::Gray16, 1/255.0, 0),
 		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
 		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4),
 		ImageTestInfo(Image::Format::Int16, 1, 1),
 		ImageTestInfo(Image::Format::UInt16, 1, 1),
 		ImageTestInfo(Image::Format::Int32, 1, 1),
 		ImageTestInfo(Image::Format::UInt32, 1, 1),
-		ImageTestInfo(Image::Format::Float, 1e-6, 1),
-		ImageTestInfo(Image::Format::Double, 1e-15, 1),
+		ImageTestInfo(Image::Format::Float, 1e-6, 0),
+		ImageTestInfo(Image::Format::Double, 1e-15, 0),
 		ImageTestInfo(Image::Format::Complex, 1e-15, 2)));
 
 INSTANTIATE_TEST_SUITE_P(ImageTestTypes,

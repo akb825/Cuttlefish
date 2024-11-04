@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public:
 	{
 		Invalid, ///< Invalid format, used for errors.
 		Gray8,   ///< 8-bit grayscale.
+		Gray16,  ///< 16-bit grayscale.
 		RGB5,    ///< 6-bit per channel RGB.
 		RGB565,  ///< 5, 6, and 5 bits per channel RGB.
 		RGB8,    ///< 8-bit per channel RGB.
@@ -363,20 +364,24 @@ public:
 	/**
 	 * @brief Sets a pixel as a floating point value.
 	 * @remark This will work with any image format.
-	 * @remark Conversion to grayscale will be automatic for Format::Gray8.
 	 * @param x The X coordinate of the image.
 	 * @param y The Y coordinate of the image.
 	 * @param color The color of the pixel.
+	 * @param convertGrayscale True to convert to grayscale for grayscale image types
+	 *     (Gray8, Gray16, Float, Double), false to take the red channel as-is.
 	 * @return False if the pixel is out of range.
 	 */
-	bool setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color);
+	bool setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color,
+		bool convertGrayscale = true);
 
 	/**
 	 * @brief Converts the image to another pixel format.
-	 * @param format The new pixel format.
+	 * @param dstFormat The new pixel format.
+	 * @param convertGrayscale True to convert to grayscale for grayscale image types
+	 *     (Gray8, Gray16, Float, Double), false to take the red channel as-is.
 	 * @return The converted image.
 	 */
-	Image convert(Format format) const;
+	Image convert(Format dstFormat, bool convertGrayscale = true) const;
 
 	/**
 	 * @brief Resizes an image.
@@ -446,11 +451,11 @@ public:
 	 * @brief Creates a normal map from the R channel of the image.
 	 * @param options The options to use for computing the normal map.
 	 * @param height The height for the image.
-	 * @param format The format of the final image.
+	 * @param dstFormat The format of the final image.
 	 * @return The normal map image.
 	 */
 	Image createNormalMap(NormalOptions options = NormalOptions::Default, double height = 1.0,
-		Format format = Format::RGBF);
+		Format dstFormat = Format::RGBF);
 
 private:
 	struct Impl;

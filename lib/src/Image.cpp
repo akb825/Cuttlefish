@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ Image::Format getFormat(FIBITMAP* image)
 					return Image::Format::Invalid;
 			}
 		case FIT_UINT16:
-			return Image::Format::UInt16;
+			return Image::Format::Gray16;
 		case FIT_INT16:
 			return Image::Format::Int16;
 		case FIT_UINT32:
@@ -118,6 +118,8 @@ FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bpp, unsi
 		case Image::Format::Gray8:
 			bpp = 8;
 			return FIT_BITMAP;
+		case Image::Format::Gray16:
+			return FIT_UINT16;
 		case Image::Format::RGB5:
 			bpp = 16;
 			redMask = FI16_555_RED_MASK;
@@ -159,8 +161,36 @@ FREE_IMAGE_TYPE getFreeImageFormat(Image::Format format, unsigned int& bpp, unsi
 		case Image::Format::Complex:
 			return FIT_COMPLEX;
 		case Image::Format::Invalid:
-		default:
 			return FIT_UNKNOWN;
+	}
+	return FIT_UNKNOWN;
+}
+
+bool needFloatConvertFallback(Image::Format format)
+{
+	switch (format)
+	{
+		case Image::Format::UInt16:
+		case Image::Format::RGBF:
+		case Image::Format::RGBAF:
+		case Image::Format::Float:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool isGrayscaleFormat(Image::Format format)
+{
+	switch (format)
+	{
+		case Image::Format::Gray8:
+		case Image::Format::Gray16:
+		case Image::Format::Float:
+		case Image::Format::Double:
+			return true;
+		default:
+			return false;
 	}
 }
 
@@ -304,9 +334,16 @@ bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanli
 {
 	switch (format)
 	{
+		case Image::Format::Invalid:
+			return false;
 		case Image::Format::Gray8:
 			outColor.r = outColor.g = outColor.b = toDoubleNorm(
 				reinterpret_cast<const std::uint8_t*>(scanline)[x]);
+			outColor.a = 1.0;
+			return true;
+		case Image::Format::Gray16:
+			outColor.r = outColor.g = outColor.b =
+				toDoubleNorm(reinterpret_cast<const std::uint16_t*>(scanline)[x]);
 			outColor.a = 1.0;
 			return true;
 		case Image::Format::RGB5:
@@ -420,18 +457,139 @@ bool getPixelImpl(ColorRGBAd& outColor, Image::Format format, const void* scanli
 			outColor.a = 1.0;
 			return true;
 		}
-		default:
-			return false;
 	}
+	return false;
 }
 
 bool setPixelImpl(Image::Format format, void* scanline, unsigned int x, const ColorRGBAd& color)
 {
 	switch (format)
 	{
+		case Image::Format::Invalid:
+			return false;
 		case Image::Format::Gray8:
 			reinterpret_cast<std::uint8_t*>(scanline)[x] =
 				fromDoubleNorm<std::uint8_t>(toGrayscale(color.r, color.g, color.b));
+			return true;
+		case Image::Format::Gray16:
+			reinterpret_cast<std::uint16_t*>(scanline)[x] =
+				fromDoubleNorm<std::uint16_t>(toGrayscale(color.r, color.g, color.b));
+			return true;
+		case Image::Format::RGB5:
+		{
+			std::uint16_t& pixel = static_cast<std::uint16_t*>(scanline)[x];
+			pixel = static_cast<std::uint16_t>(
+				(fromDoubleNorm5(color.r) << FI16_555_RED_SHIFT) |
+				(fromDoubleNorm5(color.g) << FI16_555_GREEN_SHIFT) |
+				(fromDoubleNorm5(color.b) << FI16_555_BLUE_SHIFT));
+			return true;
+		}
+		case Image::Format::RGB565:
+		{
+			std::uint16_t& pixel = static_cast<std::uint16_t*>(scanline)[x];
+			pixel = static_cast<std::uint16_t>(
+				(fromDoubleNorm5(color.r) << FI16_565_RED_SHIFT) |
+				(fromDoubleNorm6(color.g) << FI16_565_GREEN_SHIFT) |
+				(fromDoubleNorm5(color.b) << FI16_565_BLUE_SHIFT));
+			return true;
+		}
+		case Image::Format::RGB8:
+		{
+			RGBTRIPLE& pixel = static_cast<RGBTRIPLE*>(scanline)[x];
+			pixel.rgbtRed = fromDoubleNorm<std::uint8_t>(color.r);
+			pixel.rgbtGreen = fromDoubleNorm<std::uint8_t>(color.g);
+			pixel.rgbtBlue = fromDoubleNorm<std::uint8_t>(color.b);
+			return true;
+		}
+		case Image::Format::RGB16:
+		{
+			FIRGB16& pixel = static_cast<FIRGB16*>(scanline)[x];
+			pixel.red = fromDoubleNorm<std::uint16_t>(color.r);
+			pixel.green = fromDoubleNorm<std::uint16_t>(color.g);
+			pixel.blue = fromDoubleNorm<std::uint16_t>(color.b);
+			return true;
+		}
+		case Image::Format::RGBF:
+		{
+			FIRGBF& pixel = static_cast<FIRGBF*>(scanline)[x];
+			pixel.red = static_cast<float>(color.r);
+			pixel.green = static_cast<float>(color.g);
+			pixel.blue = static_cast<float>(color.b);
+			return true;
+		}
+		case Image::Format::RGBA8:
+		{
+			RGBQUAD& pixel = static_cast<RGBQUAD*>(scanline)[x];
+			pixel.rgbRed = fromDoubleNorm<std::uint8_t>(color.r);
+			pixel.rgbGreen = fromDoubleNorm<std::uint8_t>(color.g);
+			pixel.rgbBlue = fromDoubleNorm<std::uint8_t>(color.b);
+			pixel.rgbReserved = fromDoubleNorm<std::uint8_t>(color.a);
+			return true;
+		}
+		case Image::Format::RGBA16:
+		{
+			FIRGBA16& pixel = static_cast<FIRGBA16*>(scanline)[x];
+			pixel.red = fromDoubleNorm<std::uint16_t>(color.r);
+			pixel.green = fromDoubleNorm<std::uint16_t>(color.g);
+			pixel.blue = fromDoubleNorm<std::uint16_t>(color.b);
+			pixel.alpha = fromDoubleNorm<std::uint16_t>(color.a);
+			return true;
+		}
+		case Image::Format::RGBAF:
+		{
+			FIRGBAF& pixel = static_cast<FIRGBAF*>(scanline)[x];
+			pixel.red = static_cast<float>(color.r);
+			pixel.green = static_cast<float>(color.g);
+			pixel.blue = static_cast<float>(color.b);
+			pixel.alpha = static_cast<float>(color.a);
+			return true;
+		}
+		case Image::Format::Int16:
+			reinterpret_cast<std::int16_t*>(scanline)[x] = clamp(
+				static_cast<std::int16_t>(color.r));
+			return true;
+		case Image::Format::UInt16:
+			reinterpret_cast<std::uint16_t*>(scanline)[x] = clamp(
+				static_cast<std::int16_t>(color.r));
+			return true;
+		case Image::Format::Int32:
+			reinterpret_cast<std::int32_t*>(scanline)[x] = clamp(
+				static_cast<std::int32_t>(color.r));
+			return true;
+		case Image::Format::UInt32:
+			reinterpret_cast<std::uint32_t*>(scanline)[x] = clamp(
+				static_cast<std::uint32_t>(color.r));
+			return true;
+		case Image::Format::Float:
+			reinterpret_cast<float*>(scanline)[x] =
+				static_cast<float>(toGrayscale(color.r, color.g, color.b));
+			return true;
+		case Image::Format::Double:
+			reinterpret_cast<double*>(scanline)[x] = toGrayscale(color.r, color.g, color.b);
+			return true;
+		case Image::Format::Complex:
+		{
+			FICOMPLEX& pixel = static_cast<FICOMPLEX*>(scanline)[x];
+			pixel.r = color.r;
+			pixel.i = color.g;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool setPixelNoGrayscaleImpl(Image::Format format, void* scanline, unsigned int x,
+	const ColorRGBAd& color)
+{
+	switch (format)
+	{
+		case Image::Format::Invalid:
+			return false;
+		case Image::Format::Gray8:
+			reinterpret_cast<std::uint8_t*>(scanline)[x] = fromDoubleNorm<std::uint8_t>(color.r);
+			return true;
+		case Image::Format::Gray16:
+			reinterpret_cast<std::uint16_t*>(scanline)[x] = fromDoubleNorm<std::uint16_t>(color.r);
 			return true;
 		case Image::Format::RGB5:
 		{
@@ -531,16 +689,15 @@ bool setPixelImpl(Image::Format format, void* scanline, unsigned int x, const Co
 			pixel.i = color.g;
 			return true;
 		}
-		default:
-			return false;
 	}
+	return false;
 }
 
 } // namespace
 
 struct Image::Impl
 {
-	static Impl* create(FIBITMAP* image, ColorSpace colorSpace)
+	static Impl* create(FIBITMAP* image, ColorSpace colorSpace, Format format)
 	{
 		if (!image)
 			return nullptr;
@@ -559,7 +716,8 @@ struct Image::Impl
 				return nullptr;
 		}
 
-		Format format = getFormat(image);
+		if (format == Format::Invalid)
+			format = getFormat(image);
 		if (format == Format::Invalid)
 		{
 			FreeImage_Unload(image);
@@ -664,7 +822,7 @@ Image::Image(const Image& other)
 	{
 		FIBITMAP* image = FreeImage_Clone(other.m_impl->image);
 		if (image)
-			m_impl.reset(Impl::create(image, other.m_impl->colorSpace));
+			m_impl.reset(Impl::create(image, other.m_impl->colorSpace, other.m_impl->format));
 	}
 }
 
@@ -680,7 +838,7 @@ Image& Image::operator=(const Image& other)
 	{
 		FIBITMAP* image = FreeImage_Clone(other.m_impl->image);
 		if (image)
-			m_impl.reset(Impl::create(image, other.m_impl->colorSpace));
+			m_impl.reset(Impl::create(image, other.m_impl->colorSpace, other.m_impl->format));
 	}
 	return *this;
 }
@@ -705,7 +863,7 @@ bool Image::load(const char* fileName, ColorSpace colorSpace)
 	if (format == FIF_UNKNOWN)
 		return false;
 
-	m_impl.reset(Impl::create(FreeImage_Load(format, fileName), colorSpace));
+	m_impl.reset(Impl::create(FreeImage_Load(format, fileName), colorSpace, Format::Invalid));
 	return m_impl != nullptr;
 }
 
@@ -725,7 +883,8 @@ bool Image::load(std::istream& stream, ColorSpace colorSpace)
 	if (format == FIF_UNKNOWN)
 		return false;
 
-	m_impl.reset(Impl::create(FreeImage_LoadFromHandle(format, &istreamIO, &stream), colorSpace));
+	m_impl.reset(Impl::create(FreeImage_LoadFromHandle(format, &istreamIO, &stream), colorSpace,
+		Format::Invalid));
 	return m_impl != nullptr;
 }
 
@@ -744,7 +903,8 @@ bool Image::load(const void* data, std::size_t size, ColorSpace colorSpace)
 		return false;
 	}
 
-	m_impl.reset(Impl::create(FreeImage_LoadFromMemory(format, memoryStream), colorSpace));
+	m_impl.reset(Impl::create(FreeImage_LoadFromMemory(format, memoryStream), colorSpace,
+		Format::Invalid));
 	FreeImage_CloseMemory(memoryStream);
 	return m_impl != nullptr;
 }
@@ -796,7 +956,7 @@ bool Image::initialize(Format format, unsigned int width, unsigned int height,
 		return false;
 
 	m_impl.reset(Impl::create(FreeImage_AllocateT(type, width, height, bpp, redMask, greenMask,
-		blueMask), colorSpace));
+		blueMask), colorSpace, format));
 	return m_impl != nullptr;
 }
 
@@ -934,91 +1094,130 @@ bool Image::getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const
 		x);
 }
 
-bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color)
+bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color, bool convertGrayscale)
 {
 	if (!m_impl || x >= m_impl->width || y >= m_impl->height)
 		return false;
 
-	return setPixelImpl(m_impl->format, getScanlineImpl(m_impl->image, m_impl->height, y), x,
-		color);
+	void* scanline = getScanlineImpl(m_impl->image, m_impl->height, y);
+	if (convertGrayscale)
+		return setPixelImpl(m_impl->format, scanline, x, color);
+	return setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 }
 
-Image Image::convert(Format format) const
+Image Image::convert(Format dstFormat, bool convertGrayscale) const
 {
 	Image image;
 	if (!m_impl)
 		return image;
 
+	Format srcFormat = m_impl->format;
+	if (srcFormat == dstFormat)
+	{
+		image = *this;
+		return image;
+	}
+
 	unsigned int bpp, redMask, greenMask, blueMask;
-	FREE_IMAGE_TYPE type = getFreeImageFormat(format, bpp, redMask, greenMask, blueMask);
+	FREE_IMAGE_TYPE type = getFreeImageFormat(dstFormat, bpp, redMask, greenMask, blueMask);
 	if (type == FIT_UNKNOWN)
 		return image;
 
-	switch (format)
+	switch (dstFormat)
 	{
 		case Format::Gray8:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace));
+			if (convertGrayscale || isGrayscaleFormat(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace, dstFormat));
+			}
+			break;
+		case Format::Gray16:
+			if (convertGrayscale || isGrayscaleFormat(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT16),
+					m_impl->colorSpace, dstFormat));
+			}
 			break;
 		case Format::RGB5:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo16Bits555(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertTo16Bits555(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGB565:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo16Bits565(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertTo16Bits565(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGB8:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo24Bits(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertTo24Bits(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGB16:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGB16(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertToRGB16(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGBF:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace));
+			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
+			// HDR images.
+			if (!needFloatConvertFallback(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace, dstFormat));
+			}
 			break;
 		case Format::RGBA8:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo32Bits(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertTo32Bits(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGBA16:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace));
+				FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::RGBAF:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace));
+			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
+			// HDR images.
+			if (!needFloatConvertFallback(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace, dstFormat));
+			}
 			break;
 		case Format::Int16:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_INT16), m_impl->colorSpace));
+				FreeImage_ConvertToType(m_impl->image, FIT_INT16), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::UInt16:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_UINT16), m_impl->colorSpace));
+			// NOTE: FreeImage treates UInt16 as a normalized integer type.
 			break;
 		case Format::Int32:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_INT32), m_impl->colorSpace));
+				FreeImage_ConvertToType(m_impl->image, FIT_INT32), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::UInt32:
 			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_UINT32), m_impl->colorSpace));
+				FreeImage_ConvertToType(m_impl->image, FIT_UINT32), m_impl->colorSpace, dstFormat));
 			break;
 		case Format::Float:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_FLOAT), m_impl->colorSpace));
+			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
+			// HDR images. Also need to use fallback if not converting to grayscale.
+			if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+				!needFloatConvertFallback(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_FLOAT),
+					m_impl->colorSpace, dstFormat));
+			}
 			break;
 		case Format::Double:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE), m_impl->colorSpace));
+			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
+			// HDR images. Also need to use fallback if not converting to grayscale.
+			if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+				!needFloatConvertFallback(srcFormat))
+			{
+				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE),
+					m_impl->colorSpace, dstFormat));
+			}
 			break;
 		case Format::Complex:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_COMPLEX), m_impl->colorSpace));
+			// NOTE: Complex conversions within FreeImage will only convert the first color channel.
 			break;
 		case Format::Invalid:
 			break;
@@ -1027,19 +1226,36 @@ Image Image::convert(Format format) const
 	if (!image)
 	{
 		// Fall back to generic conversion if FreeImage couldn't perform the conversion.
-		image.initialize(format, m_impl->width, m_impl->height, m_impl->colorSpace);
+		image.initialize(dstFormat, m_impl->width, m_impl->height, m_impl->colorSpace);
 		if (!image)
 			return image;
 
 		ColorRGBAd color = {0.0, 0.0, 0.0, 0.0};
-		for (unsigned int y = 0; y < m_impl->height; ++y)
+		// Never convert grayscale when going from complex type.
+		if (convertGrayscale && srcFormat != Format::Complex)
 		{
-			const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
-			void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
-			for (unsigned int x = 0; x < m_impl->width; ++x)
+			for (unsigned int y = 0; y < m_impl->height; ++y)
 			{
-				getPixelImpl(color, m_impl->format, srcScanline, x);
-				setPixelImpl(image.m_impl->format, dstScanline, x, color);
+				const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
+				void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
+				for (unsigned int x = 0; x < m_impl->width; ++x)
+				{
+					getPixelImpl(color, m_impl->format, srcScanline, x);
+					setPixelImpl(image.m_impl->format, dstScanline, x, color);
+				}
+			}
+		}
+		else
+		{
+			for (unsigned int y = 0; y < m_impl->height; ++y)
+			{
+				const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
+				void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
+				for (unsigned int x = 0; x < m_impl->width; ++x)
+				{
+					getPixelImpl(color, m_impl->format, srcScanline, x);
+					setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline, x, color);
+				}
 			}
 		}
 	}
@@ -1099,7 +1315,8 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 			break;
 		default:
 			image.m_impl.reset(Impl::create(
-				FreeImage_Rescale(m_impl->image, width, height, fiFilter), m_impl->colorSpace));
+				FreeImage_Rescale(m_impl->image, width, height, fiFilter), m_impl->colorSpace,
+				m_impl->format));
 			break;
 	}
 
@@ -1259,7 +1476,7 @@ Image Image::rotate(RotateAngle angle) const
 	}
 
 	image.m_impl.reset(Impl::create(FreeImage_Rotate(m_impl->image, degrees, nullptr),
-		m_impl->colorSpace));
+		m_impl->colorSpace, m_impl->format));
 	if (!image)
 	{
 		// Fallback behavior
@@ -1505,13 +1722,13 @@ bool Image::swizzle(Channel red, Channel green, Channel blue, Channel alpha)
 	return true;
 }
 
-Image Image::createNormalMap(NormalOptions options, double height, Format format)
+Image Image::createNormalMap(NormalOptions options, double height, Format dstFormat)
 {
 	Image image;
 	if (!m_impl)
 		return image;
 
-	if (!image.initialize(format, m_impl->width, m_impl->height, m_impl->colorSpace))
+	if (!image.initialize(dstFormat, m_impl->width, m_impl->height, m_impl->colorSpace))
 		return image;
 
 	for (unsigned int y = 0; y < m_impl->height; ++y)
@@ -1597,7 +1814,7 @@ Image Image::createNormalMap(NormalOptions options, double height, Format format
 				normal.g = normal.g*0.5 + 0.5;
 				normal.b = normal.b*0.5 + 0.5;
 			}
-			setPixelImpl(format, dstScanline, x, normal);
+			setPixelImpl(dstFormat, dstScanline, x, normal);
 		}
 	}
 
