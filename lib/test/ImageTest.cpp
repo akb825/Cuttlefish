@@ -465,6 +465,65 @@ TEST(ImageConvertTest, GrayscaleConversions)
 	EXPECT_EQ(0, convertedColor.r);
 }
 
+TEST(ImageConvertTest, UInt16Conversions)
+{
+	// FreeImage native handling of UInt16 type is same as Gray16 rather than like other
+	// integer types.
+	ColorRGBAd color;
+	color.r = 1234;
+	color.g = color.b = color.a = 0.0;
+
+	Image image;
+	EXPECT_TRUE(image.initialize(Image::Format::UInt16, 1, 1));
+	EXPECT_TRUE(image.setPixel(0, 0, color));
+
+	std::vector<Image::Format> dstFormats =
+	{
+		Image::Format::RGBF,
+		Image::Format::RGBAF,
+		Image::Format::Int16,
+		Image::Format::Int32,
+		Image::Format::UInt32,
+		Image::Format::Float,
+		Image::Format::Double,
+		Image::Format::Complex
+	};
+
+	for (Image::Format dstFormat : dstFormats)
+	{
+		Image otherImage = image.convert(dstFormat);
+		EXPECT_TRUE(otherImage.isValid());
+		ColorRGBAd convertedColor;
+		EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+		EXPECT_EQ(color.r, convertedColor.r);
+
+		otherImage = otherImage.convert(Image::Format::UInt16);
+		EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+		EXPECT_EQ(color.r, convertedColor.r);
+	}
+
+	dstFormats =
+	{
+		Image::Format::Gray8,
+		Image::Format::Gray16,
+		Image::Format::RGB5,
+		Image::Format::RGB565,
+		Image::Format::RGB8,
+		Image::Format::RGB16,
+		Image::Format::RGBA8,
+		Image::Format::RGBA16
+	};
+
+	for (Image::Format dstFormat : dstFormats)
+	{
+		Image otherImage = image.convert(dstFormat);
+		EXPECT_TRUE(otherImage.isValid());
+		ColorRGBAd convertedColor;
+		EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+		EXPECT_EQ(1, convertedColor.r);
+	}
+}
+
 TEST(ResizeFallbackTest, Box)
 {
 	Image floatImage;

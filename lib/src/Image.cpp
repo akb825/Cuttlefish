@@ -1123,104 +1123,114 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 	if (type == FIT_UNKNOWN)
 		return image;
 
-	switch (dstFormat)
+	// Special case: UInt16 type gets treated by FreeImage as Gray16, so always use fallback
+	// for UInt16.
+	if (srcFormat != Format::UInt16)
 	{
-		case Format::Gray8:
-			if (convertGrayscale || isGrayscaleFormat(srcFormat))
-			{
+		switch (dstFormat)
+		{
+			case Format::Gray8:
+				if (convertGrayscale || isGrayscaleFormat(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace, dstFormat));
+				}
+				break;
+			case Format::Gray16:
+				if (convertGrayscale || isGrayscaleFormat(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertToType(m_impl->image, FIT_UINT16), m_impl->colorSpace,
+						dstFormat));
+				}
+				break;
+			case Format::RGB5:
 				image.m_impl.reset(Impl::create(
-					FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::Gray16:
-			if (convertGrayscale || isGrayscaleFormat(srcFormat))
-			{
-				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_UINT16),
-					m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::RGB5:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo16Bits555(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGB565:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo16Bits565(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGB8:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo24Bits(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGB16:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGB16(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGBF:
-			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
-			// HDR images.
-			if (!needFloatConvertFallback(srcFormat))
-			{
+					FreeImage_ConvertTo16Bits555(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGB565:
 				image.m_impl.reset(Impl::create(
-					FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::RGBA8:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertTo32Bits(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGBA16:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::RGBAF:
-			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
-			// HDR images.
-			if (!needFloatConvertFallback(srcFormat))
-			{
+					FreeImage_ConvertTo16Bits565(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGB8:
 				image.m_impl.reset(Impl::create(
-					FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::Int16:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_INT16), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::UInt16:
-			// NOTE: FreeImage treates UInt16 as a normalized integer type.
-			break;
-		case Format::Int32:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_INT32), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::UInt32:
-			image.m_impl.reset(Impl::create(
-				FreeImage_ConvertToType(m_impl->image, FIT_UINT32), m_impl->colorSpace, dstFormat));
-			break;
-		case Format::Float:
-			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
-			// HDR images. Also need to use fallback if not converting to grayscale.
-			if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
-				!needFloatConvertFallback(srcFormat))
-			{
-				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_FLOAT),
+					FreeImage_ConvertTo24Bits(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGB16:
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertToRGB16(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGBF:
+				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
+				// clamping HDR images.
+				if (!needFloatConvertFallback(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace, dstFormat));
+				}
+				break;
+			case Format::RGBA8:
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertTo32Bits(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGBA16:
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertToRGBA16(m_impl->image), m_impl->colorSpace, dstFormat));
+				break;
+			case Format::RGBAF:
+				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
+				// clamping HDR images.
+				if (!needFloatConvertFallback(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertToRGBAF(m_impl->image), m_impl->colorSpace, dstFormat));
+				}
+				break;
+			case Format::Int16:
+				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_INT16),
 					m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::Double:
-			// NOTE: Don't use FreeImage conversion for float to float conversion to avoid clamping
-			// HDR images. Also need to use fallback if not converting to grayscale.
-			if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
-				!needFloatConvertFallback(srcFormat))
-			{
-				image.m_impl.reset(Impl::create(FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE),
+				break;
+			case Format::UInt16:
+				// NOTE: FreeImage treates UInt16 as a normalized integer type.
+				break;
+			case Format::Int32:
+				image.m_impl.reset(Impl::create(
+					FreeImage_ConvertToType(m_impl->image, FIT_INT32), m_impl->colorSpace,
+					dstFormat));
+				break;
+			case Format::UInt32:
+				image.m_impl.reset(Impl::create( FreeImage_ConvertToType(m_impl->image, FIT_UINT32),
 					m_impl->colorSpace, dstFormat));
-			}
-			break;
-		case Format::Complex:
-			// NOTE: Complex conversions within FreeImage will only convert the first color channel.
-			break;
-		case Format::Invalid:
-			break;
+				break;
+			case Format::Float:
+				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
+				// clamping HDR images. Also need to use fallback if not converting to grayscale.
+				if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+					!needFloatConvertFallback(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertToType(m_impl->image, FIT_FLOAT), m_impl->colorSpace,
+						dstFormat));
+				}
+				break;
+			case Format::Double:
+				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
+				// clamping HDR images. Also need to use fallback if not converting to grayscale.
+				if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+					!needFloatConvertFallback(srcFormat))
+				{
+					image.m_impl.reset(Impl::create(
+						FreeImage_ConvertToType(m_impl->image, FIT_DOUBLE), m_impl->colorSpace,
+						dstFormat));
+				}
+				break;
+			case Format::Complex:
+				// NOTE: Complex conversions within FreeImage will only convert the first color
+				// channel.
+				break;
+			case Format::Invalid:
+				break;
+		}
 	}
 
 	if (!image)
