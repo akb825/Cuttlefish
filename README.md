@@ -22,7 +22,7 @@ Features include:
 
 The following software is required to build Cuttlefish:
 
-* [CMake](https://cmake.org/) 3.1 or later
+* [CMake](https://cmake.org/) 3.5 or later
 * [FreeImage](http://freeimage.sourceforge.net/) (required, included as a submodule)
 * [GLM](https://glm.g-truc.net/0.9.9/index.html) (required, included as a submodule)
 * [squish](https://sourceforge.net/projects/libsquish/) (optional, included as a submodule)
@@ -42,6 +42,8 @@ The submodules can be downloaded by running the command
 When using the BC6H and BC7 encoders, it's highly recommended to install the [ISPC](https://ispc.github.io) compiler. This will use higher quality encoders that are also faster compared to the fallback used when ISP isn't available.
 
 > **Note:** Use the `CUTTLEFISH_ISPC_PATH` CMake variable when ISPC isn't visible on the system `PATH`.
+
+> **Note:** As of this writing, the last release of PVRTexTool that supports macOS is the 2023r2 release, with both releases in 2024 not having downloads available for macOS. For now, the 2023r2 release will continue to be used to support PVRTC formats across all major platforms until either it breaks or releases resume on macOS.
 
 # Platforms
 

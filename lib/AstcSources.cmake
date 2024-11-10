@@ -23,9 +23,6 @@ set(astcSources
 	${ASTC_DIR}/Source/astcenc_symbolic_physical.cpp
 	${ASTC_DIR}/Source/astcenc_weight_align.cpp
 	${ASTC_DIR}/Source/astcenc_weight_quant_xfer_tables.cpp
-	${ASTC_DIR}/Source/stb_image.h
-	${ASTC_DIR}/Source/stb_image_write.h
-	${ASTC_DIR}/Source/tinyexr.h
 )
 
 set(ASTC_INCLUDE_DIRS ${ASTC_DIR}/Source)
