@@ -1101,7 +1101,17 @@ bool Image::setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color, bo
 
 	void* scanline = getScanlineImpl(m_impl->image, m_impl->height, y);
 	if (convertGrayscale)
+	{
+		if (m_impl->colorSpace == ColorSpace::sRGB && isGrayscaleFormat(m_impl->format))
+		{
+			ColorRGBAd grayColor;
+			grayColor.r = grayColor.g = grayColor.b = linearToSRGB(toGrayscale(
+				sRGBToLinear(color.r), sRGBToLinear(color.g), sRGBToLinear(color.b)));
+			grayColor.a = color.a;
+			setPixelNoGrayscaleImpl(m_impl->format, scanline, x, grayColor);
+		}
 		return setPixelImpl(m_impl->format, scanline, x, color);
+	}
 	return setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 }
 
@@ -1123,6 +1133,10 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 	if (type == FIT_UNKNOWN)
 		return image;
 
+	// Only allow FreeImage grayscale conversion for linear color space.
+	convertGrayscale = convertGrayscale && isGrayscaleFormat(dstFormat);
+	bool convertLinearGrayscale = convertGrayscale && m_impl->colorSpace == ColorSpace::Linear;
+
 	// Special case: UInt16 type gets treated by FreeImage as Gray16, so always use fallback
 	// for UInt16.
 	if (srcFormat != Format::UInt16)
@@ -1130,14 +1144,14 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 		switch (dstFormat)
 		{
 			case Format::Gray8:
-				if (convertGrayscale || isGrayscaleFormat(srcFormat))
+				if (convertLinearGrayscale || isGrayscaleFormat(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(
 						FreeImage_ConvertTo8Bits(m_impl->image), m_impl->colorSpace, dstFormat));
 				}
 				break;
 			case Format::Gray16:
-				if (convertGrayscale || isGrayscaleFormat(srcFormat))
+				if (convertLinearGrayscale || isGrayscaleFormat(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(
 						FreeImage_ConvertToType(m_impl->image, FIT_UINT16), m_impl->colorSpace,
@@ -1205,7 +1219,7 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 			case Format::Float:
 				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
 				// clamping HDR images. Also need to use fallback if not converting to grayscale.
-				if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+				if ((convertLinearGrayscale || isGrayscaleFormat(srcFormat)) &&
 					!needFloatConvertFallback(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(
@@ -1216,7 +1230,7 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 			case Format::Double:
 				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
 				// clamping HDR images. Also need to use fallback if not converting to grayscale.
-				if ((convertGrayscale || isGrayscaleFormat(srcFormat)) &&
+				if ((convertLinearGrayscale || isGrayscaleFormat(srcFormat)) &&
 					!needFloatConvertFallback(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(
@@ -1244,14 +1258,33 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 		// Never convert grayscale when going from complex type.
 		if (convertGrayscale && srcFormat != Format::Complex)
 		{
-			for (unsigned int y = 0; y < m_impl->height; ++y)
+			if (m_impl->colorSpace == ColorSpace::Linear)
 			{
-				const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
-				void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
-				for (unsigned int x = 0; x < m_impl->width; ++x)
+				for (unsigned int y = 0; y < m_impl->height; ++y)
 				{
-					getPixelImpl(color, m_impl->format, srcScanline, x);
-					setPixelImpl(image.m_impl->format, dstScanline, x, color);
+					const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
+					void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
+					for (unsigned int x = 0; x < m_impl->width; ++x)
+					{
+						getPixelImpl(color, m_impl->format, srcScanline, x);
+						setPixelImpl(image.m_impl->format, dstScanline, x, color);
+					}
+				}
+			}
+			else
+			{
+				// Perform grayscale conversion in linear space.
+				for (unsigned int y = 0; y < m_impl->height; ++y)
+				{
+					const void* srcScanline = FreeImage_GetScanLine(m_impl->image, y);
+					void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, y);
+					for (unsigned int x = 0; x < m_impl->width; ++x)
+					{
+						getPixelImpl(color, m_impl->format, srcScanline, x);
+						color.r = color.g = color.b = linearToSRGB(toGrayscale(
+							sRGBToLinear(color.r), sRGBToLinear(color.g), sRGBToLinear(color.b)));
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline, x, color);
+					}
 				}
 			}
 		}
@@ -1393,7 +1426,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 						color.g /= totalScale;
 						color.b /= totalScale;
 						color.a /= totalScale;
-						setPixelImpl(image.m_impl->format, dstScanline, x, color);
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline, x, color);
 					}
 				}
 				break;
@@ -1451,7 +1484,7 @@ Image Image::resize(unsigned int width, unsigned int height, ResizeFilter filter
 						color.g /= totalScale;
 						color.b /= totalScale;
 						color.a /= totalScale;
-						setPixelImpl(image.m_impl->format, dstScanline, x, color);
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline, x, color);
 					}
 				}
 				break;
@@ -1506,8 +1539,8 @@ Image Image::rotate(RotateAngle angle) const
 					{
 						getPixelImpl(color, m_impl->format, srcScanline, x);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);
-						setPixelImpl(image.m_impl->format, dstScanline, image.m_impl->width - y - 1,
-							color);
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline,
+							image.m_impl->width - y - 1, color);
 					}
 				}
 				break;
@@ -1525,8 +1558,8 @@ Image Image::rotate(RotateAngle angle) const
 					for (unsigned int x = 0; x < m_impl->width; ++x)
 					{
 						getPixelImpl(color, m_impl->format, srcScanline, x);
-						setPixelImpl(image.m_impl->format, dstScanline, m_impl->width - x - 1,
-							color);
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline,
+							m_impl->width - x - 1, color);
 					}
 				}
 				break;
@@ -1544,7 +1577,7 @@ Image Image::rotate(RotateAngle angle) const
 						getPixelImpl(color, m_impl->format, srcScanline,
 							m_impl->width - x - 1);
 						void* dstScanline = FreeImage_GetScanLine(image.m_impl->image, x);
-						setPixelImpl(image.m_impl->format, dstScanline, y, color);
+						setPixelNoGrayscaleImpl(image.m_impl->format, dstScanline, y, color);
 					}
 				}
 				break;
@@ -1607,7 +1640,7 @@ bool Image::preMultiplyAlpha()
 						color.b = linearToSRGB(color.b);
 					}
 
-					setPixelImpl(m_impl->format, scanline, x, color);
+					setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 				}
 			}
 		default:
@@ -1637,7 +1670,7 @@ bool Image::changeColorSpace(ColorSpace colorSpace)
 				color.r = sRGBToLinear(color.r);
 				color.g = sRGBToLinear(color.g);
 				color.b = sRGBToLinear(color.b);
-				setPixelImpl(m_impl->format, scanline, x, color);
+				setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 			}
 		}
 	}
@@ -1654,7 +1687,7 @@ bool Image::changeColorSpace(ColorSpace colorSpace)
 				color.r = linearToSRGB(color.r);
 				color.g = linearToSRGB(color.g);
 				color.b = linearToSRGB(color.b);
-				setPixelImpl(m_impl->format, scanline, x, color);
+				setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 			}
 		}
 	}
@@ -1690,7 +1723,7 @@ bool Image::grayscale()
 				grayscale = linearToSRGB(grayscale);
 			color.r = color.g = color.b = grayscale;
 
-			setPixelImpl(m_impl->format, scanline, x, color);
+			setPixelNoGrayscaleImpl(m_impl->format, scanline, x, color);
 		}
 	}
 
@@ -1725,7 +1758,7 @@ bool Image::swizzle(Channel red, Channel green, Channel blue, Channel alpha)
 				swzl.a = reinterpret_cast<double*>(&color)[static_cast<unsigned int>(alpha)];
 			else
 				swzl.a = 1;
-			setPixelImpl(m_impl->format, scanline, x, swzl);
+			setPixelNoGrayscaleImpl(m_impl->format, scanline, x, swzl);
 		}
 	}
 

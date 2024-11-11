@@ -438,6 +438,11 @@ TEST(ImageConvertTest, GrayscaleConversions)
 			EXPECT_TRUE(otherImage.isValid());
 			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
 			EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+
+			// Calling setPixel() should have the same behavior as convert().
+			otherImage.setPixel(0, 0, color);
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
 		}
 	}
 
@@ -463,6 +468,65 @@ TEST(ImageConvertTest, GrayscaleConversions)
 	ColorRGBAd convertedColor;
 	EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
 	EXPECT_EQ(0, convertedColor.r);
+}
+
+TEST(ImageConvertTest, sRGBGrayscaleConversions)
+{
+	const double epsilon = 2.2e-2;
+
+	ColorRGBAd color;
+	color.r = 0.25;
+	color.g = 0.5;
+	color.b = 0.75;
+	color.a = 1.0;
+	double grayscale = linearToSRGB(toGrayscale(
+		sRGBToLinear(color.r), sRGBToLinear(color.g), sRGBToLinear(color.b)));
+
+	std::vector<Image::Format> srcFormats =
+	{
+		Image::Format::RGB5,
+		Image::Format::RGB565,
+		Image::Format::RGB8,
+		Image::Format::RGB16,
+		Image::Format::RGBF,
+		Image::Format::RGBA8,
+		Image::Format::RGBA16,
+		Image::Format::RGBAF
+	};
+
+	std::vector<Image::Format> dstFormats =
+	{
+		Image::Format::Gray8,
+		Image::Format::Gray16,
+		Image::Format::Float,
+		Image::Format::Double
+	};
+
+	for (Image::Format srcFormat : srcFormats)
+	{
+		Image image;
+		EXPECT_TRUE(image.initialize(srcFormat, 1, 1, ColorSpace::sRGB));
+		EXPECT_TRUE(image.setPixel(0, 0, color));
+
+		for (Image::Format dstFormat : dstFormats)
+		{
+			Image otherImage = image.convert(dstFormat);
+			EXPECT_TRUE(otherImage.isValid());
+			ColorRGBAd convertedColor;
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+
+			otherImage = image.convert(dstFormat, false);
+			EXPECT_TRUE(otherImage.isValid());
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(color.r, convertedColor.r, epsilon);
+
+			// Calling setPixel() should have the same behavior as convert().
+			otherImage.setPixel(0, 0, color);
+			EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
+			EXPECT_NEAR(grayscale, convertedColor.r, epsilon);
+		}
+	}
 }
 
 TEST(ImageConvertTest, UInt16Conversions)
@@ -1264,13 +1328,13 @@ INSTANTIATE_TEST_SUITE_P(ImageTestTypes,
 	ImageTest,
 	testing::Values(
 		ImageTestInfo(Image::Format::Gray8, 1/255.0, 0),
+		ImageTestInfo(Image::Format::Gray16, 1/255.0, 0),
 		ImageTestInfo(Image::Format::RGB5, 1/31.0, 3),
 		ImageTestInfo(Image::Format::RGB565, 1/31.0, 3),
 		ImageTestInfo(Image::Format::RGB8, 1/255.0, 3),
 		ImageTestInfo(Image::Format::RGB16, 1/65535.0, 3),
 		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
 		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
-		ImageTestInfo(Image::Format::Gray16, 1/255.0, 0),
 		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
 		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4),
 		ImageTestInfo(Image::Format::Int16, 1, 1),
