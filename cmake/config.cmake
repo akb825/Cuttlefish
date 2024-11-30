@@ -15,7 +15,7 @@
 include(GNUInstallDirs)
 
 # Code should compile with C++11, but set to 14 for dependencies. Compiling on older targets will
-# fall back to the the latest version.
+# fall back to the latest version.
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
