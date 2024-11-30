@@ -1,4 +1,4 @@
-# Copyright 2017-2022 Aaron Barany
+# Copyright 2017-2024 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,6 +47,13 @@ elseif (CUTTLEFISH_ARCH MATCHES "^arm" OR CUTTLEFISH_ARCH STREQUAL "aarch64")
 endif()
 
 if (MSVC)
+	if (CUTTLEFISH_STATIC_RUNTIME)
+		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+		if (CUTTLEFISH_SHARED)
+			message(WARNING
+				"It is not recommended to have CUTTLEFISH_SHARED and CUTTLEFISH_STATIC_RUNTIME both set to ON.")
+		endif()
+	endif()
 	add_compile_options(/W3 /WX /wd4200 /MP)
 	if (CUTTLEFISH_ARCH STREQUAL "x86")
 		add_compile_options(/arch:SSE2)
