@@ -968,6 +968,14 @@ FILTER_SOURCE_PATTERNS =
 
 USE_MDFILE_AS_MAINPAGE = @rootDir@/README.md
 
+# If the IMPLICIT_DIR_DOCS tag is set to YES, any README.md file found in
+# sub-directories of the project's root, is used as the documentation for that
+# sub-directory, except when the README.md starts with a \dir, \page or
+# \mainpage command. If set to NO, the README.md file needs to start with an
+# explicit \dir command in order to be used as directory documentation.
+
+IMPLICIT_DIR_DOCS      = NO
+
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
 #---------------------------------------------------------------------------
