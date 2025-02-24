@@ -22,7 +22,7 @@ env:
   test_results_location: "${{ github.workspace }}/test-results"
 jobs:
   Linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         include:
