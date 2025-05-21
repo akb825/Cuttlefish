@@ -141,7 +141,7 @@ public:
 			for (unsigned int c = 0; c < C; ++c)
 			{
 				curData[i*C + c] = static_cast<T>(
-					std::round(clamp(scanline[col*4 + c], -1.0f, 1.0f)*maxVal));
+					std::round(clamp(scanline[col*4 + c]*2.0f-1.0f, -1.0f, 1.0f)*maxVal));
 			}
 		}
 	}
