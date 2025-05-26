@@ -223,46 +223,46 @@ jobs:
         include:
         - arch: Win32
           lib_type: Static
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=OFF"
-          shared_crt: ON
           ispc: 0
         - arch: Win32
           lib_type: Shared
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=ON"
-          shared_crt: ON
           ispc: 0
         - arch: Win32
           lib_type: Static
+          gtest_cmake_args: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>"
           cmake_args: "-DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_STATIC_RUNTIME=ON -DCUTTLEFISH_ISPC_PATH=D:/ispc/bin/ispc.exe"
-          shared_crt: OFF
           ispc: 1
           artifact: win32-tool
         - arch: Win32
           lib_type: Shared
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=D:/ispc/bin/ispc.exe"
-          shared_crt: ON
           ispc: 1
           artifact: win32-full
         - arch: x64
           lib_type: Static
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=OFF"
-          shared_crt: ON
           ispc: 0
         - arch: x64
           lib_type: Shared
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=ON"
-          shared_crt: ON
           ispc: 0
         - arch: x64
           lib_type: Static
+          gtest_cmake_args: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>"
           cmake_args: "-DCUTTLEFISH_SHARED=OFF -DCUTTLEFISH_STATIC_RUNTIME=ON -DCUTTLEFISH_ISPC_PATH=D:/ispc/bin/ispc.exe"
-          shared_crt: OFF
           ispc: 1
           artifact: win64-tool
         - arch: x64
           lib_type: Shared
+          gtest_cmake_args: "-Dgtest_force_shared_crt=ON"
           cmake_args: "-DCUTTLEFISH_SHARED=ON -DCUTTLEFISH_ISPC_PATH=D:/ispc/bin/ispc.exe"
-          shared_crt: ON
           ispc: 1
           artifact: win64-full
     steps:
@@ -289,8 +289,7 @@ jobs:
     - name: Build gtest
       run: |-
         cmake .. -DCMAKE_INSTALL_PREFIX=${{ env.dependency_location }} `
-          -Dgtest_force_shared_crt=${{ matrix.shared_crt }} `
-          -A ${{ matrix.arch }} -T v141 -DCMAKE_DEBUG_POSTFIX=d
+          ${{ matrix.gtest_cmake_args }} -A ${{ matrix.arch }} -T v141 -DCMAKE_DEBUG_POSTFIX=d
         cmake --build . --config Debug
         cmake --build . --config Debug --target install
         cmake --build . --config Release
