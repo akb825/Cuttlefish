@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,7 +406,7 @@ void Bc4Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 		for (unsigned int i = 0; i < blockPixels; ++i)
 		{
 			colorBlock[i] =
-				static_cast<std::uint8_t>(std::round(clamp(blockColors[i].r, -1.0f, 1.0f)*0x7F));
+				static_cast<std::int8_t>(std::round(clamp(blockColors[i].r, -1.0f, 1.0f)*0x7F));
 		}
 
 		assert(m_compressonatorOptions);
@@ -459,9 +459,9 @@ void Bc5Converter::compressBlock(void* block, ColorRGBAf* blockColors)
 		for (unsigned int i = 0; i < blockPixels; ++i)
 		{
 			colorBlock[0][i] =
-				static_cast<std::uint8_t>(std::round(clamp(blockColors[i].r, -1.0f, 1.0f)*0x7F));
+				static_cast<std::int8_t>(std::round(clamp(blockColors[i].r, -1.0f, 1.0f)*0x7F));
 			colorBlock[1][i] =
-				static_cast<std::uint8_t>(std::round(clamp(blockColors[i].g, -1.0f, 1.0f)*0x7F));
+				static_cast<std::int8_t>(std::round(clamp(blockColors[i].g, -1.0f, 1.0f)*0x7F));
 		}
 
 		assert(m_compressonatorOptions);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ Image::Format getFormat(FIBITMAP* image)
 		case FIT_RGB16:
 			return Image::Format::RGB16;
 		case FIT_RGBA16:
-			return Image::Format::RGBA16;;
+			return Image::Format::RGBA16;
 		case FIT_RGBF:
 			return Image::Format::RGBF;
 		case FIT_RGBAF:
@@ -188,6 +188,18 @@ bool isGrayscaleFormat(Image::Format format)
 		case Image::Format::Gray16:
 		case Image::Format::Float:
 		case Image::Format::Double:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool isRGB16BPPFormat(Image::Format format)
+{
+	switch (format)
+	{
+		case Image::Format::RGB5:
+		case Image::Format::RGB565:
 			return true;
 		default:
 			return false;
@@ -1176,8 +1188,9 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 				break;
 			case Format::RGBF:
 				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
-				// clamping HDR images.
-				if (!needFloatConvertFallback(srcFormat))
+				// clamping HDR images. FreeImage conversion is also incorrect for 16-BPP RGB
+				// formats.
+				if (!needFloatConvertFallback(srcFormat) && !isRGB16BPPFormat(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(
 						FreeImage_ConvertToRGBF(m_impl->image), m_impl->colorSpace, dstFormat));
@@ -1229,8 +1242,10 @@ Image Image::convert(Format dstFormat, bool convertGrayscale) const
 				break;
 			case Format::Double:
 				// NOTE: Don't use FreeImage conversion for float to float conversion to avoid
-				// clamping HDR images. Also need to use fallback if not converting to grayscale.
-				if ((convertLinearGrayscale || isGrayscaleFormat(srcFormat)) &&
+				// clamping HDR images. Also need to use fallback if not converting to grayscale or
+				// the source is already grayscale, in which case FreeImage doesn't normalize the
+				// values.
+				if (convertLinearGrayscale && !isGrayscaleFormat(srcFormat) &&
 					!needFloatConvertFallback(srcFormat))
 				{
 					image.m_impl.reset(Impl::create(

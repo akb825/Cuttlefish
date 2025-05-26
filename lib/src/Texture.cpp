@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <thread>
 #include <vector>
 #include <sstream>
@@ -767,6 +768,135 @@ Texture::FileType Texture::fileType(const char* fileName)
 		return FileType::PVR;
 
 	return FileType::Auto;
+}
+
+void Texture::adjustImageValueRange(Image& image, Type type, Image::Format origImageFormat)
+{
+	if (!image.isValid())
+		return;
+
+	if (origImageFormat == Image::Format::Invalid)
+		origImageFormat = image.format();
+
+	if (type == Type::SNorm || type == Type::UInt || type == Type::Int)
+	{
+		switch (origImageFormat)
+		{
+			case Image::Format::Gray8:
+			case Image::Format::Gray16:
+			case Image::Format::RGB5:
+			case Image::Format::RGB565:
+			case Image::Format::RGB8:
+			case Image::Format::RGB16:
+			case Image::Format::RGBA8:
+			case Image::Format::RGBA16:
+				// Remap [0, 1] to [-1, 1].
+				unsigned int channelCount;
+				switch (image.format())
+				{
+					case Image::Format::Gray8:
+					case Image::Format::Gray16:
+					case Image::Format::Double:
+						channelCount = 1;
+						image = image.convert(Image::Format::Float);
+						break;
+					case Image::Format::RGB5:
+					case Image::Format::RGB565:
+					case Image::Format::RGB8:
+					case Image::Format::RGB16:
+					case Image::Format::Complex:
+						channelCount = 3;
+						image = image.convert(Image::Format::RGBF);
+						break;
+					case Image::Format::RGBF:
+						channelCount = 3;
+						break;
+					case Image::Format::RGBA8:
+					case Image::Format::RGBA16:
+						channelCount = 4;
+						image = image.convert(Image::Format::RGBAF);
+						break;
+					case Image::Format::RGBAF:
+						channelCount = 4;
+						break;
+					case Image::Format::Float:
+						channelCount = 1;
+						break;
+					default:
+						return;
+				}
+
+				if (type == Type::SNorm)
+				{
+					for (unsigned int y = 0; y < image.height(); ++y)
+					{
+						auto scanline = reinterpret_cast<float*>(image.scanline(y));
+						for (unsigned int x = 0; x < image.width()*channelCount; ++x)
+							scanline[x] = scanline[x]*2.0f - 1.0f;
+					}
+				}
+				else
+				{
+					float multiply[4] = {};
+					float offset[4] = {};
+					switch (origImageFormat)
+					{
+						case Image::Format::Gray8:
+						case Image::Format::RGB8:
+						case Image::Format::RGBA8:
+							for (unsigned int i = 0; i < 4; ++i)
+							{
+								multiply[i] = std::numeric_limits<std::uint8_t>::max();
+								if (type == Type::Int)
+									offset[i] = std::numeric_limits<int8_t>::min();
+							}
+							break;
+						case Image::Format::Gray16:
+						case Image::Format::RGB16:
+						case Image::Format::RGBA16:
+							for (unsigned int i = 0; i < 4; ++i)
+							{
+								multiply[i] = std::numeric_limits<std::uint16_t>::max();
+								if (type == Type::Int)
+									offset[i] = std::numeric_limits<int16_t>::min();
+							}
+							break;
+						case Image::Format::RGB5:
+							multiply[0] = multiply[1] = multiply[2] = float((1 << 5) - 1);
+							if (type == Type::Int)
+								offset[0] = offset[1] = offset[2] = -float(1 << 4);
+							break;
+						case Image::Format::RGB565:
+							multiply[0] = multiply[2] = float((1 << 5) - 1);
+							multiply[1] = float((1 << 6) - 1);
+							if (type == Type::Int)
+							{
+								offset[0] = offset[2] = -float(1 << 4);
+								offset[1] = -float(1 << 5);
+							}
+							break;
+						default:
+							return;
+					}
+
+					for (unsigned int y = 0; y < image.height(); ++y)
+					{
+						auto scanline = reinterpret_cast<float*>(image.scanline(y));
+						for (unsigned int x = 0; x < image.width(); ++x)
+						{
+							for (unsigned int c = 0; c < channelCount; ++c)
+							{
+								scanline[x*channelCount + c] = std::round(
+									scanline[x*channelCount + c]*multiply[c] + offset[c]);
+							}
+						}
+					}
+				}
+				return;
+			default:
+				break;
+		}
+	}
 }
 
 Texture::Texture() = default;

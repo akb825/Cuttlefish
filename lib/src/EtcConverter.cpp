@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,19 @@ void EtcConverter::process(unsigned int x, unsigned int y, ThreadData*)
 		auto scanline = reinterpret_cast<const ColorRGBAf*>(image().scanline(j));
 		for (unsigned int i = x*blockDim; i < limitX; ++i, ++index)
 			pixels[index] = scanline[i];
+	}
+
+	// Signed formats expect inputs in the range [0, 1].
+	if (m_format == Etc::Image::Format::SIGNED_R11 || m_format == Etc::Image::Format::SIGNED_RG11)
+	{
+		for (unsigned int j = 0, index = 0; j < blockDim; ++j)
+		{
+			for (unsigned int i = 0; i < blockDim; ++i, ++index)
+			{
+				pixels[index].r = pixels[index].r*0.5f + 0.5f;
+				pixels[index].g = pixels[index].g*0.5f + 0.5f;
+			}
+		}
 	}
 
 	Etc::Image etcImage(reinterpret_cast<float*>(pixels), limitX - x*blockDim, limitY - y*blockDim,

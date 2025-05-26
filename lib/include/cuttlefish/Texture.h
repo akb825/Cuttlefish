@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,6 +330,23 @@ public:
 	 * @return The file type. If the type couldn't be found, Auto is returned.
 	 */
 	static FileType fileType(const char* fileName);
+
+	/**
+	 * @brief Adjusts the value range for an image.
+	 *
+	 * This will adjust values based on reasonable expectations from the original image format to
+	 * the texture type. The current situations considered are:
+	 * - Input images with a UNorm value range will be converted to [-1, 1] range when used with
+	 *   SNorm type. This will convert to a float type if not already one.
+	 * - Input images with a UNorm value range will be converted to the appropriate integer range.
+	 *
+	 * @param[inout] image The image to adjust the values for.
+	 * @param type The target texture type the image will be converted to.
+	 * @param origImageFormat The original image format before any conversions for internal
+	 *     processing. If set to Invalid, the image's current format will be used.
+	 */
+	static void adjustImageValueRange(Image& image, Type type,
+		Image::Format origImageFormat = Image::Format::Invalid);
 
 	Texture();
 

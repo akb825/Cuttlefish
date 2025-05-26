@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <cuttlefish/Color.h>
 #include <cuttlefish/Image.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 
@@ -94,24 +95,26 @@ static bool epsilonEqual(double expected, double value, double epsilon)
 }
 
 static bool colorsEqual(const ColorRGBAd& expected, const ColorRGBAd& color,
-	const ImageTestInfo& info)
+	double epsilon, unsigned int channels)
 {
-	if (info.channels == 0)
-	{
-		return epsilonEqual(toGrayscale(expected.r, expected.g, expected.b),
-			color.r, info.epsilon);
-	}
+	if (channels == 0)
+		return epsilonEqual(toGrayscale(expected.r, expected.g, expected.b), color.r, epsilon);
 
-	if (!epsilonEqual(expected.r, color.r, info.epsilon))
+	if (!epsilonEqual(expected.r, color.r, epsilon))
 		return false;
-	if (info.channels >= 2 && !epsilonEqual(expected.g, color.g, info.epsilon))
+	if (channels >= 2 && !epsilonEqual(expected.g, color.g, epsilon))
 		return false;
-	if (info.channels >= 3 && !epsilonEqual(expected.b, color.b, info.epsilon))
+	if (channels >= 3 && !epsilonEqual(expected.b, color.b, epsilon))
 		return false;
-	if (info.channels >= 4 && !epsilonEqual(expected.a, color.a, info.epsilon))
+	if (channels >= 4 && !epsilonEqual(expected.a, color.a, epsilon))
 		return false;
 
 	return true;
+}
+
+static bool colorsEqual(const ColorRGBAd& expected, const ColorRGBAd& color, const ImageTestInfo& info)
+{
+	return colorsEqual(expected, color, info.epsilon, info.channels);
 }
 
 static bool shouldDivide(Image::Format format)
@@ -585,6 +588,47 @@ TEST(ImageConvertTest, UInt16Conversions)
 		ColorRGBAd convertedColor;
 		EXPECT_TRUE(otherImage.getPixel(convertedColor, 0, 0));
 		EXPECT_EQ(1, convertedColor.r);
+	}
+}
+
+TEST(ImageConvertTest, ColorConversions)
+{
+	ColorRGBAd color;
+	color.r = 0.25;
+	color.g = 0.5;
+	color.b = 0.75;
+	color.a = 1.0;
+
+	std::vector<ImageTestInfo> formats =
+	{
+		ImageTestInfo(Image::Format::Gray8, 1/255.0, 1),
+		ImageTestInfo(Image::Format::Gray16, 1/255.0, 1),
+		ImageTestInfo(Image::Format::RGB5, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB565, 1/31.0, 3),
+		ImageTestInfo(Image::Format::RGB8, 1/255.0, 3),
+		ImageTestInfo(Image::Format::RGB16, 1/65535.0, 3),
+		ImageTestInfo(Image::Format::RGBF, 1e-6, 3),
+		ImageTestInfo(Image::Format::RGBA8, 1/255.0, 4),
+		ImageTestInfo(Image::Format::RGBA16, 1/65535.0, 4),
+		ImageTestInfo(Image::Format::RGBAF, 1e-6, 4),
+		ImageTestInfo(Image::Format::Float, 1e-6, 1),
+		ImageTestInfo(Image::Format::Double, 1e-15, 1),
+		ImageTestInfo(Image::Format::Complex, 1e-15, 2)
+	};
+
+	for (const ImageTestInfo& srcInfo : formats)
+	{
+		Image srcImage(srcInfo.format, 1, 1);
+		EXPECT_TRUE(srcImage.setPixel(0, 0, color, false));
+		for (const ImageTestInfo& dstInfo : formats)
+		{
+			Image dstImage = srcImage.convert(dstInfo.format, false);
+			ColorRGBAd convertedColor;
+			EXPECT_TRUE(dstImage.getPixel(convertedColor, 0, 0));
+			EXPECT_TRUE(colorsEqual(color, convertedColor,
+				std::max(srcInfo.epsilon, dstInfo.epsilon),
+				std::min(srcInfo.channels, dstInfo.channels)));
+		}
 	}
 }
 

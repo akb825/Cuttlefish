@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,8 @@ static bool loadImages(std::vector<Image>& images, CommandLine& args)
 			return false;
 		}
 
-		if (images[i].format() != Image::Format::RGBAF)
+		Image::Format origImageFormat = images[i].format();
+		if (origImageFormat != Image::Format::RGBAF)
 		{
 			if (args.log == CommandLine::Log::Verbose)
 				std::cout << "converting image '" << args.images[i] << "' to RGBAF" << std::endl;
@@ -163,7 +164,10 @@ static bool loadImages(std::vector<Image>& images, CommandLine& args)
 		if (args.textureColorSpace != args.imageColorSpace)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" << std::endl;
+			{
+				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" <<
+					std::endl;
+			}
 			images[i].changeColorSpace(args.textureColorSpace);
 		}
 
@@ -192,31 +196,46 @@ static bool loadImages(std::vector<Image>& images, CommandLine& args)
 		if (args.grayscale)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "converting image '" << args.images[i] << "' to grayscale" << std::endl;
+			{
+				std::cout << "converting image '" << args.images[i] << "' to grayscale" <<
+					std::endl;
+			}
 			images[i].grayscale();
 		}
 
 		if (args.normalMap)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "generating normalmap for image '" << args.images[i] << "'" << std::endl;
+			{
+				std::cout << "generating normalmap for image '" << args.images[i] << "'" <<
+					std::endl;
+			}
 			Image::NormalOptions options = args.normalOptions;
 			if (isSigned(args.type))
 				options |= Image::NormalOptions::KeepSign;
 			images[i] = images[i].createNormalMap(options, args.normalHeight);
+
+			// Image no longer matches the original input.
+			origImageFormat = images[i].format();
 		}
 
 		if (args.flipX)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "flipping image '" << args.images[i] << "' along the X axis" << std::endl;
+			{
+				std::cout << "flipping image '" << args.images[i] << "' along the X axis" <<
+					std::endl;
+			}
 			images[i].flipHorizontal();
 		}
 
 		if (args.flipY)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "flipping image '" << args.images[i] << "' along the Y axis" << std::endl;
+			{
+				std::cout << "flipping image '" << args.images[i] << "' along the Y axis" <<
+					std::endl;
+			}
 			images[i].flipVertical();
 		}
 
@@ -230,9 +249,14 @@ static bool loadImages(std::vector<Image>& images, CommandLine& args)
 		if (args.preMultiply)
 		{
 			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "pre-multiplying alpha for image '" << args.images[i] << "'" << std::endl;
+			{
+				std::cout << "pre-multiplying alpha for image '" << args.images[i] << "'" <<
+					std::endl;
+			}
 			images[i].preMultiplyAlpha();
 		}
+
+		Texture::adjustImageValueRange(images[i], args.type, origImageFormat);
 	}
 
 	return true;

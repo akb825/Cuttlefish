@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 #include <cuttlefish/Image.h>
 #include <cuttlefish/Texture.h>
 #include <gtest/gtest.h>
+#include <limits>
+#include <tuple>
 #include <vector>
 
 // Handle different versions of gtest.
@@ -47,6 +49,373 @@ class TextureConvertTest : public testing::TestWithParam<TextureConvertTestInfo>
 class TextureConvertSpecialTest : public testing::TestWithParam<TextureConvertTestInfo>
 {
 };
+
+static ColorRGBAd getTestColor(const Image& image, unsigned int x, unsigned int y)
+{
+	ColorRGBAd color;
+	color.r = x / static_cast<double>(image.width() - 1);
+	color.g = y / static_cast<double>(image.height() - 1);
+	color.b = (image.width() - x - 1) / static_cast<double>(image.width() - 1);
+	color.a = (image.height() - y - 1) / static_cast<double>(image.height() - 1);
+	return color;
+}
+
+TEST(TextureTest, AdjustImageValueRangeUNorm)
+{
+	std::vector<std::tuple<Image::Format, Image::Format, double>> formats =
+	{
+		{Image::Format::Gray8, Image::Format::Gray8, 1e-2},
+		{Image::Format::Gray16, Image::Format::Gray16, 1e-4},
+		{Image::Format::Float, Image::Format::Gray8, 1e-6},
+		{Image::Format::Double, Image::Format::Gray16, 1e-6}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		Image::Format origFormat = std::get<1>(formatInfo);
+		double epsilon = std::get<2>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y), false));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::UNorm, origFormat);
+		EXPECT_EQ(format, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.r, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.r, actualColor.b, epsilon);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+
+		Texture::adjustImageValueRange(image, Texture::Type::SNorm, origFormat);
+		EXPECT_EQ(Image::Format::Float, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				expectedColor.r = expectedColor.r*2.0 - 1.0;
+
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.r, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.r, actualColor.b, epsilon);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+	}
+
+	formats =
+	{
+		{Image::Format::Complex, Image::Format::RGB8, 1e-6}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		Image::Format origFormat = std::get<1>(formatInfo);
+		double epsilon = std::get<2>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y), false));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::UNorm, origFormat);
+		EXPECT_EQ(format, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_EQ(0.0, actualColor.b);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+
+		Texture::adjustImageValueRange(image, Texture::Type::SNorm, origFormat);
+		EXPECT_EQ(Image::Format::RGBF, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				expectedColor.r = expectedColor.r*2.0 - 1.0;
+				expectedColor.g = expectedColor.g*2.0 - 1.0;
+
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_EQ(-1.0, actualColor.b);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+	}
+
+	formats =
+	{
+		{Image::Format::RGB5, Image::Format::RGB5, 1e-1},
+		{Image::Format::RGB565, Image::Format::RGB565, 1e-1},
+		{Image::Format::RGB8, Image::Format::RGB8, 1e-2},
+		{Image::Format::RGB16, Image::Format::RGB16, 1e-4},
+		{Image::Format::RGBF, Image::Format::RGB8, 1e-6}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		Image::Format origFormat = std::get<1>(formatInfo);
+		double epsilon = std::get<2>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y)));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::UNorm, origFormat);
+		EXPECT_EQ(format, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.b, actualColor.b, epsilon);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+
+		Texture::adjustImageValueRange(image, Texture::Type::SNorm, origFormat);
+		EXPECT_EQ(Image::Format::RGBF, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				expectedColor.r = expectedColor.r*2.0 - 1.0;
+				expectedColor.g = expectedColor.g*2.0 - 1.0;
+				expectedColor.b = expectedColor.b*2.0 - 1.0;
+
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.b, actualColor.b, epsilon);
+				EXPECT_EQ(1.0, actualColor.a);
+			}
+		}
+	}
+
+	formats =
+	{
+		{Image::Format::RGBA8, Image::Format::RGBA8, 1e-2},
+		{Image::Format::RGBA16, Image::Format::RGBA16, 1e-4},
+		{Image::Format::RGBAF, Image::Format::RGBA8, 1e-6}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		Image::Format origFormat = std::get<1>(formatInfo);
+		double epsilon = std::get<2>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y)));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::UNorm, origFormat);
+		EXPECT_EQ(format, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.b, actualColor.b, epsilon);
+				EXPECT_NEAR(expectedColor.a, actualColor.a, epsilon);
+			}
+		}
+
+		Texture::adjustImageValueRange(image, Texture::Type::SNorm, origFormat);
+		EXPECT_EQ(Image::Format::RGBAF, image.format());
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				expectedColor.r = expectedColor.r*2.0 - 1.0;
+				expectedColor.g = expectedColor.g*2.0 - 1.0;
+				expectedColor.b = expectedColor.b*2.0 - 1.0;
+				expectedColor.a = expectedColor.a*2.0 - 1.0;
+
+				ColorRGBAd actualColor;
+				EXPECT_TRUE(image.getPixel(actualColor, x, y));
+				EXPECT_NEAR(expectedColor.r, actualColor.r, epsilon);
+				EXPECT_NEAR(expectedColor.g, actualColor.g, epsilon);
+				EXPECT_NEAR(expectedColor.b, actualColor.b, epsilon);
+				EXPECT_NEAR(expectedColor.a, actualColor.a, epsilon);
+			}
+		}
+	}
+}
+
+TEST(TextureTest, AdjustImageValueRangeUInt)
+{
+	const double epsilon = 1e-6;
+	std::vector<std::tuple<Image::Format, unsigned int, unsigned int, unsigned int>> formats =
+	{
+		{Image::Format::Gray8, std::numeric_limits<std::uint8_t>::max(), 0, 1},
+		{Image::Format::Gray16, std::numeric_limits<std::uint16_t>::max(), 0, 1},
+		{Image::Format::RGB5, (1 << 5) - 1, 0, 3},
+		{Image::Format::RGB565, (1 << 5) - 1, (1 << 6) - 1, 3},
+		{Image::Format::RGB8, std::numeric_limits<std::uint8_t>::max(), 0, 3},
+		{Image::Format::RGB16, std::numeric_limits<std::uint16_t>::max(), 0, 3},
+		{Image::Format::RGBF, 0, 0, 3},
+		{Image::Format::RGBA8, std::numeric_limits<std::uint8_t>::max(), 0, 4},
+		{Image::Format::RGBA16, std::numeric_limits<std::uint16_t>::max(), 0, 4},
+		{Image::Format::RGBAF, 0, 0, 4},
+		{Image::Format::Float, 0, 0, 1},
+		{Image::Format::Double, 0, 0, 1},
+		{Image::Format::Complex, 0, 0, 2}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		unsigned int maxValue = std::get<1>(formatInfo);
+		unsigned int greenMaxValue = std::get<2>(formatInfo);
+		unsigned int channelCount = std::get<3>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y), false));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::UInt);
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd color;
+				EXPECT_TRUE(image.getPixel(color, x, y));
+
+				auto expectedColorValues = reinterpret_cast<const double*>(&expectedColor);
+				auto colorValues = reinterpret_cast<const double*>(&color);
+				for (unsigned int c = 0; c < channelCount; ++c)
+				{
+					double expectedValue = expectedColorValues[c];
+					if (c == 1 && greenMaxValue > 0)
+						expectedValue = std::round(expectedValue*greenMaxValue);
+					else if (maxValue > 0)
+						expectedValue = std::round(expectedValue*maxValue);
+
+					if (maxValue > 0)
+						EXPECT_DOUBLE_EQ(expectedValue, colorValues[c]);
+					else
+						EXPECT_NEAR(expectedValue, colorValues[c], epsilon);
+				}
+			}
+		}
+	}
+}
+
+TEST(TextureTest, AdjustImageValueRangeInt)
+{
+	const double epsilon = 1e-6;
+	std::vector<std::tuple<Image::Format, unsigned int, unsigned int, unsigned int>> formats =
+	{
+		{Image::Format::Gray8, 8, 0, 1},
+		{Image::Format::Gray16, 16, 0, 1},
+		{Image::Format::RGB5, 5, 0, 3},
+		{Image::Format::RGB565, 5, 6, 3},
+		{Image::Format::RGB8, 8, 0, 3},
+		{Image::Format::RGB16, 16, 0, 3},
+		{Image::Format::RGBF, 0, 0, 3},
+		{Image::Format::RGBA8, 8, 0, 4},
+		{Image::Format::RGBA16, 16, 0, 4},
+		{Image::Format::RGBAF, 0, 0, 4},
+		{Image::Format::Float, 0, 0, 1},
+		{Image::Format::Double, 0, 0, 1},
+		{Image::Format::Complex, 0, 0, 2}
+	};
+	for (const auto& formatInfo : formats)
+	{
+		Image::Format format = std::get<0>(formatInfo);
+		unsigned int bitCount = std::get<1>(formatInfo);
+		unsigned int greenBitCount = std::get<2>(formatInfo);
+		unsigned int channelCount = std::get<3>(formatInfo);
+
+		Image image(format, 14, 15);
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+				EXPECT_TRUE(image.setPixel(x, y, getTestColor(image, x, y), false));
+		}
+		Texture::adjustImageValueRange(image, Texture::Type::Int);
+
+		for (unsigned int y = 0; y < image.height(); ++y)
+		{
+			for (unsigned int x = 0; x < image.width(); ++x)
+			{
+				ColorRGBAd expectedColor = getTestColor(image, x, y);
+				ColorRGBAd color;
+				EXPECT_TRUE(image.getPixel(color, x, y));
+
+				auto expectedColorValues = reinterpret_cast<const double*>(&expectedColor);
+				auto colorValues = reinterpret_cast<const double*>(&color);
+				for (unsigned int c = 0; c < channelCount; ++c)
+				{
+					double expectedValue = expectedColorValues[c];
+					unsigned int channelBitCount = bitCount;
+					if (c == 1 && greenBitCount > 0)
+						channelBitCount = greenBitCount;
+
+					if (channelBitCount > 0)
+					{
+						expectedValue = std::round(expectedValue*((1 << channelBitCount) - 1));
+						expectedValue -= 1 << (channelBitCount - 1);
+						EXPECT_DOUBLE_EQ(expectedValue, colorValues[c]);
+					}
+					else
+						EXPECT_NEAR(expectedValue, colorValues[c], epsilon);
+				}
+			}
+		}
+	}
+}
 
 TEST(TextureTest, Create)
 {
