@@ -66,7 +66,7 @@ static bool isSigned(Texture::Type type)
 		case Texture::Type::SNorm:
 		case Texture::Type::Int:
 		case Texture::Type::Float:
-			return false;
+			return true;
 	}
 
 	assert(false);
