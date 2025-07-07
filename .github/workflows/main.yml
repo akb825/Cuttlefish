@@ -217,7 +217,7 @@ jobs:
         name: Mac
         path: "${{ github.workspace }}/build/cuttlefish-mac.tar.gz"
   Windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
     strategy:
       matrix:
         include:
@@ -289,7 +289,7 @@ jobs:
     - name: Build gtest
       run: |-
         cmake .. -DCMAKE_INSTALL_PREFIX=${{ env.dependency_location }} `
-          ${{ matrix.gtest_cmake_args }} -A ${{ matrix.arch }} -T v141 -DCMAKE_DEBUG_POSTFIX=d
+          ${{ matrix.gtest_cmake_args }} -A ${{ matrix.arch }} -T v142 -DCMAKE_DEBUG_POSTFIX=d
         cmake --build . --config Debug
         cmake --build . --config Debug --target install
         cmake --build . --config Release
@@ -299,7 +299,7 @@ jobs:
       run: |-
         mkdir build
         cd build
-        cmake ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} -A ${{ matrix.arch }} -T v141 `
+        cmake ${{ env.cmake_common_args }} ${{ matrix.cmake_args }} -A ${{ matrix.arch }} -T v142 `
           ${{ github.workspace }}
       working-directory: "${{ github.workspace }}"
     - name: Build debug
