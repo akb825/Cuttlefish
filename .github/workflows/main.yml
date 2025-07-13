@@ -81,7 +81,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         check_name: Tests (Linux ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Debug)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Clear test results
       run: rm *.xml
       working-directory: "${{ env.test_results_location }}"
@@ -102,7 +102,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         check_name: Tests (Linux ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Release)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Package artifact
       if: matrix.artifact == 1
       run: |-
@@ -184,7 +184,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Debug)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Clear test results
       run: rm *.xml
       working-directory: "${{ env.test_results_location }}"
@@ -200,7 +200,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action/macos@v2
       with:
         check_name: Tests (Mac ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Release)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Fixup install path
       run: cmake -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON ${{ github.workspace }}
       working-directory: "${{ github.workspace }}/build"
@@ -315,7 +315,7 @@ jobs:
       with:
         check_name: >-
           Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Debug)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Clear test results
       run: rm *.xml
       shell: bash
@@ -333,7 +333,7 @@ jobs:
       with:
         check_name: >-
           Tests (Windows ${{ matrix.arch }} ${{ matrix.lib_type }} ISPC:${{ matrix.ispc }} Release)
-        junit_files: "${{ env.test_results_location }}/*.xml"
+        files: "${{ env.test_results_location }}/*.xml"
     - name: Package artifact
       if: endsWith(matrix.artifact, '-full')
       # Full package with debug and release.
