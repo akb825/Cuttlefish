@@ -20,7 +20,6 @@
 #include <cuttlefish/Color.h>
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <cstring>
 #include <list>
 #include <mutex>

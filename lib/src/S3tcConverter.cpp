@@ -323,8 +323,8 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 		else
 			weights[2] = 0.0f;
 
-		squish::Compress(reinterpret_cast<std::uint8_t*>(blockColors), block, m_squishFlags,
-			weights);
+		squish::Compress(
+			reinterpret_cast<std::uint8_t*>(blockColors), block, m_squishFlags, weights);
 	}
 	else
 	{
