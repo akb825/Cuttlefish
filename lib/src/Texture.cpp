@@ -100,6 +100,132 @@ inline std::uint32_t clz(std::uint32_t x)
 #endif
 }
 
+void generateMips3d(std::vector<Image>& outMipImages, const std::vector<Image>& prevLevelImages,
+	unsigned int width, unsigned int height, unsigned int depth, ColorSpace colorSpace,
+	Image::ResizeFilter filter)
+{
+	outMipImages.resize(depth);
+	double invScale = static_cast<double>(prevLevelImages.size())/
+		static_cast<double>(outMipImages.size());
+	double offset = std::max(invScale, 1.0);
+	double filterScale = 1.0/offset;
+	if (filter == Image::ResizeFilter::Box)
+	{
+		for (unsigned int d = 0; d < depth; ++d)
+		{
+			outMipImages[d].initialize(Image::Format::RGBAF, width, height, colorSpace);
+			double center = (d + 0.5)*invScale;
+			unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
+			unsigned int end = std::min(
+				static_cast<unsigned int>(center + offset + 0.5),
+				static_cast<unsigned int>(prevLevelImages.size()));
+			for (unsigned int y = 0; y < height; ++y)
+			{
+				ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(outMipImages[d].scanline(y));
+				for (unsigned int x = 0; x < width; ++x)
+				{
+					ColorRGBAd color = {0, 0, 0, 0};
+					unsigned int totalScale = 0;
+					for (unsigned int i = start; i < end; ++i)
+					{
+						if (std::abs(i + 0.5 - center)*filterScale > 0.5)
+							continue;
+
+						auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
+							prevLevelImages[i].scanline(y));
+
+						// Average in linear space.
+						ColorRGBAf srcColor = srcScanline[x];
+						if (colorSpace == ColorSpace::sRGB)
+						{
+							srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
+							srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
+							srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
+						}
+
+						color.r += srcColor.r;
+						color.g += srcColor.g;
+						color.b += srcColor.b;
+						color.a += srcColor.a;
+						++totalScale;
+					}
+
+					scanline[x].r = static_cast<float>(color.r/totalScale);
+					scanline[x].g = static_cast<float>(color.g/totalScale);
+					scanline[x].b = static_cast<float>(color.b/totalScale);
+					scanline[x].a = static_cast<float>(color.a/totalScale);
+
+					if (colorSpace == ColorSpace::sRGB)
+					{
+						scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
+						scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
+						scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for (unsigned int d = 0; d < depth; ++d)
+		{
+			outMipImages[d].initialize(Image::Format::RGBAF, width, height, colorSpace);
+			double center = (d + 0.5)*invScale;
+			unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
+			unsigned int end = std::min(
+				static_cast<unsigned int>(center + offset + 0.5),
+				static_cast<unsigned int>(prevLevelImages.size()));
+			for (unsigned int y = 0; y < height; ++y)
+			{
+				ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
+					outMipImages[d].scanline(y));
+				for (unsigned int x = 0; x < width; ++x)
+				{
+					ColorRGBAd color = {0, 0, 0, 0};
+					double totalScale = 0;
+					for (unsigned int i = start; i < end; ++i)
+					{
+						double scale = std::max(
+							1.0 - std::abs(i + 0.5 - center)*filterScale, 0.0);
+						if (scale == 0.0)
+							continue;
+
+						auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
+							prevLevelImages[i].scanline(y));
+
+						// Average in linear space.
+						ColorRGBAf srcColor = srcScanline[x];
+						if (colorSpace == ColorSpace::sRGB)
+						{
+							srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
+							srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
+							srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
+						}
+
+						color.r += srcColor.r*scale;
+						color.g += srcColor.g*scale;
+						color.b += srcColor.b*scale;
+						color.a += srcColor.a*scale;
+						totalScale += scale;
+					}
+
+					scanline[x].r = static_cast<float>(color.r/totalScale);
+					scanline[x].g = static_cast<float>(color.g/totalScale);
+					scanline[x].b = static_cast<float>(color.b/totalScale);
+					scanline[x].a = static_cast<float>(color.a/totalScale);
+
+					if (colorSpace == ColorSpace::sRGB)
+					{
+						scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
+						scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
+						scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
+					}
+				}
+			}
+		}
+	}
+}
+
 } // namespace
 
 using FaceImageList = std::vector<Image>;
@@ -1131,7 +1257,8 @@ bool Texture::setImage(Image&& image, CubeFace face, unsigned int mipLevel, unsi
 	return m_impl->images[mipLevel][depth][static_cast<unsigned int>(face)].isValid();
 }
 
-bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels)
+bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels,
+	const CustomMipImages& customMipImages)
 {
 	if (!m_impl)
 		return false;
@@ -1145,168 +1272,173 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 		}
 	}
 
-	mipLevels = std::min(std::max(mipLevels, 1U), maxMipmapLevels(dimension(), width(), height(),
-		depth()));
+	for (const std::pair<const ImageIndex, CustomMipImage>& customMip : customMipImages)
+	{
+		if (!customMip.second.image)
+			return false;
+	}
+
+	mipLevels = std::min(std::max(mipLevels, 1U),
+		maxMipmapLevels(dimension(), width(), height(), depth()));
 	m_impl->mipLevels = mipLevels;
 	m_impl->images.resize(mipLevels);
 
 	if (m_impl->dimension == Dimension::Dim3D)
 	{
 		// Mipmap along X, Y, and Z.
-		std::vector<Image> tempImages;
-		for (unsigned int mip = 1; mip < m_impl->images.size(); ++mip)
+		std::vector<Image> inputImages;
+		std::vector<Image> mipImages;
+		for (unsigned int mip = 1; mip < mipLevels; ++mip)
 		{
-			// Resize the images from the previous mip level so they can be interpolated later.
-			tempImages.resize(m_impl->images[mip - 1].size());
-			for (unsigned int d = 0; d < tempImages.size(); ++d)
+			unsigned int mipWidth = width(mip);
+			unsigned int mipHeight = height(mip);
+			unsigned int mipDepth = depth(mip);
+
+			// Check for custom mips. If one depth is provided, all must be, and have consistent
+			// replacement between them.
+			bool customMips = false;
+			MipReplacement replacement = MipReplacement::Once;
+			for (unsigned int d = 0; d < mipDepth; ++d)
 			{
-				tempImages[d] = m_impl->images[mip - 1][d][0].resize(width(mip), height(mip),
-					filter);
+				auto foundCustomMip = customMipImages.find(ImageIndex(mip, d));
+				if (foundCustomMip == customMipImages.end())
+				{
+					if (customMips)
+						return false;
+				}
+				else if (d == 0)
+				{
+					customMips = true;
+					replacement = foundCustomMip->second.replacement;
+				}
+				else if (!customMips || replacement != foundCustomMip->second.replacement)
+					return false;
 			}
 
-			// Interpolate between the depth levels.
-			DepthImageList& depthImages = m_impl->images[mip];
-			depthImages.resize(depth(mip));
-			double invScale = static_cast<double>(tempImages.size())/
-				static_cast<double>(depthImages.size());
-			double offset = std::max(invScale, 1.0);
-			double filterScale = 1.0/offset;
-			unsigned int w = width(mip);
-			unsigned int h = height(mip);
-			if (filter == Image::ResizeFilter::Box)
+			// Generated mips, either when no replacement is used or to resume previous state when
+			// replacement is set to once.
+			bool restoreState = customMips && replacement == MipReplacement::Once &&
+				mip < mipLevels - 1;
+			if (!customMips || restoreState)
 			{
-				for (unsigned int d = 0; d < depthImages.size(); ++d)
+				// Resize the images from the previous mip level so they can be interpolated later.
+				// If inputImages is already provided, simply resize as it indicates that the
+				// previous mip level was custom with a replacement of once.
+				if (inputImages.empty())
 				{
-					depthImages[d].resize(1);
-					depthImages[d][0].initialize(Image::Format::RGBAF, w, h, m_impl->colorSpace);
-					double center = (d + 0.5)*invScale;
-					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
-					unsigned int end = std::min(
-						static_cast<unsigned int>(center + offset + 0.5),
-						static_cast<unsigned int>(tempImages.size()));
-					for (unsigned int y = 0; y < h; ++y)
+					inputImages.resize(m_impl->images[mip - 1].size());
+					for (unsigned int d = 0; d < inputImages.size(); ++d)
 					{
-						ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
-							depthImages[d][0].scanline(y));
-						for (unsigned int x = 0; x < w; ++x)
-						{
-							ColorRGBAd color = {0, 0, 0, 0};
-							unsigned int totalScale = 0;
-							for (unsigned int i = start; i < end; ++i)
-							{
-								if (std::abs(i + 0.5 - center)*filterScale > 0.5)
-									continue;
-
-								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
-									tempImages[i].scanline(y));
-
-								// Average in linear space.
-								ColorRGBAf srcColor = srcScanline[x];
-								if (m_impl->colorSpace == ColorSpace::sRGB)
-								{
-									srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
-									srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
-									srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
-								}
-
-								color.r += srcColor.r;
-								color.g += srcColor.g;
-								color.b += srcColor.b;
-								color.a += srcColor.a;
-								++totalScale;
-							}
-
-							scanline[x].r = static_cast<float>(color.r/totalScale);
-							scanline[x].g = static_cast<float>(color.g/totalScale);
-							scanline[x].b = static_cast<float>(color.b/totalScale);
-							scanline[x].a = static_cast<float>(color.a/totalScale);
-
-							if (m_impl->colorSpace == ColorSpace::sRGB)
-							{
-								scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
-								scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
-								scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
-							}
-						}
+						inputImages[d] = m_impl->images[mip - 1][d][0].resize(
+							mipWidth, mipHeight, filter);
 					}
 				}
+				else
+				{
+					for (Image& image : inputImages)
+						image = image.resize(mipWidth, mipHeight, filter);
+				}
+
+				generateMips3d(mipImages, inputImages, mipWidth, mipHeight, mipDepth,
+					m_impl->colorSpace, filter);
+			}
+
+			// Set up inputImages based on whether we want to restore state for the next mip.
+			if (restoreState)
+			{
+				if (customMips)
+					inputImages = std::move(mipImages); // Only used to restore state.
+				else
+					inputImages = mipImages;
 			}
 			else
+				inputImages.clear();
+
+			if (customMips)
 			{
-				for (unsigned int d = 0; d < depthImages.size(); ++d)
+				mipImages.resize(mipDepth);
+				for (unsigned int d = 0; d < mipDepth; ++d)
 				{
-					depthImages[d].resize(1);
-					depthImages[d][0].initialize(Image::Format::RGBAF, w, h, m_impl->colorSpace);
-					double center = (d + 0.5)*invScale;
-					unsigned int start = std::max(static_cast<int>(center - offset + 0.5), 0);
-					unsigned int end = std::min(
-						static_cast<unsigned int>(center + offset + 0.5),
-						static_cast<unsigned int>(tempImages.size()));
-					for (unsigned int y = 0; y < h; ++y)
-					{
-						ColorRGBAf* scanline = reinterpret_cast<ColorRGBAf*>(
-							depthImages[d][0].scanline(y));
-						for (unsigned int x = 0; x < w; ++x)
-						{
-							ColorRGBAd color = {0, 0, 0, 0};
-							double totalScale = 0;
-							for (unsigned int i = start; i < end; ++i)
-							{
-								double scale = std::max(
-									1.0 - std::abs(i + 0.5 - center)*filterScale, 0.0);
-								if (scale == 0.0)
-									continue;
-
-								auto srcScanline = reinterpret_cast<const ColorRGBAf*>(
-									tempImages[i].scanline(y));
-
-								// Average in linear space.
-								ColorRGBAf srcColor = srcScanline[x];
-								if (m_impl->colorSpace == ColorSpace::sRGB)
-								{
-									srcColor.r = static_cast<float>(sRGBToLinear(srcColor.r));
-									srcColor.g = static_cast<float>(sRGBToLinear(srcColor.g));
-									srcColor.b = static_cast<float>(sRGBToLinear(srcColor.b));
-								}
-
-								color.r += srcColor.r*scale;
-								color.g += srcColor.g*scale;
-								color.b += srcColor.b*scale;
-								color.a += srcColor.a*scale;
-								totalScale += scale;
-							}
-
-							scanline[x].r = static_cast<float>(color.r/totalScale);
-							scanline[x].g = static_cast<float>(color.g/totalScale);
-							scanline[x].b = static_cast<float>(color.b/totalScale);
-							scanline[x].a = static_cast<float>(color.a/totalScale);
-
-							if (m_impl->colorSpace == ColorSpace::sRGB)
-							{
-								scanline[x].r = static_cast<float>(linearToSRGB(scanline[x].r));
-								scanline[x].g = static_cast<float>(linearToSRGB(scanline[x].g));
-								scanline[x].b = static_cast<float>(linearToSRGB(scanline[x].b));
-							}
-						}
-					}
+					auto foundCustomMip = customMipImages.find(ImageIndex(mip, d));
+					assert(foundCustomMip != customMipImages.end());
+					mipImages[d] =
+						foundCustomMip->second.image->resize(mipWidth, mipHeight, filter);
 				}
+			}
+
+			// Move the results into the texture.
+			DepthImageList& depthImages = m_impl->images[mip];
+			depthImages.resize(mipDepth);
+			for (unsigned int d = 0; d < mipDepth; ++d)
+			{
+				depthImages[d].resize(1);
+				depthImages[d][0] = std::move(mipImages[d]);
 			}
 		}
 	}
 	else
 	{
-		for (unsigned int mip = 1; mip < m_impl->images.size(); ++mip)
+		// Set up the storage first.
+		unsigned int depth = std::max(m_impl->depth, 1U);
+		for (unsigned int mip = 1; mip < mipLevels; ++mip)
 		{
 			DepthImageList& depthImages = m_impl->images[mip];
-			depthImages.resize(depth(mip));
-			for (unsigned int d = 0; d < depthImages.size(); ++d)
+			depthImages.resize(depth);
+			for (unsigned int d = 0; d < depth; ++d)
 			{
 				FaceImageList& faceImages = depthImages[d];
 				faceImages.resize(m_impl->faces);
-				for (unsigned int f = 0; f < faceImages.size(); ++f)
+			}
+		}
+
+		// Then process mip by mip to make it easier to manage custom replacements.
+		Image prevImage;
+		for (unsigned int d = 0; d < depth; ++d)
+		{
+			for (unsigned int f = 0; f < m_impl->faces; ++f)
+			{
+				for (unsigned int mip = 1; mip < mipLevels; ++mip)
 				{
-					m_impl->images[mip][d][f] =
-						m_impl->images[mip - 1][d][f].resize(width(mip), height(mip), filter);
+					unsigned int mipWidth = width(mip);
+					unsigned int mipHeight = height(mip);
+					auto foundCustomMip = customMipImages.find(
+						ImageIndex(static_cast<CubeFace>(f), mip, d));
+
+					// Generated mip, either when no replacement is used or to resume previous state
+					// when replacement is set to once.
+					Image curMip;
+					bool customMip = foundCustomMip != customMipImages.end();
+					bool restoreState = customMip &&
+						foundCustomMip->second.replacement == MipReplacement::Once;
+					if (!customMip || restoreState)
+					{
+						if (prevImage)
+							curMip = prevImage.resize(mipWidth, mipHeight, filter);
+						else
+						{
+							curMip = m_impl->images[mip - 1][d][f].resize(
+								mipWidth, mipHeight, filter);
+						}
+					}
+
+					// Set up prevImage based on whether we want to restore state for the next mip.
+					if (restoreState)
+					{
+						if (customMip)
+							prevImage = std::move(curMip); // Only used to restore state.
+						else
+							prevImage = curMip;
+					}
+					else
+						prevImage = Image();
+
+					if (customMip)
+					{
+						m_impl->images[mip][d][f] = foundCustomMip->second.image->resize(
+							mipWidth, mipHeight, filter);
+					}
+					else
+						m_impl->images[mip][d][f] = std::move(curMip);
 				}
 			}
 		}

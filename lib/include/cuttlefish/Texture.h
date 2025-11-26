@@ -27,6 +27,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 namespace cuttlefish
@@ -166,6 +167,15 @@ public:
 	};
 
 	/**
+	 * @brief Enum to determine how to continue with a custom mip image.
+	 */
+	enum class MipReplacement
+	{
+		Once,    ///< Resume with the previous image when going down the mip chain.
+		Continue ///< Continue with the new image when going down the mip chain.
+	};
+
+	/**
 	 * @brief Enum for the compression quality.
 	 */
 	enum class Quality
@@ -225,6 +235,122 @@ public:
 		bool b; ///< True if the blue channel is enabled.
 		bool a; ///< True if the alpha channel is enabled.
 	};
+
+	/**
+	 * @brief Structure to index to a specific image within a texture.
+	 */
+	struct ImageIndex
+	{
+		/**
+		 * @brief Initializes the image index for a cube-map texture.
+		 * @param inCubeFace The cube face for the image.
+		 * @param inMipLevel The mip level for the image.
+		 * @param inDepth The depth within a texture array or 3D texture for the image.
+		 */
+		explicit ImageIndex(
+			CubeFace inCubeFace, unsigned int inMipLevel = 0, unsigned int inDepth = 0)
+			: cubeFace(inCubeFace), mipLevel(inMipLevel), depth(inDepth)
+		{
+		}
+
+		/**
+		 * @brief Initializes the image index for a non-cube-map texture.
+		 * @param inMipLevel The mip level for the image.
+		 * @param inDepth The depth within a texture array or 3D texture for the image.
+		 */
+		explicit ImageIndex(unsigned int inMipLevel = 0, unsigned int inDepth = 0)
+			: cubeFace(CubeFace::PosX), mipLevel(inMipLevel), depth(inDepth)
+		{
+		}
+
+		/**
+		 * @brief Checks if this image index is equal to another.
+		 * @param other The other image index to compare.
+		 * @return Whether this is equal to other.
+		 */
+		bool operator==(const ImageIndex& other) const
+		{
+			return cubeFace == other.cubeFace && mipLevel == other.mipLevel && depth == other.depth;
+		}
+
+		/**
+		 * @brief Checks if this image index is not equal to another.
+		 * @param other The other image index to compare.
+		 * @return Whether this is not equal to other.
+		 */
+		bool operator!=(const ImageIndex& other) const
+		{
+			return !(*this == other);
+		}
+
+		/**
+		 * @brief The cube face for the image.
+		 */
+		CubeFace cubeFace;
+
+		/**
+		 * @brief The mip level for the image.
+		 */
+		unsigned int mipLevel;
+
+		/**
+		 * @brief The depth within a texture array or 3D texture for the image.
+		 */
+		unsigned int depth;
+	};
+
+	/**
+	 * @brief Wrapper to hash an ImageIndex.
+	 */
+	struct ImageIndexHash
+	{
+		/**
+		 * @brief Computes the hash for an ImageIndex.
+		 * @param value The value to hash.
+		 * @return The hash for the ImageIndex.
+		 */
+		std::size_t operator()(const ImageIndex& value) const
+		{
+			const std::size_t combineFactor = 0x9e3779b9;
+			std::hash<unsigned int> hasher;
+			size_t curHash = hasher(static_cast<unsigned int>(value.cubeFace));
+			curHash ^= hasher(value.mipLevel) + combineFactor + (curHash << 6) + (curHash >> 2);
+			curHash ^= hasher(value.depth) + combineFactor + (curHash << 6) + (curHash >> 2);
+			return curHash;
+		}
+	};
+
+	/**
+	 * @brief Structure for a custom image to inject when generating mipmaps.
+	 */
+	struct CustomMipImage
+	{
+		/**
+		 * @brief Constructs the mip image.
+		 * @param inImage The image to replace with.
+		 * @param inReplacement How to replace the image further down the mip chain.
+		 */
+		CustomMipImage(const Image& inImage, MipReplacement inReplacement)
+			: image(&inImage), replacement(inReplacement)
+		{
+		}
+
+		/**
+		 * @brief A pointer to the image to replace with.
+		 */
+		const Image* image;
+
+		/**
+		 * @brief How to replace the image further down the mip chain.
+		 */
+		MipReplacement replacement;
+	};
+
+	/**
+	 * @brief Mapping from an index of a specific mip image to a custom image to replace during mip
+	 * generation.
+	 */
+	using CustomMipImages = std::unordered_map<ImageIndex, CustomMipImage, ImageIndexHash>;
 
 	/**
 	 * @brief Constant for all mip livels.
@@ -504,8 +630,8 @@ public:
 	 * @return False if the parameters are invalid, the image is an incorrect size, or the texture
 	 *     isn't a cube map and face isn't PosX.
 	 */
-	bool setImage(const Image& image, CubeFace face, unsigned int mipLevel = 0,
-		unsigned int depth = 0);
+	bool setImage(
+		const Image& image, CubeFace face, unsigned int mipLevel = 0, unsigned int depth = 0);
 
 	/**
 	 * @brief Sets the image for a portion of a cube map texture.
@@ -525,12 +651,21 @@ public:
 	 * All of the images fro the first mip level must be set beforehand. All other existing levels
 	 * will be ignored.
 	 *
+	 * To customize images used for specific mip levels, a mapping from image index to the custom
+	 * image may be provided via customMipImages. Any images will be resized to the appropriate
+	 * dimensions, and may be set to either use for that one mip image or to continue using for
+	 * following images in the mip chain.
+	 *
+	 * @remark When using custom mip images for 3D textures, when providing custom image for a given
+	 * mip level all depth images must be provided, and they must all use the same replacement value.
+	 *
 	 * @param filter The filter to use for resizing.
 	 * @param mipLevels The number of mipmap levels to generate.
+	 * @param customMipImages Custom images to use for individual mip levels.
 	 * @return False if the texture isn't valid.
 	 */
 	bool generateMipmaps(Image::ResizeFilter filter = Image::ResizeFilter::CatmullRom,
-		unsigned int mipLevels = allMipLevels);
+		unsigned int mipLevels = allMipLevels, const CustomMipImages& customMipImages = {});
 
 	/**
 	 * @brief Returns whether or not all images are present for each mip level, depth level, and

@@ -538,6 +538,83 @@ TEST(TextureTest, GenerateMipmaps)
 	EXPECT_EQ(1U, texture.getImage(Texture::CubeFace::PosX, 3, 1).height());
 }
 
+TEST(TextureTest, GenerateMipmapsCustomMips)
+{
+	unsigned int size = 32;
+	Texture texture(Texture::Dimension::Dim2D, size, size);
+
+	Image redImage(Image::Format::RGBAF, size, size);
+	Image greenImage(Image::Format::RGBAF, size, size);
+	Image blueImage(Image::Format::RGBAF, size, size);
+	for (unsigned int y = 0; y < size; ++y)
+	{
+		for (unsigned int x = 0; x < size; ++x)
+		{
+			EXPECT_TRUE(redImage.setPixel(x, y, ColorRGBAd(1.0, 0.0, 0.0, 1.0)));
+			EXPECT_TRUE(greenImage.setPixel(x, y, ColorRGBAd(0.0, 1.0, 0.0, 1.0)));
+			EXPECT_TRUE(blueImage.setPixel(x, y, ColorRGBAd(0.0, 0.0, 1.0, 1.0)));
+		}
+	}
+	EXPECT_TRUE(texture.setImage(redImage));
+
+	Texture::CustomMipImages mipImages =
+	{
+		{Texture::ImageIndex(1),
+			Texture::CustomMipImage(greenImage, Texture::MipReplacement::Continue)},
+		{Texture::ImageIndex(2),
+			Texture::CustomMipImage(blueImage, Texture::MipReplacement::Once)},
+		{Texture::ImageIndex(3),
+			Texture::CustomMipImage(redImage, Texture::MipReplacement::Once)},
+	};
+
+	EXPECT_TRUE(texture.generateMipmaps(
+		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));
+	EXPECT_TRUE(texture.imagesComplete());
+	ASSERT_EQ(6U, texture.mipLevelCount());
+
+	ColorRGBAd color;
+	EXPECT_EQ(size/2, texture.getImage(1).width());
+	EXPECT_EQ(size/2, texture.getImage(1).height());
+	ASSERT_TRUE(texture.getImage(1).getPixel(color, 0, 0));
+	EXPECT_EQ(0, color.r);
+	EXPECT_EQ(1, color.g);
+	EXPECT_EQ(0, color.b);
+
+	EXPECT_EQ(size/4, texture.getImage(2).width());
+	EXPECT_EQ(size/4, texture.getImage(2).height());
+	ASSERT_TRUE(texture.getImage(2).getPixel(color, 0, 0));
+	EXPECT_EQ(0, color.r);
+	EXPECT_EQ(0, color.g);
+	EXPECT_EQ(1, color.b);
+
+	EXPECT_EQ(size/8, texture.getImage(3).width());
+	EXPECT_EQ(size/8, texture.getImage(3).height());
+	ASSERT_TRUE(texture.getImage(3).getPixel(color, 0, 0));
+	EXPECT_EQ(1, color.r);
+	EXPECT_EQ(0, color.g);
+	EXPECT_EQ(0, color.b);
+
+	EXPECT_EQ(size/16, texture.getImage(4).width());
+	EXPECT_EQ(size/16, texture.getImage(4).height());
+	ASSERT_TRUE(texture.getImage(4).getPixel(color, 0, 0));
+	EXPECT_EQ(0, color.r);
+	EXPECT_EQ(1, color.g);
+	EXPECT_EQ(0, color.b);
+
+	EXPECT_EQ(size/32, texture.getImage(5).width());
+	EXPECT_EQ(size/32, texture.getImage(5).height());
+	ASSERT_TRUE(texture.getImage(5).getPixel(color, 0, 0));
+	EXPECT_EQ(0, color.r);
+	EXPECT_EQ(1, color.g);
+	EXPECT_EQ(0, color.b);
+
+	auto foundMipImage = mipImages.find(Texture::ImageIndex(1));
+	ASSERT_NE(mipImages.end(), foundMipImage);
+	foundMipImage->second.image = nullptr;
+	EXPECT_FALSE(texture.generateMipmaps(
+		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));
+}
+
 TEST(TextureTest, Generate3DMipmaps)
 {
 	Texture texture(Texture::Dimension::Dim3D, 15, 10, 5);
@@ -570,6 +647,130 @@ TEST(TextureTest, Generate3DMipmaps)
 	EXPECT_TRUE(texture.getImage(2, 0).isValid());
 	EXPECT_FALSE(texture.getImage(3, 1).isValid());
 	EXPECT_TRUE(texture.getImage(3, 0).isValid());
+}
+
+TEST(TextureTest, Generate3DMipmapsCustomMips)
+{
+	unsigned int size = 32;
+	Texture texture(Texture::Dimension::Dim3D, size, size, size);
+
+	Image redImage(Image::Format::RGBAF, size, size);
+	Image greenImage(Image::Format::RGBAF, size, size);
+	Image blueImage(Image::Format::RGBAF, size, size);
+	for (unsigned int y = 0; y < size; ++y)
+	{
+		for (unsigned int x = 0; x < size; ++x)
+		{
+			EXPECT_TRUE(redImage.setPixel(x, y, ColorRGBAd(1.0, 0.0, 0.0, 1.0)));
+			EXPECT_TRUE(greenImage.setPixel(x, y, ColorRGBAd(0.0, 1.0, 0.0, 1.0)));
+			EXPECT_TRUE(blueImage.setPixel(x, y, ColorRGBAd(0.0, 0.0, 1.0, 1.0)));
+		}
+	}
+
+	for (unsigned int d = 0; d < size; ++d)
+		EXPECT_TRUE(texture.setImage(redImage, 0, d));
+
+	Texture::CustomMipImages mipImages =
+	{
+		{Texture::ImageIndex(1),
+			Texture::CustomMipImage(greenImage, Texture::MipReplacement::Continue)},
+		{Texture::ImageIndex(2),
+			Texture::CustomMipImage(blueImage, Texture::MipReplacement::Once)},
+		{Texture::ImageIndex(3),
+			Texture::CustomMipImage(redImage, Texture::MipReplacement::Once)},
+	};
+
+	EXPECT_FALSE(texture.generateMipmaps(
+		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));
+
+	for (unsigned int d = 1; d < size/2; ++d)
+	{
+		mipImages.emplace(Texture::ImageIndex(1, d),
+			Texture::CustomMipImage(greenImage, Texture::MipReplacement::Once));
+	}
+
+	for (unsigned int d = 1; d < size/4; ++d)
+	{
+		mipImages.emplace(Texture::ImageIndex(2, d),
+			Texture::CustomMipImage(blueImage, Texture::MipReplacement::Once));
+	}
+
+	for (unsigned int d = 1; d < size/8; ++d)
+	{
+		mipImages.emplace(Texture::ImageIndex(3, d),
+			Texture::CustomMipImage(redImage, Texture::MipReplacement::Once));
+	}
+
+	EXPECT_FALSE(texture.generateMipmaps(
+		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));
+
+	for (unsigned int d = 1; d < size/2; ++d)
+	{
+		auto foundMipImage = mipImages.find(Texture::ImageIndex(1, d));
+		ASSERT_NE(mipImages.end(), foundMipImage);
+		foundMipImage->second.replacement = Texture::MipReplacement::Continue;
+	}
+
+	EXPECT_TRUE(texture.generateMipmaps(
+		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));
+	EXPECT_TRUE(texture.imagesComplete());
+	ASSERT_EQ(6U, texture.mipLevelCount());
+
+	ColorRGBAd color;
+	for (unsigned int d = 0; d < size/2; ++d)
+	{
+		const Image& image = texture.getImage(1, d);
+		EXPECT_EQ(size/2, image.width());
+		EXPECT_EQ(size/2, image.height());
+		ASSERT_TRUE(image.getPixel(color, 0, 0));
+		EXPECT_EQ(0, color.r);
+		EXPECT_EQ(1, color.g);
+		EXPECT_EQ(0, color.b);
+	}
+
+	for (unsigned int d = 0; d < size/4; ++d)
+	{
+		const Image& image = texture.getImage(2, d);
+		EXPECT_EQ(size/4, image.width());
+		EXPECT_EQ(size/4, image.height());
+		ASSERT_TRUE(image.getPixel(color, 0, 0));
+		EXPECT_EQ(0, color.r);
+		EXPECT_EQ(0, color.g);
+		EXPECT_EQ(1, color.b);
+	}
+
+	for (unsigned int d = 0; d < size/8; ++d)
+	{
+		const Image& image = texture.getImage(3, d);
+		EXPECT_EQ(size/8, image.width());
+		EXPECT_EQ(size/8, image.height());
+		ASSERT_TRUE(image.getPixel(color, 0, 0));
+		EXPECT_EQ(1, color.r);
+		EXPECT_EQ(0, color.g);
+		EXPECT_EQ(0, color.b);
+	}
+
+	for (unsigned int d = 0; d < size/16; ++d)
+	{
+		const Image& image = texture.getImage(4, d);
+		EXPECT_EQ(size/16, image.width());
+		EXPECT_EQ(size/16, image.height());
+		ASSERT_TRUE(image.getPixel(color, 0, 0));
+		EXPECT_EQ(0, color.r);
+		EXPECT_EQ(1, color.g);
+		EXPECT_EQ(0, color.b);
+	}
+
+	for (unsigned int d = 0; d < size/32; ++d)
+	{
+		const Image& image = texture.getImage(5, d);
+		EXPECT_EQ(size/32, image.width());
+		EXPECT_EQ(size/32, image.height());
+		ASSERT_TRUE(image.getPixel(color, 0, 0));
+		EXPECT_EQ(0, color.r);
+		EXPECT_EQ(1, color.g);
+		EXPECT_EQ(0, color.b);
+	}
 }
 
 TEST(TextureTest, ConvertSRGB)
