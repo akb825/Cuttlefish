@@ -1,3 +1,3 @@
-array0.png
-array1.png
-array2.png
+array 0.png
+array 1.png
+array 2.png

@@ -1,10 +1,11 @@
 #!/bin/sh
 
 command=$1
-args=$2
-exitCode=$3
+shift
+exitCode=$1
+shift
 
-"$command" $args
+"$command" "$@"
 realExitCode=$?
 if [ $exitCode != $realExitCode ]; then
 	echo "got exit code $realExitCode; expected $exitCode"
