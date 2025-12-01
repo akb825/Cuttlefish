@@ -255,6 +255,66 @@ struct Texture::Impl
 	MipTextureList textures;
 };
 
+Texture::CustomMipImage::CustomMipImage(const CustomMipImage& other)
+	: replacement(other.replacement)
+{
+	if (other.image == &other.imageStorage)
+	{
+		image = &imageStorage;
+		imageStorage = other.imageStorage;
+	}
+	else
+		image = other.image;
+}
+
+Texture::CustomMipImage::CustomMipImage(CustomMipImage&& other)
+	: replacement(other.replacement)
+{
+	if (other.image == &other.imageStorage)
+	{
+		image = &imageStorage;
+		imageStorage = std::move(other.imageStorage);
+	}
+	else
+		image = other.image;
+}
+
+Texture::CustomMipImage& Texture::CustomMipImage::operator=(const CustomMipImage& other)
+{
+	if (this == &other)
+		return *this;
+
+	if (other.image == &other.imageStorage)
+	{
+		image = &imageStorage;
+		imageStorage = other.imageStorage;
+	}
+	else
+	{
+		image = other.image;
+		imageStorage = Image();
+	}
+	return *this;
+}
+
+Texture::CustomMipImage& Texture::CustomMipImage::operator=(CustomMipImage&& other)
+{
+	if (this == &other)
+		return *this;
+
+	if (other.image == &other.imageStorage)
+	{
+		image = &imageStorage;
+		imageStorage = std::move(other.imageStorage);
+	}
+	else
+	{
+		image = other.image;
+		imageStorage = Image();
+	}
+	return *this;
+}
+
 bool Texture::isFormatValid(Format format, Type type)
 {
 	static const bool valid[formatCount][typeCount] =
@@ -1274,7 +1334,7 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 
 	for (const std::pair<const ImageIndex, CustomMipImage>& customMip : customMipImages)
 	{
-		if (!customMip.second.image)
+		if (!customMip.second.image || !*customMip.second.image)
 			return false;
 	}
 
@@ -1361,8 +1421,11 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 				{
 					auto foundCustomMip = customMipImages.find(ImageIndex(mip, d));
 					assert(foundCustomMip != customMipImages.end());
-					mipImages[d] =
-						foundCustomMip->second.image->resize(mipWidth, mipHeight, filter);
+					Image& thisMipImage = mipImages[d];
+					thisMipImage = foundCustomMip->second.image->resize(
+						mipWidth, mipHeight, filter);
+					if (thisMipImage.format() != Image::Format::RGBAF)
+						thisMipImage = thisMipImage.convert(Image::Format::RGBAF);
 				}
 			}
 
@@ -1432,13 +1495,16 @@ bool Texture::generateMipmaps(Image::ResizeFilter filter, unsigned int mipLevels
 					else
 						prevImage = Image();
 
+					Image& thisMipImage = m_impl->images[mip][d][f];
 					if (customMip)
 					{
-						m_impl->images[mip][d][f] = foundCustomMip->second.image->resize(
+						thisMipImage = foundCustomMip->second.image->resize(
 							mipWidth, mipHeight, filter);
+						if (thisMipImage.format() != Image::Format::RGBAF)
+							thisMipImage = thisMipImage.convert(Image::Format::RGBAF);
 					}
 					else
-						m_impl->images[mip][d][f] = std::move(curMip);
+						thisMipImage = std::move(curMip);
 				}
 			}
 		}

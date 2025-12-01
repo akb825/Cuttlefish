@@ -18,8 +18,10 @@ Options are available for common operations on the images. The following operati
 
 Even when sRGB sampling is supported by the texture format, resizing, conversion to grayscale, and pre-multiplying alpha is always performed in linear space.
 
+Mipmaps may be generated automatically, either for all levels or up to a specific number of levels. For advanced use cases, custom mip images may be overridden for a specific mip level, depth (for 3D and array textures), and cube face. By default, all following mip levels for the same depth and cube face will use the new image, but if desired it can use the image for only the single mip and return to the previous image for the following mip levels.
+
 When converting a texture, the format is provided, which is either the color bits for each channel (e.g. R8G8B8A8, R5G6B5, B10G11R11\_UFloat) or the name of a compressed format. (e.g. BC3, ETC2\_R8G8B8) Some formats allow the type used for the channel to be provided. For example, R16G16B16A16 may be unorm, snorm, uint, int, or float. The final image may be saved as a DDS, KTX, or PVR file.
 
-When running the tool, you may provide the `-j` parameter to use multiple threaded jobs. The number of jobs may be provided, otherwise it will use all available cores. This is recommended when a single instance of `cuttlefish` is run, but shouldn't be used if integrated into a build system that will run multiple instances in parallel. (e.g. `make` with `-j` provided)
+When running the tool, you may provide the `-j`/`--jobs` parameter to use multiple threaded jobs. The number of jobs may be provided, otherwise it will use all available cores. This is recommended when a single instance of `cuttlefish` is run, but shouldn't be used if integrated into a build system that will run multiple instances in parallel. (e.g. `make` with `-j` provided)
 
 For more detailed information about the command line arguments, run `cuttlefish -h`.

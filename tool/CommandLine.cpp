@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@
 
 using namespace cuttlefish;
 
+namespace
+{
+
 #define FORMAT(f) {Texture::Format:: f , #f }
 
-static const std::pair<Texture::Format, const char*> formatMap[] =
+const std::pair<Texture::Format, const char*> formatMap[] =
 {
 	FORMAT(R4G4),
 	FORMAT(R4G4B4A4),
@@ -107,7 +110,7 @@ static const std::pair<Texture::Format, const char*> formatMap[] =
 #endif
 };
 
-static const char* programName(const char* programPath)
+const char* programName(const char* programPath)
 {
 	std::size_t length = std::strlen(programPath);
 	for (std::size_t i = length; i-- > 0;)
@@ -125,7 +128,7 @@ static const char* programName(const char* programPath)
 	return programPath;
 }
 
-static void printHelp(const char* name)
+void printHelp(const char* name)
 {
 	std::cout << "Usage: " << name << " [options]" << std::endl;
 
@@ -193,6 +196,26 @@ static void printHelp(const char* name)
 	          << "                                   filter: the filter to use for resizing:" << std::endl
 	          << "                                     box, linear, cubic, b-spline," << std::endl
 	          << "                                     catmull-rom (default)" << std::endl;
+	std::cout << "  -M, --custom-mip level [depth] [face] [replace] file" << std::endl
+	          << "                                 override a specific mip image:" << std::endl
+	          << "                                   level: the mip level to replace" << std::endl
+	          << "                                   depth: the depth for 3D textures or texture" << std::endl
+	          << "                                     arrays; defaults to 0 to accommodate 1D and" << std::endl
+	          << "                                     2D textures" << std::endl
+	          << "                                   face: cube face as one of +x, -x, +y, -y, +z," << std::endl
+	          << "                                     -z; defaults to +x to accommodate non-" << std::endl
+	          << "                                     cubemaps" << std::endl
+	          << "                                   replace: how to use the image for following" << std::endl
+	          << "                                     mip levels at the same depth and face as"  << std::endl
+	          << "                                     one of:" << std::endl
+			  << "                                       once: switch back to the previous image" << std::endl
+	          << "                                       continue: use for following levels" << std::endl
+	          << "                                     defaults to continue" << std::endl
+	          << "                                   file: the input image for the mip" << std::endl;
+	std::cout << "      --custom-mip-list file     custom mip overrides provided in a file; each" << std::endl
+	          << "                                 line of the file follows the same layout as the" << std::endl
+	          << "                                 arguments to the --custom-mip argument" << std::endl
+	          << "                                 specified above" << std::endl;
 	std::cout << "      --flipx                    flip the images in the X direction" << std::endl;
 	std::cout << "      --flipy                    flip the images in the Y direction" << std::endl;
 	std::cout << "      --rotate degrees           rotate by an angle" << std::endl
@@ -248,63 +271,91 @@ static void printHelp(const char* name)
 			  << "                        doesn't exist" << std::endl;
 }
 
-static bool matches(const char* command, const char* shortCmd, const char* longCmd)
+bool matches(const char* command, const char* shortCmd, const char* longCmd)
 {
 	return std::strcmp(command, shortCmd) == 0 || std::strcmp(command, longCmd) == 0;
 }
 
-static bool readIndex(std::size_t& index, int& i, int argc, const char** argv)
+bool readIndex(std::size_t& index, int& i, int argc, const char** argv)
 {
 	if (i >= argc - 1)
 		return false;
 
 	char* endPtr;
-	unsigned long value = std::strtol(argv[i + 1], &endPtr, 10);
-	if (endPtr != argv[i + 1] + std::strlen(argv[i + 1]))
+	const char* str = argv[i + 1];
+	unsigned long value = std::strtoul(str, &endPtr, 10);
+	if (endPtr != str + std::strlen(str))
 		return false;
 
-	index = value;
 	++i;
+	index = value;
 	return true;
 }
 
-static bool readCubeFace(Texture::CubeFace& face, int& i, int argc, const char** argv)
+bool strToCubeFace(Texture::CubeFace& face, const char* str)
+{
+	if (strcasecmp(str, "+x") == 0)
+		face = Texture::CubeFace::PosX;
+	else if (strcasecmp(str, "-x") == 0)
+		face = Texture::CubeFace::NegX;
+	else if (strcasecmp(str, "+y") == 0)
+		face = Texture::CubeFace::PosY;
+	else if (strcasecmp(str, "-y") == 0)
+		face = Texture::CubeFace::NegY;
+	else if (strcasecmp(str, "+z") == 0)
+		face = Texture::CubeFace::PosZ;
+	else if (strcasecmp(str, "-z") == 0)
+		face = Texture::CubeFace::NegZ;
+	else
+		return false;
+	return true;
+}
+
+bool readCubeFace(Texture::CubeFace& face, int& i, int argc, const char** argv,
+	bool optional = false)
 {
 	if (i >= argc - 1)
 		return false;
 
-	++i;
-	bool success = true;
-	if (strcasecmp(argv[i], "+x") == 0)
-		face = Texture::CubeFace::PosX;
-	else if (strcasecmp(argv[i], "-x") == 0)
-		face = Texture::CubeFace::NegX;
-	else if (strcasecmp(argv[i], "+y") == 0)
-		face = Texture::CubeFace::PosY;
-	else if (strcasecmp(argv[i], "-y") == 0)
-		face = Texture::CubeFace::NegY;
-	else if (strcasecmp(argv[i], "+z") == 0)
-		face = Texture::CubeFace::PosZ;
-	else if (strcasecmp(argv[i], "-z") == 0)
-		face = Texture::CubeFace::NegZ;
-	else
-	{
-		std::cerr << "error: unknown cube face " << argv[i];
-		success = false;
-	}
+	bool success = strToCubeFace(face, argv[i + 1]);
+	if (success)
+		++i;
+	else if (!optional)
+		std::cerr << "error: unknown cube face " << argv[i + 1];
 
-	++i;
 	return success;
 }
 
-static const char* faceName(Texture::CubeFace face)
+bool strToMipReplace(Texture::MipReplacement& replace, const char* str)
+{
+	if (strcasecmp(str, "once") == 0)
+		replace = Texture::MipReplacement::Once;
+	else if (strcasecmp(str, "continue") == 0)
+		replace = Texture::MipReplacement::Continue;
+	else
+		return false;
+	return true;
+}
+
+bool readMipReplace(Texture::MipReplacement& replace, int& i, int argc, const char** argv)
+{
+	if (i >= argc - 1)
+		return false;
+
+	bool success = strToMipReplace(replace, argv[i + 1]);
+	if (success)
+		++i;
+	return success;
+}
+
+const char* faceName(Texture::CubeFace face)
 {
 	static const char* faceNames[] = {"+x", "-x", "+y", "-y", "+z", "-z"};
 	assert(static_cast<unsigned int>(face) < sizeof(faceNames)/sizeof(*faceNames));
 	return faceNames[static_cast<unsigned int>(face)];
 }
 
-static const char* formatName(Texture::Format format)
+const char* formatName(Texture::Format format)
 {
 	for (const auto& formatInfo : formatMap)
 	{
@@ -314,42 +365,69 @@ static const char* formatName(Texture::Format format)
 	return "Unknown";
 }
 
-static const char* typeName(Texture::Type type)
+const char* typeName(Texture::Type type)
 {
 	static const char* typeNames[] = {"unorm", "snorm", "uint", "int", "ufloat", "float"};
 	assert(static_cast<unsigned int>(type) < sizeof(typeNames)/sizeof(*typeNames));
 	return typeNames[static_cast<unsigned int>(type)];
 }
 
-static const char* fileTypeName(Texture::FileType type)
+const char* fileTypeName(Texture::FileType type)
 {
 	static const char* typeNames[] = {"unknown", "DDS", "KTX", "PVR"};
 	assert(static_cast<unsigned int>(type) < sizeof(typeNames)/sizeof(*typeNames));
 	return typeNames[static_cast<unsigned int>(type)];
 }
 
-static bool readImageList(std::vector<std::string>& images, const char* fileName)
+bool isCharInStr(char c, const char* str)
 {
-	std::ifstream stream(fileName);
-	if (!stream.is_open())
+	for (const char* s = str; *s; ++s)
 	{
-		std::cerr << "error: couldn't open image list file '" << fileName << "'" << std::endl;
-		return false;
+		if (c == *s)
+			return true;
 	}
-
-	const unsigned int bufSize = 4096;
-	char buffer[bufSize];
-	while (stream.good())
-	{
-		stream.getline(buffer, bufSize);
-		if (*buffer != 0)
-			images.push_back(buffer);
-	}
-
-	return true;
+	return false;
 }
 
-static bool readSize(int& size, int& i, int argc, const char** argv)
+int readUntilChar(std::string& outString, std::istream& stream, const char* delimiters)
+{
+	do
+	{
+		int c = stream.get();
+		if (c < 0 || isCharInStr(static_cast<char>(c), delimiters))
+			return c;
+
+		outString.push_back(static_cast<char>(c));
+	} while (true);
+}
+
+int readNextToken(
+	std::string& outString, std::istream& stream, const char* delimiters, const char* terminators,
+	int lastDelim = 0, bool append = false)
+{
+	if (append)
+	{
+		// May need to keep the previous delimiter.
+		if (!outString.empty() && lastDelim >= 0 &&
+			!isCharInStr(static_cast<char>(lastDelim), delimiters))
+		{
+			outString.push_back(static_cast<char>(lastDelim));
+		}
+	}
+	else
+		outString.clear();
+	while (stream.good() && lastDelim >= 0 &&
+		!isCharInStr(static_cast<char>(lastDelim), terminators))
+	{
+		lastDelim = readUntilChar(outString, stream, delimiters);
+		if (!outString.empty())
+			return lastDelim;
+	}
+
+	return lastDelim;
+}
+
+bool readSize(int& size, int& i, int argc, const char** argv)
 {
 	if (i >= argc - 1)
 		return false;
@@ -399,7 +477,7 @@ static bool readSize(int& size, int& i, int argc, const char** argv)
 	return true;
 }
 
-static bool readChannel(Image::Channel& channel, char c)
+bool readChannel(Image::Channel& channel, char c)
 {
 	switch (c)
 	{
@@ -428,46 +506,122 @@ static bool readChannel(Image::Channel& channel, char c)
 	}
 }
 
-static bool readFilter(Image::ResizeFilter& filter, int& i, int argc, const char** argv)
+bool readFilter(Image::ResizeFilter& filter, int& i, int argc, const char** argv)
 {
 	if (i >= argc - 1)
 		return false;
 
 	if (strcasecmp(argv[i + 1], "box") == 0)
-	{
 		filter = Image::ResizeFilter::Box;
-		++i;
-		return true;
-	}
 	else if (strcasecmp(argv[i + 1], "linear") == 0)
-	{
 		filter = Image::ResizeFilter::Linear;
-		++i;
-		return true;
-	}
 	else if (strcasecmp(argv[i + 1], "cubic") == 0)
-	{
 		filter = Image::ResizeFilter::Cubic;
-		++i;
-		return true;
-	}
 	else if (strcasecmp(argv[i + 1], "catmull-rom") == 0)
-	{
 		filter = Image::ResizeFilter::CatmullRom;
-		++i;
-		return true;
-	}
 	else if (strcasecmp(argv[i + 1], "b-spline") == 0)
-	{
 		filter = Image::ResizeFilter::BSpline;
-		++i;
-		return true;
-	}
 	else
 		return false;
+
+	++i;
+	return true;
 }
 
-static bool validate(CommandLine& args)
+bool readImageList(std::vector<std::string>& images, const char* fileName)
+{
+	std::ifstream stream(fileName);
+	if (!stream.is_open())
+	{
+		std::cerr << "error: couldn't open image list file '" << fileName << "'" << std::endl;
+		return false;
+	}
+
+	std::string curStr;
+	while (stream.good())
+	{
+		curStr.clear();
+		readUntilChar(curStr, stream, "\n\r");
+		if (!curStr.empty())
+			images.push_back(curStr);
+	}
+
+	return true;
+}
+
+bool readCustomMipList(CommandLine::CustomMipImages& customMipImages, const char* fileName)
+{
+	std::ifstream stream(fileName);
+	if (!stream.is_open())
+	{
+		std::cerr << "error: couldn't open custom mip file '" << fileName << "'" << std::endl;
+		return false;
+	}
+
+	const char* whitespace = "\t\n\v\f\r ";
+	const char* newline = "\n\r";
+	std::string curStr;
+	while (stream.good())
+	{
+		int delim = readNextToken(curStr, stream, whitespace, newline);
+		if (curStr.empty())
+			continue;
+
+		char* endPtr;
+		const char* str = curStr.c_str();
+		std::size_t level = std::strtoul(str, &endPtr, 10);
+		if (endPtr != str + curStr.size())
+		{
+			std::cerr << "error: invalid mip level " << curStr << std::endl;
+			return false;
+		}
+
+		delim = readNextToken(curStr, stream, whitespace, newline, delim);
+
+		std::size_t depth = 0;
+		str = curStr.c_str();
+		std::size_t value = std::strtoul(str, &endPtr, 10);
+		if (endPtr == str + curStr.size())
+		{
+			depth = value;
+			delim = readNextToken(curStr, stream, whitespace, newline, delim);
+		}
+
+		auto face = Texture::CubeFace::PosX;
+		if (strToCubeFace(face, curStr.c_str()))
+			delim = readNextToken(curStr, stream, whitespace, newline, delim);
+
+		auto replace = Texture::MipReplacement::Continue;
+		if (strToMipReplace(replace, curStr.c_str()))
+			delim = readNextToken(curStr, stream, whitespace, newline, delim);
+
+		// Read the rest of the line, should have already gotten the next token up to any
+		// whitespace.
+		readNextToken(curStr, stream, newline, newline, delim, true);
+		if (curStr.empty())
+		{
+
+			std::cerr << "error: no file provided for custom mip level " << level << ", depth " <<
+				depth << ", face "<< faceName(face) << " already provided" <<
+				std::endl;
+			return false;
+		}
+
+		if (!customMipImages.emplace(
+				Texture::ImageIndex(face, static_cast<unsigned int>(level),
+					static_cast<unsigned int>(depth)),
+				CommandLine::CustomMipImage(curStr, replace)).second)
+		{
+			std::cerr << "error: custom mip for level " << level << ", depth " << depth <<
+				", face "<< faceName(face) << " already provided" << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool validate(CommandLine& args)
 {
 	if (args.images.empty())
 	{
@@ -480,7 +634,8 @@ static bool validate(CommandLine& args)
 		case CommandLine::ImageType::Image:
 			if (args.images.size() != 1)
 			{
-				std::cerr << "error: only 1 input image may be provided for a standard texture" << std::endl;
+				std::cerr << "error: only 1 input image may be provided for a standard texture" <<
+					std::endl;
 				return false;
 			}
 			break;
@@ -501,7 +656,8 @@ static bool validate(CommandLine& args)
 		case CommandLine::ImageType::CubeArray:
 			if (args.images.size() % 6 != 0)
 			{
-				std::cerr << "error: a multiple of 6 images must be provided for a cubemap texture" <<
+				std::cerr <<
+					"error: a multiple of 6 images must be provided for a cubemap texture" <<
 					std::endl;
 				return false;
 			}
@@ -587,8 +743,56 @@ static bool validate(CommandLine& args)
 		}
 	}
 
+	if (args.mipLevels <= 1 && !args.customMipImages.empty())
+	{
+		std::cerr << "error: cannot specify custom mip images without generating mipmaps" <<
+			std::endl;
+		return false;
+	}
+
+	auto depth = static_cast<unsigned int>(args.images.size());
+	std::vector<unsigned int> levelDepthCounts;
+	for (const auto& customMip : args.customMipImages)
+	{
+		if (customMip.first.mipLevel == 0)
+		{
+			std::cerr << "error: cannot provide custom mip for level 0" << std::endl;
+			return false;
+		}
+
+		unsigned int thisDepth = depth;
+		if (args.dimension == Texture::Dimension::Dim3D)
+		{
+			thisDepth = std::max(depth >> customMip.first.mipLevel, 1U);
+			if (levelDepthCounts.size() <= customMip.first.mipLevel)
+				levelDepthCounts.resize(customMip.first.mipLevel + 1, 0);
+			++levelDepthCounts[customMip.first.mipLevel];
+		}
+
+		if (customMip.first.depth >= thisDepth)
+		{
+			std::cerr << "error: custom mip depth " << customMip.first.depth <<
+				" out of range for level " << customMip.first.mipLevel << std::endl;
+			return false;
+		}
+	}
+
+	// 3D textures must have either no depths or all depths provided.
+	for (unsigned int i = 0; i < levelDepthCounts.size(); ++i)
+	{
+		unsigned int thisDepth = std::max(depth >> i, 1U);
+		if (levelDepthCounts[i] > 0 && levelDepthCounts[i] != thisDepth)
+		{
+			std::cerr << "error: must provide custom mips for all depths in level " << i <<
+				std::endl;
+			return false;
+		}
+	}
+
 	return true;
 }
+
+} // namespace
 
 bool CommandLine::parse(int argc, const char** argv)
 {
@@ -618,7 +822,7 @@ bool CommandLine::parse(int argc, const char** argv)
 	{
 		if (matches(argv[i], "-j", "--jobs"))
 		{
-			jobs = cuttlefish::Texture::allCores;
+			jobs = Texture::allCores;
 			if (i + 1 < argc)
 			{
 				char* endPtr;
@@ -714,6 +918,8 @@ bool CommandLine::parse(int argc, const char** argv)
 				break;
 			}
 
+			assert(i < argc - 1);
+			++i;
 			if (!images[static_cast<int>(face)].empty())
 			{
 				std::cerr << "error: image for face " << faceName(face) << " already provided" <<
@@ -756,6 +962,8 @@ bool CommandLine::parse(int argc, const char** argv)
 				break;
 			}
 
+			assert(i < argc - 1);
+			++i;
 			if (cubeIndex*6 >= images.size())
 				images.resize((cubeIndex + 1)*6);
 
@@ -833,6 +1041,70 @@ bool CommandLine::parse(int argc, const char** argv)
 			else
 				mipLevels = Texture::allMipLevels;
 			readFilter(mipFilter, i, argc, argv);
+		}
+		else if (matches(argv[i], "-M", "--custom-mip"))
+		{
+			if (i >= argc - 2)
+			{
+				std::cerr << "error: command " << argv[i] << " requires at least 2 arguments" <<
+					std::endl;
+				success = false;
+				break;
+			}
+
+			std::size_t level;
+			if (!readIndex(level, i, argc, argv))
+			{
+				std::cerr << "error: invalid mip level " << argv[i] << std::endl;
+				success = false;
+				break;
+			}
+
+			std::size_t depth = 0;
+			readIndex(depth, i, argc, argv);
+
+			auto face = Texture::CubeFace::PosX;
+			readCubeFace(face, i, argc, argv, true);
+
+			auto replace = Texture::MipReplacement::Continue;
+			readMipReplace(replace, i, argc, argv);
+
+			if (i >= argc - 1)
+			{
+				std::cerr << "error: no file provided for custom mip level " << level <<
+					", depth " << depth << ", face "<< faceName(face) << " already provided" <<
+					std::endl;
+				success = false;
+				break;
+			}
+
+			++i;
+			if (!customMipImages.emplace(
+					Texture::ImageIndex(face, static_cast<unsigned int>(level),
+						static_cast<unsigned int>(depth)),
+					CustomMipImage(argv[i], replace)).second)
+			{
+				std::cerr << "error: custom mip for level " << level << ", depth " << depth <<
+					", face "<< faceName(face) << " already provided" << std::endl;
+				success = false;
+				break;
+			}
+		}
+		else if (std::strcmp(argv[i], "--custom-mip-list") == 0)
+		{
+			if (i == argc - 1)
+			{
+				std::cerr << "error: command " << argv[i] << " requires 1 argument" << std::endl;
+				success = false;
+				break;
+			}
+
+			++i;
+			if (!readCustomMipList(customMipImages, argv[i]))
+			{
+				success = false;
+				break;
+			}
 		}
 		else if (std::strcmp(argv[i], "--flipx") == 0)
 			flipX = true;
@@ -1172,9 +1444,6 @@ bool CommandLine::parse(int argc, const char** argv)
 		success = validate(*this);
 
 	if (!success)
-	{
-		std::cerr << std::endl;
-		printHelp(programName(argv[0]));
-	}
+		std::cerr << "Run " << programName(argv[0]) << " -h for usage." << std::endl;
 	return success;
 }

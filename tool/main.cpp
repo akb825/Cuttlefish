@@ -33,7 +33,12 @@
 
 using namespace cuttlefish;
 
-static unsigned int nextPO2(unsigned int size)
+namespace
+{
+
+constexpr auto unset = static_cast<unsigned int>(-1);
+
+unsigned int nextPO2(unsigned int size)
 {
 	// https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2
 	--size;
@@ -45,7 +50,7 @@ static unsigned int nextPO2(unsigned int size)
 	return ++size;
 }
 
-static unsigned int nearestPO2(unsigned int size)
+unsigned int nearestPO2(unsigned int size)
 {
 	unsigned int next = nextPO2(size);
 	unsigned int prev = next >> 1;
@@ -55,7 +60,7 @@ static unsigned int nearestPO2(unsigned int size)
 	return next - size < size - prev ? next : prev;
 }
 
-static bool isSigned(Texture::Type type)
+bool isSigned(Texture::Type type)
 {
 	switch (type)
 	{
@@ -74,7 +79,7 @@ static bool isSigned(Texture::Type type)
 }
 
 // Intentionally pass by value since the path will be modified.
-static bool createParentDir(std::string path)
+bool createParentDir(std::string path)
 {
 #if CUTTLEFISH_WINDOWS
 	const char* pathSep = "\\/";
@@ -100,8 +105,7 @@ static bool createParentDir(std::string path)
 	} while (true);
 }
 
-static unsigned int getDimension(unsigned int curDim, unsigned int width, unsigned int height,
-	int size)
+unsigned int getDimension(unsigned int curDim, unsigned int width, unsigned int height, int size)
 {
 	switch (size)
 	{
@@ -140,129 +144,185 @@ static unsigned int getDimension(unsigned int curDim, unsigned int width, unsign
 	}
 }
 
-static bool loadImages(std::vector<Image>& images, CommandLine& args)
+bool loadAndProcessImage(Image& image, CommandLine& args, const std::string& path,
+	unsigned int& width, unsigned int& height, unsigned int mipLevel = 0)
 {
-	images.resize(args.images.size());
-	for (std::size_t i = 0; i < args.images.size(); ++i)
+	if (args.log == CommandLine::Log::Verbose)
+		std::cout << "loading image '" << path << "'" << std::endl;
+	if (!image.load(path.c_str(), args.imageColorSpace))
+	{
+		std::cerr << "error: couldn't load image '" << path << "'" << std::endl;
+		return false;
+	}
+
+	if (width == unset && height == unset)
+	{
+		width = getDimension(image.width(), image.width(), image.height(), args.width);
+		height = getDimension(image.height(), image.width(), image.height(), args.height);
+	}
+
+	Image::Format origImageFormat = image.format();
+	if (origImageFormat != Image::Format::RGBAF)
 	{
 		if (args.log == CommandLine::Log::Verbose)
-			std::cout << "loading image '" << args.images[i] << "'" << std::endl;
-		if (!images[i].load(args.images[i].c_str(), args.imageColorSpace))
+			std::cout << "converting image '" << path << "' to RGBAF" << std::endl;
+		image = image.convert(Image::Format::RGBAF);
+	}
+
+	if (args.textureColorSpace != args.imageColorSpace)
+	{
+		if (args.log == CommandLine::Log::Verbose)
 		{
-			std::cerr << "error: couldn't load image '" << args.images[i] << "'" << std::endl;
+			std::cout << "converting image '" << path << "' from sRGB to linear" <<
+				std::endl;
+		}
+		image.changeColorSpace(args.textureColorSpace);
+	}
+
+	// When resizing for a specific mip level, if normalmaps are generated use the original target
+	// size first. This ensures consistent resu.ts for the same normal height value.
+	unsigned int normalWidth = width, normalHeight = height;
+	unsigned int thisWidth = std::max(width >> mipLevel, 1U);
+	unsigned int thisHeight = std::max(height >> mipLevel, 1U);
+	if (!args.normalMap)
+	{
+		normalWidth = thisWidth;
+		normalHeight = thisHeight;
+	}
+	if (normalWidth != image.width() || normalHeight != image.height())
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "resizing image '" << path << "' to " << normalWidth << " x " <<
+				normalHeight << std::endl;
+		}
+		image = image.resize(normalWidth, normalHeight, args.resizeFilter);
+	}
+
+	if (args.rotate)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+			std::cout << "rotating image '" << path << "'" << std::endl;
+		image = image.rotate(args.rotateAngle);
+	}
+
+	if (args.grayscale)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "converting image '" << path << "' to grayscale" <<
+				std::endl;
+		}
+		image.grayscale();
+	}
+
+	if (args.normalMap)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "generating normalmap for image '" << path << "'" <<
+				std::endl;
+		}
+		Image::NormalOptions options = args.normalOptions;
+		if (isSigned(args.type))
+			options |= Image::NormalOptions::KeepSign;
+		image = image.createNormalMap(options, args.normalHeight);
+
+		if (normalWidth != thisWidth || normalHeight != thisHeight)
+			image = image.resize(thisWidth, thisHeight, args.resizeFilter);
+
+		// Image no longer matches the original input.
+		origImageFormat = image.format();
+	}
+
+	if (args.flipX)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "flipping image '" << path << "' along the X axis" <<
+				std::endl;
+		}
+		image.flipHorizontal();
+	}
+
+	if (args.flipY)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "flipping image '" << path << "' along the Y axis" <<
+				std::endl;
+		}
+		image.flipVertical();
+	}
+
+	if (args.swizzle)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+			std::cout << "swizzling image '" << path << "'" << std::endl;
+		image.swizzle(args.redSwzl, args.greenSwzl, args.blueSwzl, args.alphaSwzl);
+	}
+
+	if (args.preMultiply)
+	{
+		if (args.log == CommandLine::Log::Verbose)
+		{
+			std::cout << "pre-multiplying alpha for image '" << path << "'" <<
+				std::endl;
+		}
+		image.preMultiplyAlpha();
+	}
+
+	Texture::adjustImageValueRange(image, args.type, origImageFormat);
+	return true;
+}
+
+bool loadImages(
+	std::vector<Image>& images, Texture::CustomMipImages& customMipImages, CommandLine& args)
+{
+	images.resize(args.images.size());
+	unsigned int width = unset, height = unset;
+	for (std::size_t i = 0; i < args.images.size(); ++i)
+	{
+		if (!loadAndProcessImage(images[i], args, args.images[i], width, height, 0))
+			return false;
+	}
+
+	unsigned int mipLevels = std::min(args.mipLevels,
+		Texture::maxMipmapLevels(args.dimension, width, height,
+			static_cast<unsigned int>(images.size())));
+	for (const auto& customMip : args.customMipImages)
+	{
+		// Didn't have the information to validate this earlier.
+		if (customMip.first.mipLevel >= mipLevels)
+		{
+			std::cerr << "error: level " << customMip.first.mipLevel <<
+				" for custom mip out of range" << std::endl;
 			return false;
 		}
 
-		Image::Format origImageFormat = images[i].format();
-		if (origImageFormat != Image::Format::RGBAF)
+		if (customMip.first.cubeFace != Texture::CubeFace::PosX &&
+			args.dimension != Texture::Dimension::Cube)
 		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "converting image '" << args.images[i] << "' to RGBAF" << std::endl;
-			images[i] = images[i].convert(Image::Format::RGBAF);
+			std::cerr << "error: custom mip cube face used for non-cubemap texture" << std::endl;
+			return false;
 		}
 
-		if (args.textureColorSpace != args.imageColorSpace)
+		Image image;
+		if (!loadAndProcessImage(
+				image, args, customMip.second.image, width, height, customMip.first.mipLevel))
 		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "converting image '" << args.images[i] << "' from sRGB to linear" <<
-					std::endl;
-			}
-			images[i].changeColorSpace(args.textureColorSpace);
+			return false;
 		}
 
-		unsigned int width =
-			getDimension(images[0].width(), images[0].width(), images[0].height(), args.width);
-		unsigned int height =
-			getDimension(images[0].height(), images[0].width(), images[0].height(), args.height);
-
-		if (width != images[i].width() || height != images[i].height())
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "resizing image '" << args.images[i] << "' to " << width << " x " <<
-					height << std::endl;
-			}
-			images[i] = images[i].resize(width, height, args.resizeFilter);
-		}
-
-		if (args.rotate)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "rotating image '" << args.images[i] << "'" << std::endl;
-			images[i] = images[i].rotate(args.rotateAngle);
-		}
-
-		if (args.grayscale)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "converting image '" << args.images[i] << "' to grayscale" <<
-					std::endl;
-			}
-			images[i].grayscale();
-		}
-
-		if (args.normalMap)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "generating normalmap for image '" << args.images[i] << "'" <<
-					std::endl;
-			}
-			Image::NormalOptions options = args.normalOptions;
-			if (isSigned(args.type))
-				options |= Image::NormalOptions::KeepSign;
-			images[i] = images[i].createNormalMap(options, args.normalHeight);
-
-			// Image no longer matches the original input.
-			origImageFormat = images[i].format();
-		}
-
-		if (args.flipX)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "flipping image '" << args.images[i] << "' along the X axis" <<
-					std::endl;
-			}
-			images[i].flipHorizontal();
-		}
-
-		if (args.flipY)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "flipping image '" << args.images[i] << "' along the Y axis" <<
-					std::endl;
-			}
-			images[i].flipVertical();
-		}
-
-		if (args.swizzle)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-				std::cout << "swizzling image '" << args.images[i] << "'" << std::endl;
-			images[i].swizzle(args.redSwzl, args.greenSwzl, args.blueSwzl, args.alphaSwzl);
-		}
-
-		if (args.preMultiply)
-		{
-			if (args.log == CommandLine::Log::Verbose)
-			{
-				std::cout << "pre-multiplying alpha for image '" << args.images[i] << "'" <<
-					std::endl;
-			}
-			images[i].preMultiplyAlpha();
-		}
-
-		Texture::adjustImageValueRange(images[i], args.type, origImageFormat);
+		customMipImages.emplace(customMip.first,
+			Texture::CustomMipImage(std::move(image), customMip.second.replacement));
 	}
 
 	return true;
 }
 
-static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
+bool saveTexture(
+	std::vector<Image>& images, Texture::CustomMipImages customMipImages, const CommandLine& args)
 {
 	unsigned int depth = 0;
 	switch (args.imageType)
@@ -298,8 +358,8 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 			assert(images.size() % 6 == 0);
 			for (unsigned int i = 0; i < images.size(); ++i)
 			{
-				texture.setImage(std::move(images[i]), static_cast<Texture::CubeFace>(i % 6), 0,
-					i/6);
+				texture.setImage(
+					std::move(images[i]), static_cast<Texture::CubeFace>(i % 6), 0, i/6);
 			}
 			break;
 		default:
@@ -310,13 +370,14 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 	{
 		if (args.log == CommandLine::Log::Verbose)
 			std::cout << "generating mipmaps" << std::endl;
-		texture.generateMipmaps(args.mipFilter, args.mipLevels);
+		texture.generateMipmaps(args.mipFilter, args.mipLevels, customMipImages);
+		customMipImages.clear();
 	}
 
 	if (args.log == CommandLine::Log::Verbose)
 		std::cout << "converting texture" << std::endl;
 	if (!texture.convert(args.format, args.type, args.quality, args.alpha, args.colorMask,
-		args.jobs))
+			args.jobs))
 	{
 		std::cerr << "error: failed to convert texture" << std::endl;
 		return false;
@@ -361,6 +422,8 @@ static bool saveTexture(std::vector<Image>& images, const CommandLine& args)
 	return false;
 }
 
+} // namespace
+
 int main(int argc, const char** argv)
 {
 	CommandLine commandLine;
@@ -368,10 +431,11 @@ int main(int argc, const char** argv)
 		return 1;
 
 	std::vector<Image> images;
-	if (!loadImages(images, commandLine))
+	Texture::CustomMipImages customMipImages;
+	if (!loadImages(images, customMipImages, commandLine))
 		return 2;
 
-	if (!saveTexture(images, commandLine))
+	if (!saveTexture(images, customMipImages, commandLine))
 		return 3;
 
 	return 0;

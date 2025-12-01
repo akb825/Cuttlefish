@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,20 @@ struct CommandLine
 		MaxNearestPO2 = -15
 	};
 
+	struct CustomMipImage
+	{
+		CustomMipImage(std::string inImage, cuttlefish::Texture::MipReplacement inReplacement)
+			: image(std::move(inImage)), replacement(inReplacement)
+		{
+		}
+
+		std::string image;
+		cuttlefish::Texture::MipReplacement replacement;
+	};
+
+	using CustomMipImages = std::unordered_map<cuttlefish::Texture::ImageIndex, CustomMipImage,
+		cuttlefish::Texture::ImageIndexHash>;
+
 	bool parse(int argc, const char** argv);
 
 	unsigned int jobs = 1;
@@ -68,6 +82,7 @@ struct CommandLine
 	cuttlefish::Image::ResizeFilter resizeFilter = cuttlefish::Image::ResizeFilter::CatmullRom;
 	unsigned int mipLevels = 1;
 	cuttlefish::Image::ResizeFilter mipFilter = cuttlefish::Image::ResizeFilter::CatmullRom;
+	CustomMipImages customMipImages;
 	bool flipX = false;
 	bool flipY = false;
 	bool rotate = false;

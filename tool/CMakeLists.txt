@@ -392,3 +392,51 @@ add_test(NAME CuttlefishSwizzleInvalidChannel
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} 1 -i texture.png -f R8G8B8A8 -s abcd -o ${nullFile}
 		--file-format pvr)
+
+add_test(NAME CuttlefishCustomMip
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -i texture.png -f R8G8B8A8 -m -M 1 posx.png
+		-o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipList
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -i texture.png -f R8G8B8A8 -m
+		--custom-mip-list custom-mip.txt -o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipMulti
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -i texture.png -f R8G8B8A8 -m -M 1 posx.png
+		--custom-mip 2 once negx.png -o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipCube
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -c +X posx.png -c +Y posy.png -c +Z posz.png -c
+		-x negx.png -c -y negy.png -c -z negz.png -f R8G8B8A8 -m -M 1 +x negx.png -M 1 -x posx.png
+		-M 1 0 +y continue negy.png -M 1 -y once posy.png -M 1 +z negz.png -M 1 -z posz.png
+		-o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipArray
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -a "array 0.png" -a "array 1.png" -a "array 2.png"
+		-f R8G8B8A8 -m -M 1 2 posx.png -o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMip3D
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -a "array 0.png" -a "array 1.png" -a "array 2.png"
+		-a negx.png -f R8G8B8A8 -m -M 1 0 posx.png -M 1 1 posy.png -d 3 -o ${nullFile}
+		--file-format pvr)
+add_test(NAME CuttlefishCustomMipWithoutMipmaps
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 1 -i texture.png -f R8G8B8A8 -M 1 posx.png
+		-o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipInvalidLevel
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 2 -i texture.png -f R8G8B8A8 -m -M 3 posx.png
+		-o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipInvalidDepth
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 1 -a "array 0.png" -a "array 1.png" -a "array 2.png"
+		-f R8G8B8A8 -m -M 1 3 posx.png -o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMipInvalidFace
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 2 -i texture.png -f R8G8B8A8 -m -M 1 +y posx.png
+		-o ${nullFile} --file-format pvr)
+add_test(NAME CuttlefishCustomMip3DIncomplete
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 1 -a "array 0.png" -a "array 1.png" -a "array 2.png"
+		-a negz.png -f R8G8B8A8 -m -M 1 0 posx.png -d 3 -o ${nullFile} --file-format pvr)

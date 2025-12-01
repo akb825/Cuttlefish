@@ -507,6 +507,35 @@ TEST(TextureTest, SetImagesCubeConvert)
 	EXPECT_TRUE(texture.imagesComplete());
 }
 
+TEST(TextureTest, CustomMipImageStorage)
+{
+	Image testImage(Image::Format::RGBAF, 10, 15);
+
+	Texture::CustomMipImage mipImage(Image(testImage), Texture::MipReplacement::Once);
+	EXPECT_TRUE(mipImage.imageStorage.isValid());
+	EXPECT_EQ(&mipImage.imageStorage, mipImage.image);
+
+	Texture::CustomMipImage mipImageCopy(mipImage);
+	EXPECT_TRUE(mipImageCopy.imageStorage.isValid());
+	EXPECT_EQ(&mipImageCopy.imageStorage, mipImageCopy.image);
+
+	Texture::CustomMipImage mipImageMoved(std::move(mipImageCopy));
+	EXPECT_FALSE(mipImageCopy.imageStorage.isValid());
+	EXPECT_TRUE(mipImageMoved.imageStorage.isValid());
+	EXPECT_EQ(&mipImageMoved.imageStorage, mipImageMoved.image);
+
+	mipImageCopy = mipImage;
+	EXPECT_TRUE(mipImageCopy.imageStorage.isValid());
+	EXPECT_EQ(&mipImageCopy.imageStorage, mipImageCopy.image);
+
+	mipImageMoved.image = nullptr;
+	mipImageMoved.imageStorage = Image();
+	mipImageMoved = std::move(mipImageCopy);
+	EXPECT_FALSE(mipImageCopy.imageStorage.isValid());
+	EXPECT_TRUE(mipImageMoved.imageStorage.isValid());
+	EXPECT_EQ(&mipImageMoved.imageStorage, mipImageMoved.image);
+}
+
 TEST(TextureTest, GenerateMipmaps)
 {
 	Texture texture(Texture::Dimension::Cube, 15, 10, 5);
@@ -562,10 +591,12 @@ TEST(TextureTest, GenerateMipmapsCustomMips)
 		{Texture::ImageIndex(1),
 			Texture::CustomMipImage(greenImage, Texture::MipReplacement::Continue)},
 		{Texture::ImageIndex(2),
-			Texture::CustomMipImage(blueImage, Texture::MipReplacement::Once)},
+			Texture::CustomMipImage(std::move(blueImage), Texture::MipReplacement::Once)},
 		{Texture::ImageIndex(3),
 			Texture::CustomMipImage(redImage, Texture::MipReplacement::Once)},
 	};
+
+	EXPECT_FALSE(blueImage.isValid());
 
 	EXPECT_TRUE(texture.generateMipmaps(
 		Image::ResizeFilter::Box, Texture::allMipLevels, mipImages));

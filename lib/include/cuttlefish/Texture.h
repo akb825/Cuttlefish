@@ -323,10 +323,13 @@ public:
 	/**
 	 * @brief Structure for a custom image to inject when generating mipmaps.
 	 */
-	struct CustomMipImage
+	struct CUTTLEFISH_EXPORT CustomMipImage
 	{
 		/**
 		 * @brief Constructs the mip image.
+		 *
+		 * Use this constructor if you wish to use an image externally stored.
+		 *
 		 * @param inImage The image to replace with.
 		 * @param inReplacement How to replace the image further down the mip chain.
 		 */
@@ -334,6 +337,45 @@ public:
 			: image(&inImage), replacement(inReplacement)
 		{
 		}
+
+		/**
+		 * @brief Constructs the mip image, transferring the image to this.
+		 *
+		 * Use this constructor if you don't otherwise need to store the image for other purposes.
+		 *
+		 * @param inImage The image to replace with.
+		 * @param inReplacement How to replace the image further down the mip chain.
+		 */
+		CustomMipImage(Image&& inImage, MipReplacement inReplacement)
+			: image(&imageStorage), replacement(inReplacement), imageStorage(std::move(inImage))
+		{
+		}
+
+		/**
+		 * @brief Copy constructor.
+		 * @param other The other value to copy.
+		 */
+		CustomMipImage(const CustomMipImage& other);
+
+		/**
+		 * @brief Move constructor.
+		 * @param other The other value to copy.
+		 */
+		CustomMipImage(CustomMipImage&& other);
+
+		/**
+		 * @brief Copy assignment operator.
+		 * @param other The other value to copy.
+		 * @return A reference to this.
+		 */
+		CustomMipImage& operator=(const CustomMipImage& other);
+
+		/**
+		 * @brief Move assignment operator.
+		 * @param other The other value to move.
+		 * @return A reference to this.
+		 */
+		CustomMipImage& operator=(CustomMipImage&& other);
 
 		/**
 		 * @brief A pointer to the image to replace with.
@@ -344,6 +386,11 @@ public:
 		 * @brief How to replace the image further down the mip chain.
 		 */
 		MipReplacement replacement;
+
+		/**
+		 * @brief Storage when an image isn't otherwise shared.
+		 */
+		Image imageStorage;
 	};
 
 	/**
