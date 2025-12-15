@@ -1,6 +1,11 @@
 file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(cuttlefish ${sources})
 
+if (WIN32)
+	configure_file(cuttlefish.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/cuttlefish.manifest @ONLY)
+	target_sources(cuttlefish PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/cuttlefish.manifest)
+endif()
+
 target_link_libraries(cuttlefish PRIVATE Cuttlefish::lib)
 
 cfs_set_folder(cuttlefish)
@@ -35,6 +40,10 @@ add_test(NAME CuttlefishSaveKtx
 add_test(NAME CuttlefishSavePvr
 	WORKING_DIRECTORY ${testPath}
 	COMMAND ${commandPath} ${cuttlefishPath} 0 -i texture.png -f R8G8B8A8 -o ${nullFile}
+		--file-format pvr)
+add_test(NAME CuttlefishUnicode
+	WORKING_DIRECTORY ${testPath}
+	COMMAND ${commandPath} ${cuttlefishPath} 0 -i 地.png -f R8G8B8A8 -o ${nullFile}
 		--file-format pvr)
 add_test(NAME CuttlefishSaveUnknownFileType
 	WORKING_DIRECTORY ${testPath}
