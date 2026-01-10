@@ -289,6 +289,8 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 			hasAlpha = true;
 	}
 
+	std::uint8_t colorBlock[blockPixels][4];
+	toColorBlock(colorBlock, blockColors);
 	if (hasAlpha)
 	{
 		float weights[3];
@@ -324,13 +326,10 @@ void Bc1AConverter::compressBlock(void* block, ColorRGBAf* blockColors)
 			weights[2] = 0.0f;
 
 		squish::Compress(
-			reinterpret_cast<std::uint8_t*>(blockColors), block, m_squishFlags, weights);
+			reinterpret_cast<std::uint8_t*>(colorBlock), block, m_squishFlags, weights);
 	}
 	else
 	{
-		std::uint8_t colorBlock[blockPixels][4];
-		toColorBlock(colorBlock, blockColors);
-
 		// Allow 3-color mode, but can't use black for 3-color since it will be treated as
 		// transparent.
 		rgbcx::encode_bc1(m_qualityLevel, block, reinterpret_cast<std::uint8_t*>(colorBlock), true,
