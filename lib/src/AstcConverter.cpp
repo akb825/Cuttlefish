@@ -57,7 +57,7 @@ public:
 		}
 
 		astcenc_context* context = nullptr;
-		astcenc_context_alloc(&config, 1, &context);
+		astcenc_context_alloc(&config, 1, &context, nullptr);
 		assert(context);
 		return context;
 	}
