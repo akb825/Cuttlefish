@@ -2,6 +2,7 @@
 .DS_Store
 .cmake
 .idea
+.qtcreator
 .vscode
 *.swp
 *.user
